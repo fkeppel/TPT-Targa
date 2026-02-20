@@ -1,0 +1,4 @@
+#!/bin/bash
+curl -x 10.254.0.1:8080 --insecure  https://tpt-dev.ad.targa.de/bg-l2spo >> /home/fkeppel/logs/bg-ls2spo.log
+echo "-------------------------------------------" >> /home/fkeppel/logs/bg-ls2spo.log
+
