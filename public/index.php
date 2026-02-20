@@ -1,6 +1,4 @@
 <?php
-
-
 /**
  * Laravel - A PHP Framework For Web Artisans
  *
@@ -18,11 +16,8 @@
   | loading of any our classes "manually". Feels great to relax.
   |
  */
-
-//phpinfo();exit;
-
+ //phpinfo();exit;
 require __DIR__ . '/../bootstrap/autoload.php';
-
 /*
   |--------------------------------------------------------------------------
   | Turn On The Lights
@@ -34,13 +29,9 @@ require __DIR__ . '/../bootstrap/autoload.php';
   | the responses back to the browser and delight these users.
   |
  */
-
 $app = require_once __DIR__ . '/../bootstrap/start.php';
-
 //ini_set('display_errors', '1');
 //error_reporting(E_ALL);
-
-
 /*
   |--------------------------------------------------------------------------
   | Run The Application
@@ -52,7 +43,4 @@ $app = require_once __DIR__ . '/../bootstrap/start.php';
   | and wonderful application we have whipped up for them.
   |
  */
-
-
 $app->run();
-

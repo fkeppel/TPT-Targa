@@ -11,7 +11,7 @@ app/storage/meta
 Archive
 tmp
 public/data
-.vscode
+.vscode/
 public/TPT2024/
 app/views_X/
 public/tpt-dev.ad.targa.de.crt

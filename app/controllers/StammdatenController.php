@@ -318,7 +318,7 @@ class StammdatenController extends \BaseController {
     public function destroy($id) {
         //
     }
-public function getFormZoll() {
+    public function getFormZoll() {
         //
         if (Auth::user()->PPMitarbeiter_Role === null || (strpos(Auth::user()->PPMitarbeiter_Role,'ZOLL') === false and Auth::user()->PPMitarbeiter_Gruppe != 'admin')) {
             echo( 'Keine Berechtigung!');

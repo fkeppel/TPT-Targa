@@ -1,5 +1,7 @@
 <?php
+
 return array(
+
 	/*
 	|--------------------------------------------------------------------------
 	| Default Queue Driver
@@ -12,7 +14,9 @@ return array(
 	| Supported: "sync", "beanstalkd", "sqs", "iron", "redis"
 	|
 	*/
+
 	'default' => 'sync',
+
 	/*
 	|--------------------------------------------------------------------------
 	| Queue Connections
@@ -23,16 +27,20 @@ return array(
 	| for each back-end shipped with Laravel. You are free to add more.
 	|
 	*/
+
 	'connections' => array(
+
 		'sync' => array(
 			'driver' => 'sync',
 		),
+
 		'beanstalkd' => array(
 			'driver' => 'beanstalkd',
 			'host'   => 'localhost',
 			'queue'  => 'default',
 			'ttr'    => 60,
 		),
+
 		'sqs' => array(
 			'driver' => 'sqs',
 			'key'    => 'your-public-key',
@@ -40,6 +48,7 @@ return array(
 			'queue'  => 'your-queue-url',
 			'region' => 'us-east-1',
 		),
+
 		'iron' => array(
 			'driver'  => 'iron',
 			'host'    => 'mq-aws-us-east-1.iron.io',
@@ -48,11 +57,14 @@ return array(
 			'queue'   => 'your-queue-name',
 			'encrypt' => true,
 		),
+
 		'redis' => array(
 			'driver' => 'redis',
 			'queue'  => 'default',
 		),
+
 	),
+
 	/*
 	|--------------------------------------------------------------------------
 	| Failed Queue Jobs
@@ -63,7 +75,11 @@ return array(
 	| have failed. You may change them to any database / table you wish.
 	|
 	*/
+
 	'failed' => array(
+
 		'database' => 'mysql', 'table' => 'failed_jobs',
+
 	),
+
 );

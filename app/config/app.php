@@ -1,23 +1,6 @@
 <?php
 error_reporting(E_ALL ^ E_DEPRECATED);
 return array(
-    /*******
-     * Parametr für die Verbindung mit SPO Targagmbh
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     */
-    'SPOTEST'             => 124,
-    'SPO_siteUrl'         => "https://targagmbh.sharepoint.com/sites/TPTStorage",
-    'SPO_siteUrlChina'         => "https://targagmbh.sharepoint.com/sites/TPTStorageChina",
-    'SPO_tenant'          => "targagmbh.onmicrosoft.com", 
-    'SPO_thumbprint'      => "0AE89B709806C518D50E1651C2B047A21C582A1A",
-    'SPO_clientId'        => "bf7658a4-b690-4934-bd74-9b4da3c60ae9",
-    'SPO_privateKeyPath'  => '/var/www/targa/app/storage/data/Certs/private.key.pem', 
-    'SPO_privateKeyPwd'   => 'TARGA',
     /*
       |--------------------------------------------------------------------------
       | Application Debug Mode
@@ -28,7 +11,7 @@ return array(
       | application. If disabled, a simple generic error page is shown.
       |
      */
-     'cEnv' => 'production',
+     'cEnv' => 'Develop',
      'debug' => true,
     /*
       |--------------------------------------------------------------------------
@@ -40,7 +23,7 @@ return array(
       | your application so that it is used when running Artisan tasks.
       |
      */
-    'url' => 'https://tpt-dev.ad.targa.de/',
+    'url' => 'http://dev.ad.targa.de/',
     /*
       |--------------------------------------------------------------------------
       | Application Timezone

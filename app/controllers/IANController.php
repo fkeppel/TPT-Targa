@@ -6,7 +6,7 @@ class IANController extends \BaseController {
     var $lang;
     var $pc;
     public function __construct() {
-        // 
+        //
         $this->init = 1;
         $this->ppid = 0;
         if (! isset($_COOKIE['TPTLanguage'])){
@@ -121,13 +121,6 @@ class IANController extends \BaseController {
         }
         return false;
     }
-    private function getDataMany ($table, $keycol, $id){
-        $res = $table::where($keycol,$id)->get();
-        if ($res){
-            return $res;
-        }
-        return false;
-    }
     private function getDataAll ($table, $qrycol, $qry, $order = 1){
         $res = $table::where($qrycol,$qry)->orderBy($order)->get();
         if ($res){
@@ -145,7 +138,6 @@ class IANController extends \BaseController {
         $pp = $this->getPP($ppid);
         $ec = new EmbargoController();
         $embargo = $ec->getEmbargo($ppid);
-        //$order = $this->pc->getOrder_Targaview($ppid);
         cpcDebug::cpc_debug($embargo, '@Embargo');
         return  View::make('ian.auftragsinfo')->with('data', array('pp' => $pp, 'lang' => $this->lang, 'embargo' => $embargo));
     }
@@ -277,17 +269,14 @@ class IANController extends \BaseController {
         $InpMan = null;
         $InpManVersions = null;
         $InpManVersionsRemark = null;
-        $InpManVersionsIsFinal = null;
         $InpManCompare = null;
         $InpContainer = null;
         $FileProtokoll = $this->pc->getFileProtokoll($ppid);
-        $mitarbeiter = $this->pc->getMitarbeiter();
         if (!is_null($InpMan1)) {
             ////cpcDebug::cpc_debug($InpMan,'@T03');
             $InpMan = $InpMan1['InpMan'];
-            $InpManVersions = $InpMan1['Versions']; 
+            $InpManVersions = $InpMan1['Versions'];
             $InpManVersionsRemark = $InpMan1['VersionsRemark'];
-            $InpManVersionsIsFinal = $InpMan1['VersionsIsFinal']; 
             $InpManCompare = $InpMan1['Compare'];
             $InpContainer = $InpMan1['Container'];
         } else {
@@ -295,17 +284,15 @@ class IANController extends \BaseController {
         }
         $MengeMenge = $this->pc->getMengeMenge($ppid);
         $data = array(  
-                        'pp'                    => $pp, 
-                        'lang'                  => $this->lang,
-                        'InpMan'                => $InpMan,
-                        'InpManVersions'        => $InpManVersions,
+                        'pp'              => $pp, 
+                        'lang'            => $this->lang,
+                        'InpMan'          => $InpMan,
+                        'InpManVersions'  => $InpManVersions,
                         'InpManVersionsRemark'  => $InpManVersionsRemark,
-                        'InpManVersionsIsFinal' => $InpManVersionsIsFinal,
-                        'InpManCompare'         => $InpManCompare,
-                        'InpContainer'          => $InpContainer,
-                        'FileProtokoll'         => $FileProtokoll,
-                        'MengeMenge'            => $MengeMenge,
-                        'Mitarbeiter'           => $mitarbeiter
+                        'InpManCompare'   => $InpManCompare,
+                        'InpContainer'    => $InpContainer,
+                        'FileProtokoll'   => $FileProtokoll,
+                        'MengeMenge'      => $MengeMenge
         );
         return  View::make('ian.service')->with('data', $data);
     }
@@ -398,7 +385,7 @@ class IANController extends \BaseController {
     }
     public function updatePPAjax()
     {
-        cpcDebug::cpc_debug('updatePPAjax', '@T18A');
+        //cpcDebug::cpc_debug('updatePPAjax', '@T18A');
         $input = Input::all();
         $id = $input['PPProduktpass_Id']; 
         $pp = tPPProduktpass::find($id);
@@ -461,7 +448,7 @@ class IANController extends \BaseController {
         $pp->PPProduktpass_IsCriticalProject = $input['PPProduktpass_IsCriticalProject'];
         $this->setCriticalProject($pp->PPProduktpass_PPProjekte_Projekt, $input['PPProduktpass_IsCriticalProject']);
         $pp->save();
-        cpcDebug::cpc_debug('updatePPAjax Save Ende', '@T18A');
+        //cpcDebug::cpc_debug('updatePPAjax Save Ende', '@T18A');
         return json_encode(array('Result' => 'OK'));
     }
     public function mailCompare($ppid, $fid,  $pmailto = ''){
@@ -650,35 +637,4 @@ class IANController extends \BaseController {
         }
         return $ret;
     }
-    public function translateLive(){
-        $lang = 'EN';
-        $text = Input::get('text'); 
-        $translated = ServiceProvider::tl($lang, $text);
-        echo( $translated );    
-    }
-    public function saveRemarkVersion(){
-        $id = Input::get('id');
-        $remark = Input::get('VersionRemark'); 
-        $man = PPInputManuell::find($id);
-        if ($man){
-            $man->PPInputManuell_VersionRemark = $remark;
-            $man->save();
-        }
-        return json_encode( array('Result' => 'OK') );
-    }
-    public function saveIsFinal(){
-        $id = Input::get('id');
-        $isFinal = Input::get('isFinal'); 
-        $man = PPInputManuell::find($id);
-        if ($man){
-            $manFinal = PPInputManuell::where('PPInputManuell_PPProduktpass_Id', $man->PPInputManuell_PPProduktpass_Id)->where('PPInputManuell_IsFinal', 1)->get()->first();
-            if ($manFinal){
-                $manFinal->PPInputManuell_IsFinal = 0;
-                $manFinal->save();
-            }
-            $man->PPInputManuell_IsFinal = $isFinal;
-            $man->save();
-        }
-        return json_encode( array('Result' => 'OK') );
-    }
-}    
+}

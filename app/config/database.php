@@ -46,7 +46,7 @@ return array(
         'mysql' => array(
             'driver' => 'mysql',
             'host' => 'localhost',
-            'database' => 'targaTPT',
+            'database' => 'TPTDev2025',
             'username' => 'dbadmin',
             'password' => 'Targa2022#,.',
             'charset' => 'utf8',

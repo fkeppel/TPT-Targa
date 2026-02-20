@@ -12,21 +12,6 @@
     <div class="label">{{ ServiceProvider::tl($data['lang'], 'EUDR Relevanz') }}</div>
     <div class="value">{{ ServiceProvider::tl($data['lang'],$data['tOrder']['order']->PPOrder_EUDR??'') }}</div>
 </div>
-<h5 class='header1'>{{ ServiceProvider::tl($data['lang'], 'EU Data Act')}}</h5>
-<div id='IANTableContainerAuftragsabwicklung' style='padding-left:30px;'>
-    <div class="label">{{ ServiceProvider::tl($data['lang'], 'EU Data Act') }}</div>
-    <?php 
-        $euDataAct = 2;
-        if (isset($data['tOrder']['order']->PPOrder_euDataAct)) {
-            if ($data['tOrder']['order']->PPOrder_euDataAct == 'true') {
-                $euDataAct = 1;
-            } else {
-                $euDataAct = 0;
-            }
-        } 
-    ?>
-    <div class="value">@if ($euDataAct < 2)<input class="tgCheckbox" type="checkbox" @if ($euDataAct == 1) checked @endif  disabled> @endif</div>
-</div>
 <h5 class='header1'>{{ ServiceProvider::tl($data['lang'], 'Zollrechtliches Nettostückgewicht')}}</h5>
 <div style="padding-left:30px; margin-bottom:30px;">
     <table style="font-size: 0.8em;border-collapse:collapse;">

@@ -10,12 +10,11 @@
   |
  */
 //Route::get('/', 'ProjectController@index');
+
+use PhpOffice\PhpSpreadsheet\Reader\Xls\RC4;
 ini_set('default_charset', 'utf-8');
 ini_set('memory_limit', '2000M');
 set_time_limit(360);
-Route::get('timezone', function () {
-    echo(date_default_timezone_get());
-});
 Route::get('bg-l2spo', 'UploadController@moveLocal2Spo');
 Route::get('/', function () {
     $data['env'] = Config::get('app.cEnv');
@@ -117,7 +116,6 @@ Route::group(array('before' => 'auth'), function () {
     Route::get('terminDashboard', 'TermineController@getTermineDashboard');
     Route::post('testAjax', 'TermineController@testAjax');
     Route::get('addTS', 'TermineController@ergaenzeNeueTerminspalten');
-    Route::get('repairTermine', 'TermineController@ergaenzeNeueTerminspalten');
     Route::post('drop', 'ProjectsController@updateThema');
     Route::get('terminedetails/{id?}', 'TermineController@show');
     Route::post('termineupdate/{id?}/{form?}', 'TermineController@update');
@@ -248,7 +246,6 @@ Route::group(array('before' => 'auth'), function () {
     Route::get('downloadRFQn/{ppid}/{type}', 'ExcelController@writeRFQ202403');
     Route::get('deleteIANSave',  'ProjectsController@deleteIANSave');
     Route::get('uploadMultiZipForm', 'XMLController@uploadMultiZipForm');
-    Route::get('uploadZipProgressForm', 'XMLController@uploadZipProgressForm');
     Route::post('uploadMassenImport', 'XMLController@uploadMassenImport');
     Route::post('updateFilesCompact', 'UploadController@updateFilesCompact');
     Route::get('upl2spo', function () {
@@ -289,8 +286,7 @@ Route::group(array('before' => 'auth'), function () {
     Route::any('showFilesAll', 'ProjectsController@showFilesAll');
     Route::post('updateMeeting', 'MeetingController@update');
     Route::get('getFormUploadPruefplaene','UploadController@getFormUploadPruefplaene');
-    //Route::post('uploadMassenPruefplaene','UploadController@uploadMassenPruefplaene');
-    Route::post('uploadMassenPruefplaene','UploadController@uploadMassenPruefplaeneBatch');
+    Route::post('uploadMassenPruefplaene','UploadController@uploadMassenPruefplaene');
     Route::get('/suc', function () {
         $res[] = array('Filename' => 'Das Ist eine Dateiname.pdf', 'Link' => 'https://google.de', 'Status' => 'OK', 'Color' => 'dodgerblue');
         return View::make('UploadForms.successUploadPruefplaene')->with('result', $res);
@@ -307,7 +303,6 @@ Route::group(array('before' => 'auth'), function () {
     Route::post('updateMeetingAjax', 'MeetingController@updateMeetingAjax');
     Route::post('updatePPAjax', 'IANController@updatePPAjax');
     Route::post('updateRemarkFilesAjax', 'UploadController@updateRemarkFilesAjax');
-    Route::post('updateProjektPicAjax', 'UploadController@updateProjektPicAjax');
     Route::get('ergaenzeNeueTerminspaltenTest', 'TermineController@ergaenzeNeueTerminspaltenTest');
     //Alt Input
     Route::post('InputManuellInit', 'ProjectsController@InputManuellInit');
@@ -336,25 +331,11 @@ Route::group(array('before' => 'auth'), function () {
     Route::get('spo5', 'Office365Controller@test5');
     Route::get('spoOK1', 'Office365Controller@logintest');
     Route::get('spoCertOK', 'SPOLoginController@test9');
-    Route::get('correctState', 'TermineController@correctState');
     Route::get('Zoll', 'StammdatenController@getFormZoll');
     Route::put('updateZoll/{id}', 'StammdatenController@updateZoll');
     Route::post('createZoll', 'StammdatenController@createZoll');
     Route::post('deleteZoll/{id}', 'StammdatenController@deleteZoll');
-    Route::get('massTranslate', 'TermineController@massTranslateMilesones');
-    Route::post('translateLive', 'IANController@translateLive');
-    Route::post('saveRemarkVersion', 'IANController@saveRemarkVersion');
-    Route::post('saveIsFinal', 'IANController@saveIsFinal');
-    Route::post('moveFileFrom',  'Office365Controller@moveFilesSPO' );
-    Route::get('so/{filter?}', 'ShipmentOverviewController@showSO');
-    Route::get('ship/{filter?}', 'ShipmentOverviewController@showShip');
-    Route::post('cellupdate','ShipmentOverviewController@cellUpdate'); 
-    Route::get('fileCHN', 'Office365Controller@fileExistCheck' );
-    Route::post('projektbildCheck', 'Office365Controller@projektbildCheck' );    
-    Route::post('projektbildRepair', 'Office365Controller@projektbildRepair');
-    Route::get('dlSPO', 'Office365Controller@dlSPO' );
-    Route::get('frmSystem', 'SystemController@getFormSystem' );
-    Route::get('testMove', 'Office365Controller@testMove' );
-    Route::post('saveLot','ShipmentOverviewController@saveLot'); 
-    Route::post('deleteLot','ShipmentOverviewController@deleteLot'); 
-    });
+    Route::post('calcMS','MasterplanController@calcMS');
+    Route::post('kmssave','MasterplanController@kmssave');
+    Route::get('testMP/{id}','MasterplanController@debugTestAllDates');
+});

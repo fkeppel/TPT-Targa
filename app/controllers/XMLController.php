@@ -810,16 +810,9 @@ class XMLController extends BaseController
         } else {
             cpcDebug::cpc_debug("PP zu $ppid nicht gefunden!");
         }
-        cpcDebug::cpc_debug("w: $m Y: $y PPID: $ppid MinLT: $minlt", "-MinLT");
+        cpcDebug::cpc_debug("w: $m Y: $y PPID: $ppid MinLT: $minlt");
         $mengen_count = PPProduktpass_Menge::where('PPProduktpass_Menge_PPProduktpass_Id', "=", $ppid)->whereNotNull('PPProduktpass_Menge_DeliveryWeek')->count();
         if ($mengen_count ==  0) {
-            $pp = tPPProduktpass::where("PPProduktpass_Id", $ppid)->get()->first();
-            $ltThema = $this->calcTempLT($pp, false);
-            if (!is_null($ltThema) ){
-                $m = $ltThema['Woche'];
-                $y = $ltThema['Jahr'];
-            }
-             cpcDebug::cpc_debug("LT aus Thema  w: $m Y: $y PPID: $ppid ", "-MinLT");
             return array($m, $y);
         }
         $mengen = PPProduktpass_Menge::where('PPProduktpass_Menge_PPProduktpass_Id', "=", $ppid)->get();
@@ -1003,7 +996,6 @@ class XMLController extends BaseController
         return false;
     }
     public function newTermine($id){
-        cpcDebug::cpc_debug("New Termine für PPId: $id", '-NewTermine');
         $spalten = DB::table('PPBoardSpalteData')->where("PPBoardSpalte_Id", ">=", 1000)->get();
         $pp = tPPProduktpass::where('PPProduktpass_Id', $id)->get()->first();
         $pm = PPMitarbeiter::where('PPMitarbeiter_Taetigkeit', '=', 'PM')->where('PPMitarbeiter_isDefault', '=', 1)->get()->first();
@@ -1018,7 +1010,7 @@ class XMLController extends BaseController
             if ($pjm){
                 $pp->PPProduktpass_PJMAdmin = $pjm->PPMitarbeiter_Id;
             } else {
-                $pp->PPProduktpass_PMAdmin = $pm->PPMitarbeiter_Id;
+                $pp->PPProduktpass_PJMAdmin = $pm->PPMitarbeiter_Id;
             }
             if ($isUSOrder){
                 $pp->PPProduktpass_IsUSA     = 1;
@@ -1045,7 +1037,6 @@ class XMLController extends BaseController
                 }
                 $termin->PPTermine_PPBoardSpalte_id = $spalte->PPBoardSpalte_Id;
                 $termin->PPTermine_MAZustaendigkeit = $spalte->PPBoardSpalte_DefaultMA;
-                //cpcDebug::cpc_debug("Eingetragen für PPId $id: Spalte: ".$spalte->PPBoardSpalte_Bezeichnung. " Art: ". $spalte->PPBoardSpalteData_Kind. " MA: " . $termin->PPTermine_MAZustaendigkeit, '-NewTermine');
                 $termin->save();
             }
         }
@@ -1123,10 +1114,6 @@ class XMLController extends BaseController
     private function uploadFile($ppid, $f, $subcat){
         $files                             = new PPPPFiles();
         $files->PPPPFiles_Name             = $f;
-        $fn_remark = $f;
-        if (strlen($f) > 7){
-            $fn_remark = substr($f,7 );
-        }
         $files->PPPPFiles_PPProduktpass_Id = $ppid;
         $files->PPPPFiles_Type             = "PPUpload";
         $files->PPPPFiles_Pfad             = "uploads";
@@ -1134,7 +1121,7 @@ class XMLController extends BaseController
         $files->PPPPFiles_Date             = date("Y-m-d H:i:s");
         $files->PPPPFiles_UserCreate       = Auth::getUser()->id;
         $files->PPPPFiles_LocalUpload      = 1;
-        $files->PPPPFiles_Description      = "$fn_remark".PHP_EOL."Import: " . date("Y-m-d H:i:s");
+        $files->PPPPFiles_Description      = "$f".PHP_EOL."Import: " . date("Y-m-d H:i:s");
         $files->save();
         if ($subcat == 'Projektbild') {
             $pp  = tPPProduktpass::where("PPProduktpass_Id", "=", $ppid)->get()->first();
@@ -1589,10 +1576,9 @@ class XMLController extends BaseController
         }
         return $email;
     }
-    private function viewSuccessImport($ppid, $mailto = '' ){
+    private function viewSuccessImport($ppid, $mailto = ''){
         if ($ppid) {
             $pp = tPPProduktpass::find($ppid);
-            $emailLang = $this->getMitarbeiterLanguageFromEmail($mailto);
             $message = '';
             $server = 'https://' . $_SERVER['SERVER_NAME'];
             $ian = $pp->PPProduktpass_IAN;
@@ -1602,19 +1588,12 @@ class XMLController extends BaseController
             $changeQty = false;
             if ($pp->PPProduktpass_RevisionVon_PPProduktpass_Id !== 0) {
                 $message         = "<b>Die Datei wurde erfolgreich importiert!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link zum Produktpass.</a><br><br>" . "<h3>Änderungen zur Vorversion</h3><br><br>";
-                if ($emailLang != 'DE'){
-                    $message         = "<b>File imported succsessfully!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link to Productpass.</a><br><br>" . "<h3>Changes to prvious Version</h3><br><br>";
-                }
                 $data['content'] = '';
                 if (strlen($pp->PPProduktpass_Ausmusterungnummer) > 4) {
                     $data['content'] = $this->compareXML($ppid, "LATEST", $message, false, true);
                 } 
                 $subject         = "[TPT] Produktpass IAN $ian $ausm $bez wurde neu eingelesen";
-                $message         = "<b>Die Datei wurde erfolgreich importiert!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link zum Produktpass....</a><br><br>";
-                if ($emailLang != 'DE'){
-                    $subject         = "[TPT] Productpass IAN $ian $ausm ". ServiceProvider::translateDirect($bez) . " imported new ";
-                    $message         = "<b>File imported succsessfully!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link to Productpass....</a><br><br>";
-                }
+                $message = "<b>Die Datei wurde erfolgreich importiert!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link zum Produktpass..</a><br><br>";
                 $body =  $data['content']; //$this->compareXML($ppid, "LATEST", $message);
                 $_diffs= '';
                 if (strlen($pp->PPProduktpass_Ausmusterungnummer) > 4){
@@ -1625,11 +1604,6 @@ class XMLController extends BaseController
                 $data['content'] = "<b>Die Datei wurde erfolgreich importiert!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link zum Produktpass...</a><br><br>";
                 $subject = "[TPT] Produktpass IAN $ian $ausm $bez wurde eingelesen";
                 $body = "<b>Die Datei wurde erfolgreich importiert!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link zum Produktpass....</a><br><br>";
-                if ($emailLang != 'DE'){
-                    $data['content'] = "<b>File imported succsessfully!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link to Productpass....</a><br><br>";
-                    $subject = "[TPT] Productpass IAN $ian $ausm ". ServiceProvider::translateDirect( $bez )." improted!";
-                    $body = "<b>File imported succsessfully!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link to Productpass....</a><br><br>";
-                }
             }
             //cpcDebug::cpc_debug('Sollte Importeur sein: '.$mailto, '!FKE');
             if (strlen($mailto) > 3) {
@@ -1669,45 +1643,26 @@ class XMLController extends BaseController
                         //$cc1[] = 'k.keppel@compecon.de';
                         //$cc1[] = 'info@compecon.de';
                     }
-                     if ($status == 'FIX') {
-                        $cc1[] = 'stefan.hinzmann@targa.de';
-                     }
                 }
                 if ($mailto == 'f.keppel@compecon.de') {
                     $cc1 = array();
                 }
-                //$mailLang 
-                $sendtMailSuppress = false;
-                $value = Input::get('mailSuppress');
-                if (is_string($value)) {
-                    $value = strtolower(trim($value));
-                    if (in_array($value, array('on', '1', 'true', 'yes'), true)) {
-                        $sendtMailSuppress = true;
-                    }
-                }
-                if (! $sendtMailSuppress){
-                    $mail->sendMail($mailto, $cc1, $subject, $body);
-                } 
+                $mail->sendMail($mailto, $cc1, $subject, $body);
             }
         } else {
             $message         = "<b>Fehler beim einlesen der Datei!!<b><br><br><a href='/uploadForm/0'>Neu einlesen</a>";
             $data['content'] = $message;
         }
-        if (! $sendtMailSuppress){
-            $data['content'] .=  "<div style='text-align:left;padding:10px;'>Mails an: $mailto <br>";
-            foreach ($cc1 as $m) {
-                $data['content'] .= "   + $m <br>";
-            }
-            $data['content'] .=  "</div>";
-        } else {
-            $data['content'] .=  "<div style='text-align:left;padding:10px;'><b>Hinweis:</b> Der Import wurde mit Mailversand unterdrückt.<br>Wenn Sie eine Mail erhalten möchten, bitte den Haken bei 'Mailsenden' setzen.<br></div>";
+        $data['content'] .=  "<div style='text-align:left;padding:10px;'>Mails an: $mailto <br>";
+        foreach ($cc1 as $m) {
+            $data['content'] .= "   + $m <br>";
         }
+        $data['content'] .=  "</div>";
         return View::make('main', $data);
     }
     private function savePrevPP($ppid_alt){
         //sichert die Version
         //echo("savePrevPP PID: $ppid_alt<br>");
-        cpcDebug::cpc_debug("savePrevPP PID: $ppid_alt", '-T261');
         $pp = tPPProduktpass::Where('PPProduktpass_Id', "=", $ppid_alt)->orderBy("PPProduktpass_Id", "desc")->get()->first();
         if (!$pp) {
             echo ("Fehler beim Importieren <br>");
@@ -1739,10 +1694,7 @@ class XMLController extends BaseController
             $pp->PPProduktpass_RevisionAktuell = $errRev;
             $pp->save();
         }
-        $res = array('Result' => true, 'InternerStatus' =>  $pp->InternerStatus);
-        cpcDebug::cpc_debug($res, '-T261');
-        cpcDebug::cpc_debug("savePrevPP Ende", '-T261');
-        return $res;
+        return array('Result' => true, 'InternerStatus' =>  $pp->InternerStatus);
     }
     private function moveFile($file, $dest){
         if ($dest == "UPLOAD") {
@@ -2370,14 +2322,13 @@ class XMLController extends BaseController
             }
         }
     }
-    private function _importXML($input_file, $bForce = false, $bfinal = false, $zipInfos = null, $pInternerStatus = 'PLAN', $mailto = 'f.keppel@compecon.de', $returnPPId = false){
+    private function _importXML($input_file, $bForce = false, $final = false, $zipInfos = null, $InternerStatus = 'PLAN', $mailto = 'f.keppel@compecon.de', $returnPPId = false){
         /*echo ("File: $input_file Force: $bForce, Final: $final, Mailto: $mailto Interner Status: $InternerStatus <br><pre>");
         print_r($zipInfos);
         exit;*/
         $this->revision_von  = 0;
         $this->XMLUploadFile = $input_file;
         $force               = $bForce;
-        $final               = $bfinal;
         $this->xml = $this->readXML($this->XMLUploadFile, true);
         $this->xml_item = $this->xml->item;
         $ian = $this->xml_item->ian;
@@ -2394,25 +2345,18 @@ class XMLController extends BaseController
             $this->parseXML($this->xml);
             exit;
         }*/
-        $InternerStatus = $pInternerStatus;
-        cpcdebug::cpc_debug("Vorhandener PPID: $ppid Final: $final Force: $force", '-T261');
-        if ($ppid != 0 ) {
+        if ($ppid != 0 && !$final) {
             if ($force) {
                 $result = $this->savePrevPP($ppid);
-                cpcDebug::cpc_debug("Force Import for PPID: $ppid", '-T261');
-                cpcDebug::cpc_debug($result, '-T261');
                 if ($result['Result']) {
-                    cpcDebug::cpc_debug('Result', '-T261');
-                    if (in_array($result['InternerStatus'], array('ABSAGE', 'GELIEFERT', 'FIX'), true)) {
+                    if ($result['InternerStatus'] == 'ABSAGE' or $result['InternerStatus'] == 'GELIFERT' or $result['InternerStatus'] == 'FIX') {
                         $InternerStatus = $result['InternerStatus'];
-                        cpcDebug::cpc_debug("Interner Status preserved: $InternerStatus", '-T261');
                     }
                 }
             } else {
                 return $this->viewForceImport($this->XMLUploadFile, $mailto, $this->forceZipFile);
             }
         }
-        cpcDebug::cpc_debug("PrevPPId berücksichtigt: $ppid InternerStatus: $InternerStatus", '-T261');
         $json           = json_encode($this->xml);
         $this->xmlArray = json_decode($json, TRUE);
         $import = array();
@@ -2443,25 +2387,16 @@ class XMLController extends BaseController
             $import['PPLsv']        = $this->getXMLVarValues("PPLsv");
             $import['PPAssortments']        = $this->getXMLVarValues("PPAssortments");
             $import['retailPackaging']        = $this->getXMLVarValues("retailPackaging");
-            //$import['tPPProduktpass'][0][0]['InternerStatus'] = $InternerStatus;
+            $import['tPPProduktpass'][0][0]['InternerStatus'] = $InternerStatus;
             $new_ppid = $this->doInserts($import);
             $this->postInsert($new_ppid);
             $this->handleZipImport($new_ppid, $zipInfos);
-            $this->preserveInternerStatus($new_ppid, $InternerStatus);
             if ($returnPPId) {
                 $this->viewSuccessImport($new_ppid, $mailto);
                 return $new_ppid;
             } else {
                 return $this->viewSuccessImport($new_ppid, $mailto);
             }
-        }
-    }
-    private function preserveInternerStatus($ppid, $status){
-        cpcDebug::cpc_debug("Preserve Interner Status: $status for PPID: $ppid", '-T261');
-        $pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
-        if ($pp) {
-            $pp->InternerStatus = $status;
-            $pp->save();
         }
     }
     private function prncpc($var){
@@ -3056,7 +2991,7 @@ class XMLController extends BaseController
         //if ($neu){
             $diff['diffs'] = $this->prepareArray($file1, $file2);
             //$this->px($diff['diffs']);
-            $diff['message'] = ServiceProvider::tl('EN','Unterschiede in den XML-Dateien' ); ;
+            $diff['message'] = 'Unterschiede in den XML-Dateien';
             $diff['pp']  = array('ppid' => $ppid, 'ian' => $ian);
             $fileid = $fid;
             if ($fid == 0){
@@ -3421,13 +3356,11 @@ class XMLController extends BaseController
         }
         return $differences;
     }
-    private function calcTempLT ($pp, $restrictDocType = true){
+    private function calcTempLT ($pp){
         $statusDoc = $pp->statusDoc;
-        if ($restrictDocType){
-            if (strpos($statusDoc, 'TEMPPP') === false && strpos($statusDoc, 'RFQHG') === false) {
-                return null;
-            }
-        }
+        if (!(strpos($statusDoc, 'TEMPPP') !== false or strpos($statusDoc, 'RFQHG') !== false)){
+            return null;
+        } 
         try{
             $sectionNo = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
             $themeNo = $pp->themeNo;
@@ -3437,28 +3370,22 @@ class XMLController extends BaseController
             $musNo = (int) substr($sectionNo,2,2);
             //echo("Sec: $sectionNo");
             //echo("theme: $themeNo");
-            cpcDebug::cpc_debug("calcTempLT: $sectionNo, $themeNo, $y, $w, $musNo", '-MinLT');
-            //calcTempLT: 2604, 4.1, 26, 4, 4
-            if ($musNo  == 7){
+            cpcDebug::cpc_debug("calcTempLT: $sectionNo, $themeNo, $y, $w, $musNo", '@calcLT');
+            if ($musNo  == '07'){
                 if ($w < 46){
                     $y = $y + 1;
                 }
             }
-            if ($musNo  == 10){
+            if ($musNo  == '10'){
                 $y = $y +1;
             }
-            $w = $w -6 ;
-            if ($w < 1){
-                $w = $w + 52;   
-                //$y = $y -1;
-            }
             $y = 2000 + $y;
+            $w = $w -6 ;
         }
         catch(Exception $e){
             return null;    
         }
         //$y -=2000;
-        cpcDebug::cpc_debug("calcTempLT: Ergebnis $w, $y", '-MinLT');
         return array('Woche' => $w,'Jahr'=> $y);
     }
     private function isUSProject($pp, $ppv){
@@ -3603,28 +3530,5 @@ class XMLController extends BaseController
         } else {
             echo('Produktpass nicht gefunden!<br>');
         }
-    }
-    private function getMitarbeiterLanguageFromId($id){
-        $lang = 'DE';
-        $m = PPMitarbeiter::where('PPMitarbeiter_Id', $id)->get()->first();
-        if ($m) {
-            $lang = $m->PPMitarbeiter_Language;
-        }
-        return $lang;
-    }
-    private function getMitarbeiterLanguageFromEmail($email){
-        $lang = 'DE';
-        $m = PPMitarbeiter::where('PPMitarbeiter_email', $email)->get()->first();
-        if ($m) {
-            $lang = $m->PPMitarbeiter_Language;
-        }
-        return $lang;
-    }
-    public function uploadZipProgressForm(){
-        $data['content'] = View::make('UploadForms.UploadZipProgress');
-        $xml  = new XMLController;
-        $Sals = $xml->getSALs();
-        View::share('SALs', $Sals);
-        return View::make('main', $data);
     }
 }

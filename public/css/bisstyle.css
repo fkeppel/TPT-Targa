@@ -24,10 +24,3 @@ div {
     width: 16px;
     height:16px;
 }
-:root {
-    --tgRed: #ff0000;
-    --tgBlue: #1C73C5;
-    --tgDarkBlue: #103F6B;
-    --tgLightBlue: #5ec3f1;
-    --cpcTextColor:#08549c;
-}

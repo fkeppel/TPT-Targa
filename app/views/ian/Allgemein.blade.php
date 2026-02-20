@@ -1,8 +1,8 @@
-<h1 class='header1' id='headerArtikel'>{{ ServiceProvider::tl($data['lang'], $data['pp']->PPProduktpass_Artikelbezeichnung ) }}</h1> 
+<h1 class='header1'>{{ ServiceProvider::tl($data['lang'], $data['pp']->PPProduktpass_Artikelbezeichnung ) }}</h1>
 <div id='picLidl'>
     @if ($data['pp']['PPProduktpass_Transferd2Sharepoint'])
         <?php
-        $spoLink = null;
+        $spoLink = null; 
         if (!is_null($data['pp']['PPProduktpass_ProjektBild'])) {
             $image = substr($data['pp']['PPProduktpass_ProjektBild'], 7);
             $ianDir = $data['pp']['PPProduktpass_IAN'] . '_' . substr($data['pp']['PPProduktpass_Ausmusterungnummer'], 0, 4);
@@ -69,7 +69,7 @@
         <div class="value"><input lang="de" class="tgCheckbox" type="checkbox" name="LCL" id="item_LCL_input" @if ($data['pp']->PPProduktpass_LCL == 'true') checked @endif value="1" disabled=""></div>
         <div></div>
         <div class="label">{{ ServiceProvider::tl($data['lang'], 'TARGA/LIDL Status') }}</div>
-        <div class="value" style='background-color:yellow;font-weight:bold;'>{{$data['pp']->InternerStatus}} / {{$data['pp']->statusDoc}} @if (!is_null($data['pp']->PPProduktpass_Absagegrund) and strlen($data['pp']->PPProduktpass_Absagegrund) > 2) <br>Grund: {{$data['pp']->PPProduktpass_Absagegrund}} @endif </div>
+    <div class="value" style='background-color:yellow;font-weight:bold;'>{{$data['pp']->InternerStatus}} / {{$data['pp']->statusDoc}} @if (!is_null($data['pp']->PPProduktpass_Absagegrund) and strlen($data['pp']->PPProduktpass_Absagegrund) > 5) <br>Grund: {{$data['pp']->PPProduktpass_Absagegrund}} @endif </div>
         <div></div>
             @if ( strpos(Auth::user()->PPMitarbeiter_Role, 'ZOLL') !== false  or Auth::user()->PPMitarbeiter_Gruppe == 'admin'  )
                 <div class="label" onclick='getZollHistory();' style='color:dodgerblue;' >{{ ServiceProvider::tl($data['lang'], 'Zolltarifnummer') }} 
@@ -169,21 +169,4 @@
         const item = document.getElementById('History');
         item.style.display = 'none';
     }
-    document.getElementById('translateBtn').addEventListener('click', function () {
-    const text = document.getElementById('headerArtikel').innerText;
-    fetch('/translateLive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'text=' + encodeURIComponent(text)
-    })
-   .then(response => {
-        console.log("RAW response:", response); // <- komplette Response
-        return response.text();
-    })
-    .then(result => {
-        console.log("Result from server:", result); // <- tatsächlicher Rückgabewert
-        document.getElementById('headerArtikel').innerText = result;
-    })
-    .catch(err => console.error(err));
-});
 </script>

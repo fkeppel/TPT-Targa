@@ -18,11 +18,6 @@ class SPOLoginController extends BaseController
     {
         parent::__construct();
         echo('SPO TEST Certificate II:' . base_path('app/storage/data/Certs').'<br>');
-        //exit;
-        //$this->AZURE_TENANT_ID     = 'targagmbh.sharepoint.com';
-        //tenant_id = d35b7ac0-12c6-456a-9e80-723d15ba182d
-        //app_id = bf7658a4-b690-4934-bd74-9b4da3c60ae9'
-        //$this->AZURE_TENANT_ID     = 'd35b7ac0-12c6-456a-9e80-723d15ba182d';
         $this->AZURE_TENANT_ID     = Config::get('office365.tenant_id');
         $this->AZURE_CLIENT_ID     = Config::get('office365.client_id');
         $this->AZURE_CLIENT_SECRET = Config::get('office365.client_secret'); 

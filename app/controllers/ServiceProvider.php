@@ -2,60 +2,57 @@
 class ServiceProvider extends \BaseController {
     public static function tl ($lang, $text){
         if ($lang == 'DE'){
-            //cpcDebug::cpc_debug("Translate no Translation: $text",'@T4711');
             return $text;
         }
-        cpcDebug::cpc_debug("Translate: $lang / $text",'@T4712');
         $text = trim($text);
         $att = 'PPTranslateGUI_Text'.$lang;
-        $ret = '';
-        $t = PPTranslateGUI::where('PPTranslateGUI_TextDE','like',$text)->get()->first();
-        if(! $t ){
+        $t = PPTranslateGUI::where('PPTranslateGUI_TextDE','=',$text)->get()->first();
+        if(! $t){
             //cpcDebug::cpc_debug('Insert: '.$text,'@T18');
-            $ret = self::newTranslation($lang, $text);
-            cpcDebug::cpc_debug("Translate New Translation: $text $ret",'@T4712');
-        } else {
-            $ret = $t->{$att};
-            if ($t->{$att} == null or strlen(trim($t->{$att})) == 0){
-                $ret = self::newTranslation($lang, $text);
-            }
-            //cpcDebug::cpc_debug("Translate Translation: $ret",'@T4711');
-        }
-        return $ret;
-    }
-    public static function tlFromTo ( $fromLang, $toLang, $text){
-        $qryAtt = 'PPTranslateGUI_Text'.$fromLang;
-        $retAtt = 'PPTranslateGUI_Text'.$toLang;
-        $t = PPTranslateGUI::where($qryAtt,'like',$text)->get()->first();
-        if(! $t ){
-            return self::_translateLabel($text, $toLang);
-        } 
-        return $t->{$retAtt};
-    }
-    private function  newTranslation($lang, $text){
-        $att = 'PPTranslateGUI_Text'.$lang;
-        $t = new PPTranslateGUI();
-        $txt = self::_replace0d($text);
-        $t->PPTranslateGUI_TextDE = $txt;
-        $t->save();
-        if (is_null($t->{$att}) or strlen(trim($t->{$att})) == 0){
-            $textLang = self::_translateLabel($text, $lang);
-            $t->{$att} = $textLang;
-            //$t->{$att} = "$lang:$text";
+            $t = new PPTranslateGUI();
+            $txt = self::_replace0d($text);
+            $t->PPTranslateGUI_TextDE = $txt;
             $t->save();
-            //cpcDebug::cpc_debug('Translated: '.$textLang,'@T18');
+            if (is_null($t->{$att}) or strlen($t->{$att}) == 0){
+                $textLang = self::_translateLabel($text, $lang);
+                $t->{$att} = $textLang;
+                //$t->{$att} = "$lang:$text";
+                $t->save();
+                //cpcDebug::cpc_debug('Translated: '.$textLang,'@T18');
+            }
         }
         return $t->{$att};
     }
+   /* public static function tlContent ($langFrom, $langTo, $text){
+        if ($langFrom == $langTo){
+            return $text;
+        }
+        $text = trim($text);
+        $att = 'PPTranslateGUI_Text'.$langFrom;
+        $t = PPTranslateGUI::where('PPTranslateGUI_Text'.$langFrom,'like',$text)->get()->first();
+        if(! $t){
+            //cpcDebug::cpc_debug('Insert: '.$text,'@T18');
+            $t = new PPTranslateGUI();
+            $txt = self::_replace0d($text);
+            $fromAtt = 'PPTranslateGUI_Text'.$langFrom;
+            $toAtt = 'PPTranslateGUI_Text'.$langTo;
+            $t->{$fromAtt} = $txt;
+            $t->save();
+            if (is_null($t->{$att}) or strlen($t->{$att}) == 0){
+                $textLang = self::_translateLabel($text, $langTo);
+                $t->{$att} = $textLang;
+                //$t->{$att} = "$lang:$text";
+                $t->save();
+                //cpcDebug::cpc_debug('Translated: '.$textLang,'@T18');
+            }
+        }
+        return $t->{$att};
+    }*/
     private  function _replace0d($text){
         $ret = str_replace("\r\n", "\n", $text);
         return $ret;
     }
-    public static function translateDirect ($text){
-        return self::_translateLabel($text);
-    }
     private function _translateLabel($text = null, $lang = 'EN') {
-        cpcDebug::cpc_debug("Translate $text", '-Translate');
         if ($text === null || trim($text) === '') {
             $text = '-';
         }
@@ -514,19 +511,7 @@ class ServiceProvider extends \BaseController {
             return self::diffString($a, $b);
         }
     }
-    public static function _transContent($lang, $val,  $table, $field, $rowid){
-        if ($lang == 'DE'){
-            return $val;
-        }
-        $trans = Translations::where('Translations_Table','=',$table)
-            ->where('Translations_Column','=',$field)
-            ->where('Translations_TableId','=',$rowid)
-            ->get()->first();
-        if ($trans){
-            	return $trans->{'Translations_'.$lang};
-        }
-        return $val;
-    }
+    //$lang,'PPProduktpass', 'PPProduktpass_Artikelbezeichnung', $row->PPProduktpass_Id, $row
     public static function transContent($lang, $table, $field, $rowid, $row){
         if ($lang == 'DE'){
             return $row->{$field};
@@ -537,86 +522,7 @@ class ServiceProvider extends \BaseController {
             ->get()->first();
         if ($trans){
             	return $trans->{'Translations_'.$lang};
-        } else {
-           /* $t = new Translations();
-            $t->Translations_Table = $table;
-            $t->Translations_Column = $field;
-            $t->Translations_TableId = $rowid;
-            $t->Translations_TextDE = $row->{$field};
-            $t->Translations_TextEN = ServiceProvider::tl($lang, $row->{$field});
-            $t->save(); */
         }
         return $row->{$field};
-    }
-    public static function isDateGreater(string $date1, string $date2): bool
-        {
-            // Versuche, DateTime-Objekte zu erstellen
-            try {
-                $d1 = new DateTime($date1);
-                $d2 = new DateTime($date2);
-            } catch (Exception $e) {
-                // Wenn eines der Datumsformate ungültig ist, false zurückgeben
-                return false;
-            }
-            return $d1 > $d2;
-        }
-    public static function AuthUserHasRole($role){
-        $roleUser = Auth::user()->PPMitarbeiter_Role;
-        if (strpos($roleUser, $role) !== false){
-            return true;
-        }
-        return false;
-    }
-    public static function AuthUserHasTaetigkeit($taetigkeit){
-        $taetigkeit = Auth::user()->PPMitarbeiter_Taetigkeit;
-        if (strpos($taetigkeit, $taetigkeit) !== false){
-            return true;
-        }
-        return false;
-    } 
-    public static function AuthUserIsAdmin(){
-        if (Auth::user()->PPMitarbeiter_isAdmin){
-            return true;
-        }
-        return false;
-    }
-    public static function getMitarbeiterLanguageFromId($id){
-        $lang = 'DE';
-        $m = PPMitarbeiter::where('PPMitarbeiter_Id', $id)->get()->first();
-        if ($m) {
-            $lang = $m->PPMitarbeiter_Language;
-        }
-        return $lang;
-    }
-    public static function getMitarbeiterLanguageFromEmail($email){
-        $lang = 'DE';
-        $m = PPMitarbeiter::where('PPMitarbeiter_email', $email)->get()->first();
-        if ($m) {
-            $lang = $m->PPMitarbeiter_Language;
-        }
-        return $lang;
-    }
-     public static function canMoveSPO(){
-        if (strpos(Auth::user()->PPMitarbeiter_Role,'EXTERN') !== false){
-             return false;
-        }
-        if (strpos(Auth::user()->PPMitarbeiter_Role,'INTERN') !== false){
-            if (Auth::user()->PPMitarbeiter_Gruppe === 'admin'){
-                return true;    
-            }
-            if(Auth::user()->PPMitarbeiter_Taetigkeit === 'PM'){
-                return true;
-            }
-            if(Auth::user()->PPMitarbeiter_Taetigkeit === 'PJM'){
-                return true;
-            }
-            if(Auth::user()->PPMitarbeiter_Taetigkeit === 'TC'){
-                return true;
-            }
-            if (Auth::user()->PPMitarbeiter_Kuerzel === 'FKE'){
-                return true;
-            }
-        }
-        return false;
     }
 }

@@ -194,7 +194,7 @@ class UploadController extends BaseController {
             $files->save();
         }
     }
-    public function newFilesEntry($filen, $ppid, $type, $sdescr, $spath, $subtype = "Diverses", $ordnung='Sonstiges') {
+    function newFilesEntry($filen, $ppid, $type, $sdescr, $spath, $subtype = "Diverses", $ordnung='Sonstiges') {
         $files                             = new PPPPFiles();
         $files->PPPPFiles_Name             = $filen;
         $files->PPPPFiles_PPProduktpass_Id = $ppid;
@@ -2288,7 +2288,8 @@ class UploadController extends BaseController {
         $data['content'] = View::make('UploadAvis');
         return View::make('main', $data);
     }
-    public function getUploadForm($IsInquiry = 0) {
+    public
+            function getUploadForm($IsInquiry = 0) {
 //
         $data['importarten'] = $this->getLidlQualitaeten();
         if ($IsInquiry == 1) {
@@ -2868,15 +2869,6 @@ class UploadController extends BaseController {
         $pruefplaene = Input::file('MultiPdf');
         $destinationPath = public_path() . '/data/uploads/';
         $result = array();
-        if (Auth::user()->PPMitarbeiter_Kuerzel == 'FKE'){
-        dd(
-            ini_get('upload_max_filesize'),
-                ini_get('post_max_size'),
-                ini_get('max_file_uploads'),
-                count(Input::file('MultiPdf'))
-            );
-            exit;
-        }
         foreach ($pruefplaene as $file){
             $fn = $file->getClientOriginalName();
             $ian = substr($fn,0,6);
@@ -3006,119 +2998,12 @@ class UploadController extends BaseController {
     public function deleteFileNeu() {
         $fileid = Input::get('fileid');
         $file = PPPPFiles::find($fileid);
-        $this->deleteFilesSameName ($file->PPPPFiles_PPProduktpass_Id, $file->PPPPFiles_Name);
+        //File::delete(public_path() . '/data/' . $file->PPPPFiles_Pfad . '/' . $file->PPPPFiles_Name);
+        $file->PPPPFiles_Status = 0;
+        $file->PPPPFiles_UserDelete = Auth::getUser()->id;   
+        $ppid = $file->PPPPFiles_PPProduktpass_Id;     
+        $file->save();
+        //return Redirect::to('/showNeu/'.$ppid);
         return json_encode(array('result' => 'OK', 'message' => 'file deleted'));
-    }
-    public function updateProjektPicAjax() {
-        $fileid   = Input::get('fileid');
-        $ppid     = Input::get('ppid');
-        $pp = tPPProduktpass::find($ppid);
-        if (!$pp){
-            return json_encode(array('Result' => 'ERROR', 'message' => 'Kein Produktpass gefunden!'));
-        }
-        $file = PPPPFiles::find($fileid);
-        if (!$file){
-            return json_encode(array('Result' => 'ERROR', 'message' => 'Keine Datei gefunden!'));
-        }
-        $pp->PPProduktpass_ProjektBild = $file->PPPPFiles_TPTFilenameOld;
-        $pp->save();  
-        cpcDebug::cpc_debug("updateProjektPicAjax FileId: $fileid PPId: $ppid", '@AjaxCalls');
-        return json_encode(array('Result' => 'OK', 'message' => 'Projektbild getauscht!'));
-    }
-    private function deleteFilesSameName ($ppid, $fn){
-        $files = PPPPFiles::where('PPPPFiles_PPProduktpass_Id', $ppid)->where('PPPPFiles_Name','like', trim($fn))->get();
-        if ($files){
-            foreach ($files as $file){
-                cpcDebug::cpc_debug("   deleteFilesSameName Deleting FileId: ".$file->PPPPFiles_Id." Name: ".$file->PPPPFiles_Name, '@uploadFile');
-                $file->PPPPFiles_Status = 0;
-                $file->PPPPFiles_UserDelete = Auth::getUser()->PPMitarbeiter_Id;
-                $file->save();
-            }
-        }   
-    }
-    public function uploadMassenPruefplaeneBatch()
-    {
-        // Erwartet MultiPdf[] (Batch kommt vom JS)
-        $pruefplaene = Input::file('MultiPdf');
-        // Normalisieren (manchmal kommt eine einzelne Datei nicht als Array)
-        if (!$pruefplaene) {
-            return Response::json([
-                'ok' => false,
-                'message' => 'Keine Dateien empfangen.',
-                'result' => [],
-            ], 400);
-        }
-        if (!is_array($pruefplaene)) {
-            $pruefplaene = [$pruefplaene];
-        }
-        $destinationPath = public_path() . '/data/uploads/';
-        $result = [];
-        foreach ($pruefplaene as $file) {
-            if (!$file || !$file->isValid()) {
-                $result[] = [
-                    'Link' => false,
-                    'Filename' => $file ? $file->getClientOriginalName() : '(unbekannt)',
-                    'Status' => 'Upload fehlerhaft/abgebrochen',
-                    'Color' => 'red',
-                ];
-                continue;
-            }
-            $fn = $file->getClientOriginalName();
-            // Optional: nur PDFs zulassen (bei Ordnerauswahl kommen sonst auch andere Dateien)
-            if (strtolower(substr($fn, -4)) !== '.pdf') {
-                $result[] = [
-                    'Link' => false,
-                    'Filename' => $fn,
-                    'Status' => 'Übersprungen (keine PDF)',
-                    'Color' => 'red',
-                ];
-                continue;
-            }
-            $ian  = substr($fn, 0, 6);
-            $ausm = substr($fn, 7, 4);
-            $pp = tPPProduktpass::where('PPProduktpass_IAN', $ian)
-                ->where('PPProduktpass_Ausmusterungnummer', 'like', $ausm . '%')
-                ->first();
-            if (!$pp) {
-                $result[] = [
-                    'Link' => false,
-                    'Filename' => $fn,
-                    'Status' => 'Produktpass nicht gefunden!',
-                    'Color' => 'red',
-                ];
-                continue;
-            }
-            $ppid = $pp->PPProduktpass_Id;
-            $storedName = str_random(6) . "_" . $fn;
-            try {
-                $file->move($destinationPath, $storedName);
-                $this->newFilesEntry(
-                    $storedName,
-                    $ppid,
-                    'PPUpload',
-                    'Massenupload',
-                    'uploads',
-                    'PDFs'
-                );
-                $result[] = [
-                    'Link' => ViewController::getFileTabLink($ppid, 'PPUpload', 'PDFs'),
-                    'Filename' => $fn,
-                    'Status' => 'OK',
-                    'Color' => 'black',
-                ];
-            } catch (\Exception $e) {
-                $result[] = [
-                    'Link' => false,
-                    'Filename' => $fn,
-                    'Status' => 'Speichern fehlgeschlagen: ' . $e->getMessage(),
-                    'Color' => 'red',
-                ];
-            }
-        }
-        // Variante 3: IMMER JSON zurückgeben
-        return Response::json([
-            'ok' => true,
-            'result' => $result,
-        ]);
     }
 }

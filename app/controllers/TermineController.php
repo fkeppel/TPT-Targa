@@ -147,19 +147,18 @@ class TermineController extends BaseController
             }
         }
     }
-    private function getPO($ppid):array
+    private function getPO($ppid)
     {
         $ret = array('PO' => false, 'Lief' => false);
         $po = DB::table('PPPurchase')->where('PPPurchase_PPProduktpass_id', '=', $ppid)->orderBy('PPPurchase_Id', 'desc')->first();
         if ($po) {
             $lief = DB::table('PPAdressen')->where('Matchcode', '=', $po->PPPurchase_Supplier)->first();
             $ret['PO'] = $po;
-            if ($lief) {
-                $ret['Lief'] = $lief;
-            }
-        } else {
-            cpcDebug::cpc_debug("Kein PO gefunden für PPID: " . $ppid, "-Error");
-        } 
+        }
+        if ($lief) {
+            $ret['Lief'] = $lief;
+        }
+        //dd($ret);
         return $ret;
     }
     private function getAB($ppid)
@@ -335,6 +334,11 @@ class TermineController extends BaseController
             $internerStatusArray = array('ABSAGE');
         }
         $bss = PPBoardSpalte::where("PPBoardSpalte_PPBoard_Id", "=", $board)->orderBy('PPBoardSpalteX_Sort')->get();
+        /* echo("<pre>");
+        foreach($bss as $bs){
+            echo($bs->PPBoardSpalteX_Sort."  ".$bs->PPBoardSpalte_Bezeichnung."  DF:".$bs->PPBoardSpalte_DFField."  Rot:".$bs->PPBoardSpalte_Rot."<br>");
+        }
+        exit; */
         if (!$bss){
             echo("Fehler bei der Auswahl! Dashboard: ".$board);
             exit;
@@ -382,9 +386,7 @@ class TermineController extends BaseController
                     if ($att == 'PMler') {
                         $regular = false;
                         $att = 'PPProduktpass_PMAdmin';
-                        if (isset($ml[$val])){
-                            $val = $ml[$val];
-                        }
+                        $val = $ml[$val];
                         if ($onlyMy) {
                             $termines = $termines->where('PPProduktpass_PMAdmin', '=', $val);
                         } else {
@@ -485,89 +487,87 @@ class TermineController extends BaseController
         $pStart = ($countPages -1) * $countRows * $countElems +1;
         $pEnde = $countPages * $countRows * $countElems;
         $count =0;
-        if (count($termines) > 0){
-            $t['totalRows'] = count($termines) / $countElems;
-            foreach ($termines as $termin) {
-                $count++;
-                if ($count < $pStart ){
-                    continue;
-                } else {
-                    if ($count > $pEnde ){
-                        break;
-                    }
+        $t['totalRows'] = count($termines) / $countElems;
+        foreach ($termines as $termin) {
+            $count++;
+            if ($count < $pStart ){
+                continue;
+            } else {
+                if ($count > $pEnde ){
+                    break;
                 }
-                $hasData = 1;
-                if (!isset($t["Values"][$termin->PPTermine_PPProduktpass_Id]['Init'])) {
-                    $LTorCRDWoche = $termin->PPProduktpass_Liefertermin;
-                    $LTorCRDJahr = $termin->PPProduktpass_LieferterminJahr;
-                    if ($termin->PPProduktpass_CRDJahr != 0) {
-                        $LTorCRDJahr =  $termin->PPProduktpass_CRDJahr;
-                        $LTorCRDWoche = $termin->PPProduktpass_CRDWoche;
-                    }
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['CRDChanged'] = $this->getCRDChanged($termin->PPTermine_PPProduktpass_Id);
-                    $diff = microtime(true) - $start;
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['AB'] = null;
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['IsValid_OldIAN'] = $this->IsValid_OldIAN($termin->PPProduktpass_AltIAN, $termin->PPProduktpass_AltCharge);
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['MengenSplit'] = "-/-";
-                    $polief = $this->getPO($termin->PPTermine_PPProduktpass_Id);
-                    $po = $polief['PO'];
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['PO'] = $polief['PO'];
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Lief'] = $polief['Lief'];
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['W2FOBPO'] = $this->getW2FOB($po->PPPurchase_FOBWeek, $po->PPPurchase_FOBYear);
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['W2FOB'] = $this->getW2FOB($LTorCRDWoche, $LTorCRDJahr);
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['POStatus'] = ""; 
-                    if ($board == 6) {
-                        $t["Values"][$termin->PPTermine_PPProduktpass_Id]['AB'] = $this->getAB($termin->PPTermine_PPProduktpass_Id);
-                        $t["Values"][$termin->PPTermine_PPProduktpass_Id]['MengenSplit'] = $this->getMengenSplit($termin->PPTermine_PPProduktpass_Id);
-                        $t["Values"][$termin->PPTermine_PPProduktpass_Id]['LC'] = $this->getLC($termin->PPTermine_PPProduktpass_Id);
-                    }
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['PP'] = $termin;
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['8WMuster'] = null; 
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Mitarbeiter'] = null; 
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Init'] = 1;
-                }
-                $diff = microtime(true) - $start;
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Termin'][$termin->PPTermine_PPBoardSpalte_id] = $termin;
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Log'][$termin->PPTermine_PPBoardSpalte_id] = null; 
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['BG'][$termin->PPTermine_PPBoardSpalte_id] = STATUS_UNDEF;
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLSET'][$termin->PPTermine_PPBoardSpalte_id] = "NO";
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['OKSTATUS'][$termin->PPTermine_PPBoardSpalte_id] = "NO";
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLY'][$termin->PPTermine_PPBoardSpalte_id] = '';
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLW'][$termin->PPTermine_PPBoardSpalte_id] = '';
-                if ($termin->PPStati_OKStatus) {
-                    $erlDate = $termin->PPTermine_DatumEnde;
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['OKSTATUS'][$termin->PPTermine_PPBoardSpalte_id] = "YES";
-                    if (strpos($erlDate, '0000') === false) {
-                        $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLSET'][$termin->PPTermine_PPBoardSpalte_id] = "YES";
-                        $erl = new Datetime($erlDate);
-                        $erlw = $erl->format('W');
-                        $erly = $erl->format('Y');
-                        $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLY'][$termin->PPTermine_PPBoardSpalte_id] = $erly;
-                        $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLW'][$termin->PPTermine_PPBoardSpalte_id] = $erlw;
-                    }
-                }
-                if (isset($t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_Rot)) {
-                    $rot = $t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_Rot;
-                    if ($termin->PPTermine_ManSoll != 0) {
-                        $rot = -1 * $termin->PPTermine_ManSoll - 10; 
-                    } 
-                    $tempCol = $this->getBGStatusColorDashboard($LTorCRDWoche, $LTorCRDJahr, $termin->PPTermine_Status, $rot, $rot - 2);
-                    $tempCol = substr($tempCol, 1);
-                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['BG'][$termin->PPTermine_PPBoardSpalte_id] = $tempCol;
-                }
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Datafield'][$termin->PPTermine_PPBoardSpalte_id] = "";
-                if (isset($t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_DFField) and !is_null($t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_DFField)) {
-                    $att = $t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_DFField;
-                    $val = $termin->$att;
-                    if (strlen($termin->$att) > 0) {
-                        $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Datafield'][$termin->PPTermine_PPBoardSpalte_id] = "(" . $termin->$att . ")";
-                    } else {
-                        $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Datafield'][$termin->PPTermine_PPBoardSpalte_id] = "(N.N.)";
-                    }
-                }
-                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Dashboard'][$termin->PPTermine_PPBoardSpalte_id] = $this->getDashboardValue($termin);
-                $diff = microtime(true) - $start;
             }
+            $hasData = 1;
+            if (!isset($t["Values"][$termin->PPTermine_PPProduktpass_Id]['Init'])) {
+                $LTorCRDWoche = $termin->PPProduktpass_Liefertermin;
+                $LTorCRDJahr = $termin->PPProduktpass_LieferterminJahr;
+                if ($termin->PPProduktpass_CRDJahr != 0) {
+                    $LTorCRDJahr =  $termin->PPProduktpass_CRDJahr;
+                    $LTorCRDWoche = $termin->PPProduktpass_CRDWoche;
+                }
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['CRDChanged'] = $this->getCRDChanged($termin->PPTermine_PPProduktpass_Id);
+                $diff = microtime(true) - $start;
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['AB'] = null;
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['IsValid_OldIAN'] = $this->IsValid_OldIAN($termin->PPProduktpass_AltIAN, $termin->PPProduktpass_AltCharge);
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['MengenSplit'] = "-/-";
+                $polief = $this->getPO($termin->PPTermine_PPProduktpass_Id);
+                $po = $polief['PO'];
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['PO'] = $polief['PO'];
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Lief'] = $polief['Lief'];
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['W2FOBPO'] = $this->getW2FOB($po->PPPurchase_FOBWeek, $po->PPPurchase_FOBYear);
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['W2FOB'] = $this->getW2FOB($LTorCRDWoche, $LTorCRDJahr);
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['POStatus'] = ""; 
+                if ($board == 6) {
+                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['AB'] = $this->getAB($termin->PPTermine_PPProduktpass_Id);
+                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['MengenSplit'] = $this->getMengenSplit($termin->PPTermine_PPProduktpass_Id);
+                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['LC'] = $this->getLC($termin->PPTermine_PPProduktpass_Id);
+                }
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['PP'] = $termin;
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['8WMuster'] = null; 
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Mitarbeiter'] = null; 
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Init'] = 1;
+            }
+            $diff = microtime(true) - $start;
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Termin'][$termin->PPTermine_PPBoardSpalte_id] = $termin;
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Log'][$termin->PPTermine_PPBoardSpalte_id] = null; 
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['BG'][$termin->PPTermine_PPBoardSpalte_id] = STATUS_UNDEF;
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLSET'][$termin->PPTermine_PPBoardSpalte_id] = "NO";
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['OKSTATUS'][$termin->PPTermine_PPBoardSpalte_id] = "NO";
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLY'][$termin->PPTermine_PPBoardSpalte_id] = '';
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLW'][$termin->PPTermine_PPBoardSpalte_id] = '';
+            if ($termin->PPStati_OKStatus) {
+                $erlDate = $termin->PPTermine_DatumEnde;
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['OKSTATUS'][$termin->PPTermine_PPBoardSpalte_id] = "YES";
+                if (strpos($erlDate, '0000') === false) {
+                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLSET'][$termin->PPTermine_PPBoardSpalte_id] = "YES";
+                    $erl = new Datetime($erlDate);
+                    $erlw = $erl->format('W');
+                    $erly = $erl->format('Y');
+                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLY'][$termin->PPTermine_PPBoardSpalte_id] = $erly;
+                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['WERLW'][$termin->PPTermine_PPBoardSpalte_id] = $erlw;
+                }
+            }
+            if (isset($t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_Rot)) {
+                $rot = $t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_Rot;
+                if ($termin->PPTermine_ManSoll != 0) {
+                    $rot = -1 * $termin->PPTermine_ManSoll - 10; 
+                } 
+                $tempCol = $this->getBGStatusColorDashboard($LTorCRDWoche, $LTorCRDJahr, $termin->PPTermine_Status, $rot, $rot - 2);
+                $tempCol = substr($tempCol, 1);
+                $t["Values"][$termin->PPTermine_PPProduktpass_Id]['BG'][$termin->PPTermine_PPBoardSpalte_id] = $tempCol;
+            }
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Datafield'][$termin->PPTermine_PPBoardSpalte_id] = "";
+            if (isset($t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_DFField) and !is_null($t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_DFField)) {
+                $att = $t["Header2"][$termin->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_DFField;
+                $val = $termin->$att;
+                if (strlen($termin->$att) > 0) {
+                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Datafield'][$termin->PPTermine_PPBoardSpalte_id] = "(" . $termin->$att . ")";
+                } else {
+                    $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Datafield'][$termin->PPTermine_PPBoardSpalte_id] = "(N.N.)";
+                }
+            }
+            $t["Values"][$termin->PPTermine_PPProduktpass_Id]['Dashboard'][$termin->PPTermine_PPBoardSpalte_id] = $this->getDashboardValue($termin);
+            $diff = microtime(true) - $start;
         }
         $diff = microtime(true) - $start;
         $t['DelMa'] = $this->getMitarbeiterListe('', 'DEL');
@@ -579,6 +579,7 @@ class TermineController extends BaseController
     }
     public function getSchedulePopUp($board, $ppid, $tid)
     {
+        //echo('Schedule');exit;
         //$board       = 10;
         $isMusterung = 0;
         $isInquiry = 0;
@@ -813,7 +814,6 @@ class TermineController extends BaseController
         $bgProject = $pbgcolor[1];
         $t['id'] = $value['Termin']->PPTermine_Id;
         $t['bgcolor'] = $value['Termin']->PPStati_Background;
-        $t['bemerkung'] = $value['Termin']->PPTermine_Bemerkungen;
         $t['ManSoll'] = $value['Termin']->PPTermine_ManSoll;
         $t['ManSollDate'] = $value['Termin']->PPTermine_ManSollDate;
         $t['spalteId']  = $value['Termin']->PPBoardSpalte_Id;
@@ -822,8 +822,8 @@ class TermineController extends BaseController
         $t['status'] = $value['Termin']->PPTermine_Status;
         $t['ma'] = $value['Termin']->PPTermine_MAZustaendigkeit;
         $t['history'] = $value['Termin']->PPTermine_History;
-        if ( strtoupper($this->getUserLanguage()) == 'EN') {
-            $t['history'] = $value['Termin']->PPTermine_HistoryEN;            
+        if ($this->getUserLanguage() == "EN") {
+            $t['history'] = $value['Termin']->PPTermine_HistoryEN;
         }
         $t['log'] = $value['Log'];
         $t['rot'] = $value['Termin']->PPBoardSpalte_Rot;
@@ -850,7 +850,7 @@ class TermineController extends BaseController
         $t['bemerkungEN'] = $value['Termin']->PPTermine_BemerkungenEN;
         $t['datafield'] = $value['Datafield'];
         $t['bg'] = $value['BG'];
-        $t['PPTermine_IsMPlan'] = true; //$value['Termin']->PPTermine_IsMPlan;
+        $t['PPTermine_IsMPlan'] = $value['Termin']->PPTermine_IsMPlan;
         //print_r($value['Termin']->PPTermine_PPBoardSpalte_id);exit;
         if (isset($t['Header2'][$value['Termin']->PPTermine_PPBoardSpalte_id])){
             $as = explode("x", $t['Header2'][$value['Termin']->PPTermine_PPBoardSpalte_id]->PPBoardSpalte_Stati);
@@ -1618,6 +1618,8 @@ class TermineController extends BaseController
         if(!$mitNamen){
             asort($mitarbeiterliste);
         }
+        //echo('<pre>');
+        //print_r($mitarbeiterliste);exit;
         return $mitarbeiterliste;
     }
     public function getTerminStati($art = 1)
@@ -1721,7 +1723,7 @@ class TermineController extends BaseController
         } else {
             $getData = 0;
         }
-        //cpcDebug::cpc_debug("Showlist Board: $boardid Sort: $sort $psortart Seite: $page Zeilen: $rows ", "@SHOWLIST");
+        cpcDebug::cpc_debug("Showlist Board: $boardid Sort: $sort $psortart Seite: $page Zeilen: $rows ", "@SHOWLIST");
         $sl = $this->showlistNeu($sort, $psortart, $boardid, $getData, $searchParams, $rows, $page);
         return $sl;
     }
@@ -1771,13 +1773,9 @@ class TermineController extends BaseController
         //cpcDebug::cpc_debug("setMATermine nach Schleife ");
         $ret = $this->systemMailTermine('TUEBERGABE', $atid, $maid, null, $board);
         $PMAdminVTR = $this->issetAndGetVTR('PM', $ppid);
-        $PJMAdminVTR = $this->issetAndGetVTR('PJM', $ppid);
         $TCAdminVTR = $this->issetAndGetVTR('TC', $ppid);
         if ($PMAdminVTR  !== null) {
             $ret = $this->systemMailTermine('TUEBERGABE', $atid, $PMAdminVTR, null, $board);
-        }
-        if ($PJMAdminVTR  !== null) {
-            $ret = $this->systemMailTermine('TUEBERGABE', $atid, $PJMAdminVTR, null, $board);
         }
         if ($TCAdminVTR !== null) {
             $ret = $this->systemMailTermine('TUEBERGABE', $atid, $TCAdminVTR, null, $board);
@@ -1848,7 +1846,6 @@ class TermineController extends BaseController
     public function systemMailTermine($art, $tid, $maid, $chid = null, $board = null, $isChange = false)
     {
         $email = $this->getEMail($maid);
-        $langEmail = ServiceProvider::getMitarbeiterLanguageFromEmail($email);
         $gruppe = $this->getMaTaetigkeit($maid);
         //$email  = 'f.keppel@compecon.de';
         if (is_null($email) or strlen($email) < 3) {
@@ -1861,13 +1858,9 @@ class TermineController extends BaseController
                     $tmail = DB::table('v_PPProduktpass_PPTermine')->where('PPTermine_Id', '=', $tid)->first();
                     if ($tmail) {
                         $PMAdminVtrEmail = '';
-                        $PJMAdminVtrEmail = '';
                         $TCAdminVtrEmail = '';
                         if ($tmail->PPProduktpass_PMAdminVTR !== null  and $tmail->PPProduktpass_PMAdmin == $maid) {
                             $PMAdminVtrEmail = $this->getEMail($tmail->PPProduktpass_PMAdminVTR);
-                        }
-                        if ($tmail->PPProduktpass_PJMAdminVTR !== null  and $tmail->PPProduktpass_PJMAdmin == $maid) {
-                            $PJMAdminVtrEmail = $this->getEMail($tmail->PPProduktpass_PJMAdminVTR);
                         }
                         if ($tmail->PPProduktpass_TCAdminVTR !== null and $tmail->PPProduktpass_TCAdmin == $maid) {
                             $TCAdminVtrEmail = $this->getEMail($tmail->PPProduktpass_TCAdminVTR );
@@ -1887,13 +1880,9 @@ class TermineController extends BaseController
                     $tmail = DB::table('v_TerminlistePP_2')->where('PPTermineChanges_Id', '=', $chid)->first();
                     if ($tmail) {
                         $PMAdminVtrEmail = '';
-                        $PJMAdminVtrEmail = '';
                         $TCAdminVtrEmail = '';
                         if ($tmail->PPProduktpass_PMAdminVTR !== null  and $tmail->PPProduktpass_PMAdmin == $maid) {
                             $PMAdminVtrEmail = $this->getEMail($tmail->PPProduktpass_PMAdminVTR);
-                        }
-                        if ($tmail->PPProduktpass_PJMAdminVTR !== null  and $tmail->PPProduktpass_PJMAdmin == $maid) {
-                            $PJMAdminVtrEmail = $this->getEMail($tmail->PPProduktpass_PJMAdminVTR);
                         }
                         if ($tmail->PPProduktpass_TCAdminVTR !== null and $tmail->PPProduktpass_TCAdmin == $maid) {
                             $TCAdminVtrEmail = $this->getEMail($tmail->PPProduktpass_TCAdminVTR );
@@ -1927,16 +1916,6 @@ class TermineController extends BaseController
                     $body = "Ihnen wurde &uuml;ber das TPT eine Aufgabe zugewiesen.<br>";
                     if ($isChange){
                         $body = "Im TPT wurde eine Aufgabe geändert.<br>";
-                    }
-                    if ($langEmail != 'DE'){
-                        $body = "You have a new Task in TPT.<br>";
-                        if ($isChange){
-                            $body = "Your Task in TPT have changed.<br>";
-                        }
-                        $ms    = ServiceProvider::translateDirect($ms);
-                        $todo  = ServiceProvider::translateDirect($todo);
-                        $bemerkung = ServiceProvider::translateDirect($bemerkung);
-                        $bemerkungReceiver = ServiceProvider::translateDirect($bemerkungReceiver);
                     }
                     $body .= "<table>";
                     $body .= "<tr><td>IAN:</td><td><b>$ian</b></td></tr>";
@@ -1978,15 +1957,6 @@ class TermineController extends BaseController
                     <th style='padding:5px;border:1px solid gray;background-color:lightgray;'>Meilenstein</th>
                     <th style='padding:5px;border:1px solid gray;background-color:lightgray;'>Termin</th>
                     </tr>";
-                if ($langEmail != 'DE'){
-                    $body = "<h3>You have a new task in  TPT</h3>";
-                    $body .= "<table cellspacing='0' celldadding='0'>
-                        <tr>
-                        <th style='padding:5px;border:1px solid gray;background-color:lightgray;'>IAN</th>
-                        <th style='padding:5px;border:1px solid gray;background-color:lightgray;'>Milestone</th>
-                        <th style='padding:5px;border:1px solid gray;background-color:lightgray;'>Date</th>
-                        </tr>";
-                }
                 //DB::enableQueryLog();
                 $tmail = DB::table('v_PPProduktpass_PPTermine')->whereIn('PPTermine_Id', $tid)->where('PPBoardSpalte_PPBoard_Id', $board)->get();
                 //cpcdebug::cpc_debug (DB::getQueryLog());
@@ -1995,13 +1965,9 @@ class TermineController extends BaseController
                 }
                 foreach ($tmail as $m) {
                     $PMAdminVtrEmail = '';
-                    $PJMAdminVtrEmail = '';
                     $TCAdminVtrEmail = '';
                     if ($m->PPProduktpass_PMAdminVTR !== null) {
                         $PMAdminVtrEmail = $this->getEMail($m->PPProduktpass_PMAdminVTR);
-                    }
-                    if ($m->PPProduktpass_PJMAdminVTR !== null) {
-                        $PJMAdminVtrEmail = $this->getEMail($m->PPProduktpass_PJMAdminVTR);
                     }
                     if ($m->PPProduktpass_TCAdminVTR !== null) {
                         $TCAdminVtrEmail = $this->getEMail($m->PPProduktpass_TCAdminVTR);
@@ -2012,12 +1978,6 @@ class TermineController extends BaseController
                     $artbez = $m->PPProduktpass_Artikelbezeichnung;
                     //cpcdebug::cpc_debug("TUEBERGABE: $ian $ms $start");
                     $subject = "[TPT]  Übergabe Projekt $ian Dashboard $board_Bez $artbez";
-                    if ($langEmail != 'DE'){
-                        $ms = ServiceProvider::translateDirect($m->PPBoardSpalte_Bezeichnung);
-                        $artbez = ServiceProvider::translateDirect($m->PPProduktpass_Artikelbezeichnung);
-                        //cpcdebug::cpc_debug("TUEBERGABE: $ian $ms $start");
-                        $subject = "[TPT]  Transfer Projekt $ian Dashboard $board_Bez $artbez";
-                    }
                     if ($m->PPStati_OKStatus == 0 and $m->PPTermine_DatumStart = '0000-00-00') {
                         $body .= "<tr><td style='border:1px solid gray;padding:5px;'><b>$ian</b></td>";
                         $body .= "<td style='border:1px solid gray;padding:5px;'>$ms</td>";
@@ -2030,13 +1990,10 @@ class TermineController extends BaseController
                     }
                 }
                 $body .= "</table><br>";
-                $body .= "*****************";
+                $body .= "********* ENDE ********";
                 $x = $this->cpc_sendMail($email, $subject, $body);
                 if (strlen($PMAdminVtrEmail) > 4 and $gruppe =='PM') {
                     $x = $this->cpc_sendMail($PMAdminVtrEmail, '[PM VTR-email]' . $subject, $body);
-                }
-                if (strlen($PJMAdminVtrEmail) > 4 and $gruppe =='PJM') {
-                    $x = $this->cpc_sendMail($PJMAdminVtrEmail, '[PJM VTR-email]' . $subject, $body);
                 }
                 if (strlen($TCAdminVtrEmail) > 4 and $gruppe =='TC') {
                     $x = $this->cpc_sendMail($TCAdminVtrEmail, '[TC VTR-email]' . $subject, $body);
@@ -2063,7 +2020,7 @@ class TermineController extends BaseController
         $art = Input::get('art');
         $maid = Input::get('maid');
         $board = Input::get('board');
-        //cpcDebug::cpc_debug("setMA_PM_TC:  PPId: $ppid Art: $art MAId: $maid Board: $board",'@SetMA1');
+        cpcDebug::cpc_debug("setMA_PM_TC:  PPId: $ppid Art: $art MAId: $maid Board: $board",'@SetMA1');
         $pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
         $subject = 'Projekt IAN: '.$pp->PPProduktpass_IAN.' ['.substr($pp->PPProduktpass_Ausmusterungnummer,0,4).'] wurde ihnen als ';
         $body = '';
@@ -2083,7 +2040,7 @@ class TermineController extends BaseController
                 $subject .= ' TC zugeordnet!';
                 $body = 'Viele Grüsse';
             }
-            //cpcDebug::cpc_debug("setMA_PM_TC: " . $pp->PPProduktpass_TCAdmin ,'@SetMA1');
+            cpcDebug::cpc_debug("setMA_PM_TC: " . $pp->PPProduktpass_TCAdmin ,'@SetMA1');
             $pp->save();
         }
         //return json_encode( array("success"=>1, "Data"=>array ('id' => $ppid, 'art' => $art, 'maid' => $maid)) );
@@ -2137,20 +2094,11 @@ class TermineController extends BaseController
                 $to = $this->getEMail($maid);
             }
         }
-        $langEmail = ServiceProvider::getMitarbeiterLanguageFromId($to);
         $msg = 'Vertretung aufgelöst!';
         $subject = "[TPT] Vertretung für IAN: $ian eingerichtet";
         $body = "Guten Tag, <br><br> sie wurden als Vertretung für das Projekt: <br><br><b><a href='http://".$_SERVER['SERVER_NAME']."/show/$pp->PPProduktpass_Id' >$ian</a>        $artikel</b><br><br> eingetragen.";
-        if ($langEmail != 'DE'){
-            $msg = 'Representation deleted!';
-            $subject = "[TPT] Representation for IAN: $ian established!";
-            $body = "Hello, <br><br> you where established as deputy for project: <br><br><b><a href='http://".$_SERVER['SERVER_NAME']."/show/$pp->PPProduktpass_Id' >$ian</a>        $artikel</b><br><br> eingetragen.";
-        }
         if ($maid != 0){
-            $msg = 'Vertretung eingerichtet!';
-            if ($langEmail != 'DE'){
-                $msg = 'Representation established!';
-            }
+            $msg = 'Vertretung wurde eingerichtet!';
             $this->cpc_sendMail($to,$subject, $body);
         }
         //return json_encode( array("success"=>1, "Data"=>array ('id' => $ppid, 'art' => $art, 'maid' => $maid)) );
@@ -2159,49 +2107,12 @@ class TermineController extends BaseController
         //cpcDebug::cpc_debug($return_data,'@SetMAVTR');
         return json_encode(array("success" => 'OK', "Data" => $return_data));
     }
-    public function correctState()
-    {
-            $pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%ev%')->where('InternerStatus', 'FIX')->get();
-            if ($pps) {
-                foreach ($pps as $pp) {
-                    $this->_correctState($pp->PPProduktpass_Id);
-                }
-            } 
-    }    
-    private function _correctState($ppid)
-    {       
-        $pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
-        if ($pp) {
-            cpcDebug::cpc_debug("correct State: ".$pp->PPProduktpass_IAN,'@Freeze');
-            $state = $pp->InternerStatus;
-            $this->setMATermineStatusChange($ppid, $pp->PPProduktpass_PMAdmin, $pp->PPProduktpass_TCAdmin);
-            if ($state == 'GELIEFERT' or $state == 'ABSAGE'){
-                $this->freezeMilestones($ppid);
-                $return_data = array('id' => $ppid, 'state' => $state, 'func' => 'updateStatus');
-                return json_encode(array("success" => 'OK', "Data" => $return_data));
-            }
-            //cpcDebug::cpc_debug("Alter Status: $oldState Neuer Status:  $state ",'!1234');
-            if ($state == 'MUSTERUNG' or $state == 'PLAN' or $state == 'FIX'){
-                //cpcDebug::cpc_debug("freeMS ",'!1234');
-                $this->freeMilestones($ppid);
-            }
-            $result = 'OK';
-            //cpcHelp::logCPC(Auth::user()->PPMitarbeiter_Kuerzel, 'Status Änderung IAN: '.$pp->PPProduktpass_IAN, $oldState, $state );
-            cpcHelp::logCPC(Auth::user()->PPMitarbeiter_Kuerzel, 'Status Änderung IAN: ['.$pp->PPProduktpass_Ausmusterungnummer.'] '.$pp->PPProduktpass_IAN, '', $state );
-        } else {
-            //cpcHelp::logCPC(Auth::user()->PPMitarbeiter_Kuerzel, 'Fehler Status Änderung IAN: '.$pp->PPProduktpass_IAN, '', $state );
-            cpcHelp::logCPC(Auth::user()->PPMitarbeiter_Kuerzel, 'Fehler Status Änderung IAN:', '', 'No PP' );
-            $result = 'Error';
-        }
-        $return_data = array('id' => $ppid, 'state' => $state, 'func' => 'updateStatus');
-        return json_encode(array("success" => $result, "Data" => $return_data));
-    }
     public function updateStatus()
     {
         $ppid = Input::get('id');
         $state = Input::get('state');
         $grund = Input::get('absageGrund');
-        cpcDebug::cpc_debug("Update Status $ppid $state ",'@SetState');
+        //cpcDebug::cpc_debug("Update Status $ppid $state ",'!1234');
         $pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
         if ($pp) {
             $oldState = $pp->InternerStatus;
@@ -2479,7 +2390,6 @@ class TermineController extends BaseController
     }
     function postTerminlisteFilter($sortierung = '8U', $puser = '', $init = 0, $_art = 'PP')
     {
-        $lang = $this->getUserLanguage();
         //echo("Sortierung: $sortierung <br>");exit;
         //echo("Method: " . Request::method() . "<br>");
         if (Request::method() == "GET") {
@@ -2616,9 +2526,9 @@ class TermineController extends BaseController
         $SP['qSollTermin'] = $solltermin_local;
         $SP['qfcol'] = $fcol;
         $ma = strtoupper($ma);
-        $maselect = " and  (PPMitarbeiter_Kuerzel like '$ma') ";
+        $maselect = "";
         //$maselect = " and  (PPMitarbeiter_Kuerzel = '$ma' or (PPMitarbeiter_Taetigkeit = 'TC' and  TC_Vtr = '$ma') or( PPMitarbeiter_Taetigkeit = 'PM' and PM_Vtr = '$ma'))  ";
-        $maselect = " and  ((PPMitarbeiter_Kuerzel like '$ma') or (PPMitarbeiter_Taetigkeit = 'TC' and  TC_Vtr like '$ma') or ( PPMitarbeiter_Taetigkeit = 'PM' and PM_Vtr like '$ma') or ( PPMitarbeiter_Taetigkeit = 'PM' and PM_Vtr like '$ma') )  ";
+        $maselect = " and  ((PPMitarbeiter_Kuerzel like '$ma') or (PPMitarbeiter_Taetigkeit = 'TC' and  TC_Vtr like '$ma') or ( PPMitarbeiter_Taetigkeit = 'PM' and PM_Vtr like '$ma') or ( PPMitarbeiter_Taetigkeit = 'PJM' and PJM_Vtr like '$ma'))  ";
         if (isset($fcol['onlyMy']) ){
             $maselect = " and  (PPMitarbeiter_Kuerzel like '$ma') ";
         }
@@ -2687,8 +2597,9 @@ class TermineController extends BaseController
             $qryDev = '';
         }
         $table = 'v_Terminliste'.$art.'_2'.$tablePostfix;
+        //echo($table);exit;
         $select_cmd = "  from $table where  PPTermineChanges_Categorie not like 'leer' $qryDev and PPTermine_PPBoardSpalte_id in ( $spalten_string ) and     DateMilestone <= '$solltermin' " . $maselect . " " . $selectIAN . " " . $selectAusm . " " . $selectErledigte;
-        // echo($select_cmd);        exit;
+        //echo($select);
         if (strlen($ian) > 0 and strpos(substr($ian, 0, 3), '999') !== false) {
             $select_cmd = "  from $table where PPTermine_PPBoardSpalte_id in ( $spalten_string ) and     DateMilestone <= '$solltermin' " . $maselect . " " . $selectIAN . " " . $selectAusm . " " . $selectErledigte;
         }
@@ -2827,16 +2738,11 @@ class TermineController extends BaseController
         $data['colors'] = $this->getStatiColors();
         $data['art'] = $art;
         $data['termine'] = $termine;
-        $data['error'] = ServiceProvider::tl($lang, "Keine Termine vorhanden!");
+        $data['error'] = "Keine Termine vorhanden!";
         $data['searchValues'] = $this->getDistinctSearchValues($_art);
         $data['SP'] = $SP;
         $data['title'] = $title;
-        if (Auth::user()->PPMitarbeiter_Kuerzel == 'FKE') { 
-           //$data['content'] = View::make('listen.terminlistemodern')->with('data', $data);
-           $data['content'] = View::make('listen.terminliste')->with('data', $data);
-        } else {
-            $data['content'] = View::make('listen.terminliste')->with('data', $data);
-        }
+        $data['content'] = View::make('listen.terminliste')->with('data', $data);
         return View::make('main', $data);
     }
     public function getTermineDashboard()
@@ -3010,26 +2916,7 @@ class TermineController extends BaseController
     }
     }
      */
-     private function getMitarbeiterLanguage($mailAdr){
-        $lang = 'DE';
-        if ($mailAdr != null) {
-            $m = PPMitarbeiter::where('PPMitarbeiter_email', $mailAdr)->get()->first();
-            if ($m) {
-                $lang = $m->PPMitarbeiter_Language;
-            }
-        }
-        return $lang;
-    }
-    public function cpc_sendMail($to, $subject, $body){
-        cpcDebug::cpc_debug("cpc $to \n $subject \n $body ", '-Translate');
-        $lang = $this->getMitarbeiterLanguage($to);
-        if ($lang == 'EN'){
-            $subject = ServiceProvider::translateDirect($subject);
-            $body    = ServiceProvider::translateDirect($body);
-        }
-        $this->_sendMail($to, $subject, $body);
-    }
-    private function _sendMail($to, $subject, $body)
+    public function cpc_sendMail($to, $subject, $body)
     {
         $this->mailer_config = Config::get('app.mailer');
         $mail = new PHPMailer(true); // Passing `true` enables exceptions
@@ -3132,7 +3019,7 @@ class TermineController extends BaseController
         $termin->save();
         if ($nStart != $oDatumStart) {
             cpcDebug::cpc_debug("Termin Datum Start geändert von $oDatumStart zu $nStart", "@updateTermine");
-            //$this->changeStatusMasterplan($ppid);
+            $this->changeStatusMasterplan($ppid);
         }
         $bchange = false;
         $change = "\n--- " . Auth::user()->PPMitarbeiter_Kuerzel . " - " . date('d.m.Y') . " --- ";
@@ -3172,7 +3059,7 @@ class TermineController extends BaseController
                 $termin->PPTermine_History =  $this->translateContent($change, 'DE', 'EN') .  $termin->PPTermine_History;
             } 
             if ($this->getUserLanguage() == 'DE'){
-            $termin->PPTermine_History = $change . $termin->PPTermine_History;
+                $termin->PPTermine_History = $change . $termin->PPTermine_History;
                 $termin->PPTermine_HistoryEN = $this->translateHistory($termin);
                 $termin->PPTermine_HistoryEN =  $this->translateContent($change, 'DE', 'EN') .  $termin->PPTermine_HistoryEN;
             }
@@ -3223,8 +3110,6 @@ class TermineController extends BaseController
     }
     public function ergaenzeNeueTerminspalten()
     {
-        echo('TEST<br>');
-        exit;
         /*$ppids = array (1369, 1353, 1352,1350,1349,1348,1345,1344,1342,1341,1338,
                         1337,1335,1329,1328,1326,1325,1324,1322,1319,1318,1317,
                         1316,1315,1170,1162,1093,1092,1091,1084,1077,1070,1069,
@@ -3380,6 +3265,8 @@ class TermineController extends BaseController
     }
     public function updateTermineLog($sChgs)
     {
+        cpcDebug::cpc_debug("Update Termin Log","@History");
+        cpcDebug::cpc_debug($sChgs,"@History");
         $bProtokoll = false;
         if ($sChgs['PPTermineChanges_oldStatus'] == $sChgs['PPTermineChanges_newStatus']) {
             //Status ist gleich geblieben: Kommentar oder Categorie?
@@ -3388,7 +3275,7 @@ class TermineController extends BaseController
             }
             if (isset($sChgs['PPTermineChanges_Remark']) and strlen($sChgs['PPTermineChanges_Remark']) > 1) {
                 $bProtokoll = true;
-            }
+            }   
             if (isset($sChgs['PPTermineChanges_RemarkReceiver']) and strlen($sChgs['PPTermineChanges_RemarkReceiver']) > 1) {
                 $bProtokoll = true;
             }
@@ -3402,15 +3289,19 @@ class TermineController extends BaseController
             //Status Ämderung => auf jeden fall Protokollieren
             $bProtokoll = true;
         }
+        cpcDebug::cpc_debug("nach test","@History");
         if ($bProtokoll) {
+            cpcDebug::cpc_debug('Neuer Change Eintrag',"@History");
             $newLog = new PPTermineChanges();
             foreach ($sChgs as $key => $sChg) {
                 //cpcDebug::cpc_debug($key . " => " . $sChg);
                 $newLog->$key = $sChg;
             }
+            cpcDebug::cpc_debug("PPTermineChanges -> Vor saved", "@History");
             $newLog->save();
-            //cpcDebug::cpc_debug("PPTermineChanges -> saved");
+            cpcDebug::cpc_debug("PPTermineChanges -> saved", "@History");
         }
+        cpcDebug::cpc_debug('Return updateTermineLog',"@History");
     }
     private function uploadFilesTermine($id, $bemerkung = "", $fileType = "Musterung", $skat = "Techpack")
     {
@@ -3535,7 +3426,6 @@ class TermineController extends BaseController
                     $ian = $pp->PPProduktpass_IAN;
                     $ausm = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
                 }
-                //$lang = $this->get
                 $subject = "TPT-Aufgabe erledigt: ".$chng->PPTermineChanges_Categorie;
                 $body = 'Im TPT wurde die Aufgabe '.$chng->PPTermineChanges_Categorie.' für die IAN: '.$ian.' Ausmusterung: '.$ausm.' als erledigt markiert!<br>';
                 $body .= "<a href='$link' target='_blank'>Link zur Aufgabe</a>";
@@ -4071,10 +3961,6 @@ class TermineController extends BaseController
             $termin->{$attTranslation} = $deepl.$translatedText;
             $termin->{$att} = $newText;
             $termin->save();    
-        } else {
-            $termin->{$attTranslation} = '';
-            $termin->{$att} = '';
-            $termin->save();    
         }
     }
     private function saveTranslationTermineChanges($termineChanges, $pAtt, $newText){
@@ -4115,6 +4001,7 @@ class TermineController extends BaseController
     {
         //cpcDebug::cpc_debug("Start updatejsonMusterung");
         //cpcDebug::cpc_debug($_FILES);
+        cpcDebug::cpc_debug("Enter updatejsonMusterung", "@History");
         try {
             $jsonObject = json_decode($_POST['jsonObject']);
             //$file = $_FILES['file'];
@@ -4164,8 +4051,8 @@ class TermineController extends BaseController
             $termin->PPTermine_MAZustaendigkeit = $nMAZustaendigkeit;
             if ($iStart != $oDatumStart) {
                 cpcDebug::cpc_debug("Termin Datum Start geändert von $oDatumStart zu $iStart", "@updateTermine");
-                //$this->changeStatusMasterplan($ppid);
-                //$termin->PPTermine_IsMPlan = 0;
+                $this->changeStatusMasterplan($ppid);
+                $termin->PPTermine_IsMPlan = 0;
             }
             $termin->save();
             //cpcDebug::cpc_debug("Termin saved! OK. $nMAZustaendigkeit  " . Auth::getUser()->PPMitarbeiter_Id);
@@ -4189,7 +4076,7 @@ class TermineController extends BaseController
         } */
         // //cpcDebug::cpc_debug("Save Changes TARGA:");
         // //cpcDebug::cpc_debug($oDatumStart);
-        // //cpcDebug::cpc_debug($iStart);
+        cpcDebug::cpc_debug("Prepare Save Changes TARGA:", "@History");
         try {
             $save = true;
             $save = $save || ($oDatumStart != $iStart);
@@ -4214,12 +4101,13 @@ class TermineController extends BaseController
             $statusChange['PPTermineChanges_Mitarbeiter_Id'] = $oMAZustaendigkeit;
             $statusChange['PPTermineChanges_PPPPFilesId'] = $fileId;
             if ($save) {
-                //cpcDebug::cpc_debug("Save: statusChange TARGA");
+                cpcDebug::cpc_debug("Save: statusChange TARGA", "@History");
                 $this->updateTermineLog($statusChange);
             }
-        } catch (exception $e) {
-            //cpcDebug::cpc_debug("Message: " . $e->getMessage() . "  Code: " . $e->getCode() . "    Line:" . $e->getLine());
+        } catch (Exception $e) {
+            cpcDebug::cpc_debug("Message: " . $e->getMessage() . "  Code: " . $e->getCode() . "    Line:" . $e->getLine(), "@History");
         }
+        cpcDebug::cpc_debug("Prepare Save Changes History:", "@History");
         try {
             $labels = array (
                 'Leer' => array('DE' => 'leer', 'EN' => 'empty'),
@@ -4252,10 +4140,10 @@ class TermineController extends BaseController
                 //$bchange = true; $change = $change . "\nEnde: ".date("d.m.Y", strtotime($oDatumEnde))." -> ". date("d.m.Y", strtotime($termin->PPTermine_DatumEnde));
             }
             if ($lang == 'DE'){
-            if ($oBemerkungen != $termin->PPTermine_Bemerkungen) {
-                $bchange = true;
+                if ($oBemerkungen != $termin->PPTermine_Bemerkungen) {
+                    $bchange = true;
                     $change = $change . "\n" . $labels['Bemerkungen']['DE'] . ": " . $oBemerkungen . " -> " . $termin->PPTermine_Bemerkungen;
-            }
+                }
                 if ($oLabel != $termin->PPTermine_Label) {
                     $bchange = true;
                     $change = $change . "\n" . $labels['Anzeigetext'][$lang] . ": " . $oLabel . " -> " . $termin->PPTermine_Label;
@@ -4293,7 +4181,7 @@ class TermineController extends BaseController
             if ($bchange) {
                 if ($this->getUserLanguage() == 'DE'){
                     cpcDebug::cpc_debug("History Change detected DE ".$change, "@History");
-                $termin->PPTermine_History = $change . $termin->PPTermine_History;
+                    $termin->PPTermine_History = $change . $termin->PPTermine_History;
                     //$termin->PPTermine_HistoryEN = $this->translateHistory($termin);
                     $termin->PPTermine_HistoryEN =  $this->translateContent($change, 'DE', 'EN') .  $termin->PPTermine_HistoryEN;
                 }
@@ -4622,12 +4510,6 @@ class TermineController extends BaseController
                     $m->PPTermine_Status = 'in Arbeit';
                     $m->PPTermine_DatumEnde = '0000-00-00 00:00:00';
                     $m->save();
-                }  
-                if (strpos($m->PPTermine_Status,'FREEZE_nOK') !== false){
-                    cpcDebug::cpc_debug("freeMilestones ".$ppid.' FREEZE_nOK => n. OK','@Freeze');
-                    $m->PPTermine_Status = 'n. OK';
-                    $m->PPTermine_DatumEnde = '0000-00-00 00:00:00';
-                    $m->save();
                 }
                 if (strpos($m->PPTermine_Status,'FREEZE') !== false){
                     $m->PPTermine_Status = 'Neu';
@@ -4650,9 +4532,6 @@ class TermineController extends BaseController
                         $newStatus = 'FREEZE';
                         if (strpos($m->PPTermine_Status,'in Arbeit') !== false){
                             $newStatus = 'FREEZE_IA';
-                        } 
-                        if (strpos($m->PPTermine_Status,'n. OK') !== false){
-                            $newStatus = 'FREEZE_nOK';
                         }
                         $m->PPTermine_History .= ' Status: '.$m->PPTermine_Status. " => $newStatus "; 
                         $m->PPTermine_Status = $newStatus;
@@ -4719,7 +4598,6 @@ class TermineController extends BaseController
         $interval = $dateEnd->diff($sollDate);
         $weeksDiff = $interval->format('%r%a')/7;
         $diff =  floor($weeksDiff) ;
-        //cpcdebug::cpc_debug("CRD: ".$CRDDate->format('d.m.Y')."  Soll: ".$sollDate->format('d.m.Y')." Ende: ". $termin->PPTermine_DatumEnde."  Diff: $diff  Art: $xArt", '@Dashboard');
         return array('CRDDate' => $CRDDate->format('d.m.Y'), 'W2CRD' => $diff, 'SollDate' => $sollDate->format('d.m.Y'), 'Art' => $xArt);
 /*        PPProduktpass_Liefertermin
         PPProduktpass_LieferterminJahr
@@ -4762,7 +4640,7 @@ class TermineController extends BaseController
     private function translateContent($text, $sourceLang, $targetLang)
     {
         if ($text == null or (trim($text) == '')) {
-            return '';
+            $text = '-';
         }
         $api_Key = '10ee3599-028f-961f-ca7e-8c941bfaac5a';
         $deeplURL = "https://api.deepl.com/v2/translate";
@@ -4824,60 +4702,5 @@ class TermineController extends BaseController
         } else {
             cpcDebug::cpc_debug("No Masterplan found for PPId: $ppid",'@Masterplan');
         }
-    }
-    private function testAndTranslate($text, $sourceLanguage, $targetLanguage){
-        if ($text == null or (trim($text) == '')) {
-            return false;
-        }
-        return $this->translateContent($text, $sourceLanguage, $targetLanguage); ;
-    }
-    private function _massTranslateMilesones($ppid){
-        //echo("Mass Translate Milestones for PPId: $ppid<br>");
-        $pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
-        if (!$pp){
-            //echo("No Produktpass found for Id: $ppid<br>");
-            exit;
-        }
-        //echo("Produktpass IAN: ".$pp->PPProduktpass_IAN." Ausm");
-        $ts = PPTermine::where('PPTermine_PPProduktpass_Id', $ppid)->get();
-        if ($ts) {
-            foreach ($ts as $t) {
-                    //echo("<br>Termin Id: ".$t->PPTermine_Id."  Label DE: ".$t->PPTermine_Label."  Label EN: ".$t->PPTermine_LabelEN);
-                    if ($t->PPTermine_LabelEN === null or (trim($t->PPTermine_LabelEN) == '')){
-                        $t->PPTermine_LabelEN = $this->translateContent($t->PPTermine_Label, 'DE', 'EN') ;      
-                    }
-                    if ($t->PPTermine_BemerkungenEN === null or (trim($t->PPTermine_BemerkungenEN) == '')){
-                        $t->PPTermine_BemerkungenEN = $this->translateContent($t->PPTermine_Bemerkungen, 'DE', 'EN') ;      
-                    }
-                    if($t->PPTermine_HistoryEN === null or (trim($t->PPTermine_History) == '')){
-                        $t->PPTermine_HistoryEN = $this->translateContent($t->PPTermine_History, 'DE', 'EN') ;      
-                    }
-                    if($t->PPTermine_BemerkungenBearbeiterEN === null or (trim($t->PPTermine_BemerkungenBearbeiter) == '')){
-                        $t->PPTermine_BemerkungenBearbeiterEN = $this->translateContent($t->PPTermine_BemerkungenBearbeiter, 'DE', 'EN') ;      
-                    }
-                    $t->save();
-                    //echo("<br>Termin Id: ".$t->PPTermine_Id."  Label DE: ".$t->PPTermine_Label."  Label EN: ".$t->PPTermine_LabelEN);
-                    //echo("<br>                    Bemerkungen DE: ".$t->PPTermine_Bemerkungen."  Bemerkungen EN: ".$t->PPTermine_BemerkungenEN);
-                    //echo("<br>                    History DE: ".$t->PPTermine_History."  History EN: ".$t->PPTermine_HistoryEN);
-                    //echo("<br>                    BemerkungenBearbeiter DE: ".$t->PPTermine_BemerkungenBearbeiter."  BemerkungenBearbeiter EN: ".$t->PPTermine_BemerkungenBearbeiterEN);    
-            }
-        }
-    }
-    public function massTranslateMilesones(){
-        $status = 'PLAN';
-        echo("GO $status <br>");
-        //Stage 1
-        //$pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%ev%')->where('InternerStatus', $status)->where('PPProduktpass_Id','<=', 11000)->get();
-        // Middle Stage
-        //$pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%ev%')->where('InternerStatus', $status)->where('PPProduktpass_Id','>', 11500)->where('PPProduktpass_Id','<=', 12000)->get();
-        // Final Stage
-        $pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%ev%')->where('InternerStatus', $status)->where('PPProduktpass_Id','>', 12000);
-        if ($pps){
-            foreach ($pps as $pp){
-                echo("<br>Translating Milestones for IAN: ".$pp->PPProduktpass_IAN);
-                $this->_massTranslateMilesones($pp->PPProduktpass_Id);
-            }
-        }
-        echo('<br>------------------<br>Finish<br>');
     }
 }

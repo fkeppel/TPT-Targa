@@ -1,7 +1,7 @@
 <div  id='topLidl'>
   @include ('ian.Allgemein')
 </div>
-<div class='divContainer' id="infoTabs">
+<div id="infoTabs">
   <ul>
     <li><a href="#StammdatenLidl">{{ ServiceProvider::tl($data['lang'], 'Stammdaten') }}</a></li>
     <li><a href="#QualitaetLidl">{{ ServiceProvider::tl($data['lang'], 'Qualität') }}</a></li>

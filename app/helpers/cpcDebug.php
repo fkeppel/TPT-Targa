@@ -1,9 +1,7 @@
 <?php
 class cpcDebug {
     static function cpc_debug($str, $ext = "Commen") {
-        if (!isset(Auth::user()->PPMitarbeiter_Kuerzel) or Auth::user()->PPMitarbeiter_Kuerzel != 'FKE') {
-            return;
-        }
+        //return;
         $important = substr($ext,0,1);
         if ($important != '-'){
             return;
@@ -155,7 +153,7 @@ class cpcHelp {
                 $la->save();
         }
     }
-     public static  function loginAttemptCount($user) {
+    static public function loginAttemptCount($user) {
         $la = login_attempt::where('login_attempt_user', $user)->get()->first();
         if ($la) {
             return $la->login_attempt_count;

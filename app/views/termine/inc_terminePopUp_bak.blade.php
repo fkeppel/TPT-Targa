@@ -423,6 +423,12 @@
         padding: 0px;
         border: none;
     }
+    .msContainer {
+        grid-template-columns:  repeat(15, auto);
+    }
+    .msCell {
+        border: 1px solid red;
+    }
 </style>
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -453,13 +459,41 @@ if ($ppall->PPProduktpass_CRDJahr > 0){
     $crd->setISODate($ppall->PPProduktpass_LieferterminJahr, $ppall->PPProduktpass_Liefertermin );
     $crd->sub($W10);
  }
+ $_st = '';
+ if (Config::get('app.cEnv') == 'development' ){
+    $_st='Border:4px solid red;';
+ }
+ if (! isset($_COOKIE['TPTLanguage'])){
+            $_COOKIE['TPTLanguage'] =  Auth::user()->PPMitarbeiter_Language; //'DE';
+        } 
+$lang = $_COOKIE['TPTLanguage'];
 ?>
-<div style="text-align:left;border:1px solid gray; width:1877px;height:1220px;text-align: center;">
-    <div style="height:85px;border:none;padding:10px;">
-        <?php $i    = 1; ?>
+<div style="text-align:left;border:1px solid gray; width:1877px;height:95%;text-align: center; {{ $_st }}">
+    <div style="border:none;padding:10px;">
+        <?php $i    = 1; 
+        ?>
         @foreach ($termineLinks as $tm)
-        <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, {{$tm->PPTermine_Id}}, {{$board}}, 'All', 1)" @if($tm->PPBoardSpalte_Bezeichnung == $t['terminart']) style="background-color:#7089e1;color:black;" @endif>
-            {{$tm->PPBoardSpalte_Bezeichnung}}
+        <?php 
+            $pmCol      = '#003D7C';
+            $pmColActiv = '#3399FF';
+            $tcCol      = $pmCol;  //'#009900'; Test Green
+            $tcColActiv = $pmColActiv; //'#33FF33'; Test light Green
+            $fontCol = 'white';
+            if($tm->PPBoardSpalte_Bezeichnung != $t['terminart']) {
+                $col = $pmCol;
+                if(strpos($tm->PPBoardSpalteData_Kind ,'PM') === false) {
+                    $col = $tcCol;
+                }
+            } else {
+                $fontCol = 'black';
+                $col = $pmColActiv;
+                if(strpos($tm->PPBoardSpalteData_Kind ,'PM') === false) {
+                    $col = $tcColActiv;
+                }
+            }
+            ?>
+        <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, {{$tm->PPTermine_Id}}, {{$board}}, 'All', 1)"  style="background-color:{{$col}};color:{{$fontCol}};" >
+            <span style='font-size:0.85em;'>{{$tm->PPBoardSpalte_Bezeichnung}}</span>
         </div>
         <?php
         if (($i % 15) == 0) {
@@ -470,11 +504,11 @@ if ($ppall->PPProduktpass_CRDJahr > 0){
         @endforeach
         @if ($board == 1000)
         <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1001, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
-            Termine Musterung
+            {{ ServiceProvider::tl($lang, 'Termine Musterung') }}
         </div>
         @else
         <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1000, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
-            Termine Projekte
+             {{ ServiceProvider::tl($lang, 'Termine Projekte') }}
         </div>
         @endif
     </div>
@@ -486,7 +520,7 @@ if ($ppall->PPProduktpass_CRDJahr > 0){
                         <input type="hidden" name="Termine_Id{{$t['id']}}" value="{{$t['id']}}">
                         <fieldset style="border:none; padding-bottom:0px;">
                             <div style="padding-top: 8px; padding-bottom: 8px;text-align: left;">
-                                <span style="font-size: 18px; font-weight: bold;padding: 5px; padding-top:8px; padding-bottom: 8px;color:#003D7C;">Hauptaufgabe {{ $t['ManSoll'] }}</span>
+                                <span style="font-size: 18px; font-weight: bold;padding: 5px; padding-top:8px; padding-bottom: 8px;color:#003D7C;">Hauptaufgabe</span>
                             </div>
                             <div style="border:none;height:284px;">
                                 <div style="border: none; margin-bottom: 0px;">
@@ -496,18 +530,19 @@ if ($ppall->PPProduktpass_CRDJahr > 0){
                                                 <td class="label" style="width:100px;">Terminart: <span style="color:green; font-weight:bold; font-size:1.2rem;"></span><img src="{{url($iconInfo)}}"  style="width:16px;float:right;" title="Status: In Arbeit: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HifeStatusInArbeit}}
 Status OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusOK}}
 Status Nicht OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusNOK}}"/></td>
-                                                <td class="value" style="width:400px;">{{$t['terminart']}}</td>
-                                                <td class="label" style="width:150px;">Meilenstein:</td>
-                                                <td class="value" style="width:300px;"> @if ($t['rot'] != '')Soll: CRD {{$t['rot'] +10}} Wochen @endif
-                                                    KW @if ($crd->format('W')+$t['rot']+10 <= 0){{$crd->format('W')+$t['rot']+62}}/{{$crd->format('y')-1}} @else {{$crd->format('W')+$t['rot']+10}}/{{$crd->format('y')}}@endif</td>
+                                                <td class="value" style="width:400px;">{{$t['terminart']}}  {{$t['spalteId']}}</td>
+                                                <td class="label" style="width:150px;">Meilenstein: {{$crd->format('W')}}</td>
+                                                <td class="value" style="width:300px;"> @if ($t['rot'] != '' or $t['rot'] == 0 )Soll: CRD {{$t['rot'] +10}} Wochen @endif
+                                                    KW @if ($crd->format('W')+$t['rot']+10 <  0){{$crd->format('W')+$t['rot']+62}}/{{$crd->format('y')-1}} @else @if ($crd->format('W')+$t['rot']+10 > 52 )  {{$crd->format('W')+$t['rot']-42}}/{{$crd->format('y')+1}} @else  {{$crd->format('W')+$t['rot']+10}}/{{$crd->format('y')}}@endif @endif</td>
                                             </tr>
                                             <tr>
                                                 <td class="label">IAN:</td>
-                                                <td class="value"><a href="/showAfterUpload/{{$pp['id']}}/1" target="_blank">{{$pp['ian']}}</a></td>
-                                                <td class="label">CRD:</td>
+                                                <!-- td class="value"><a href="/showAfterUpload/{{$pp['id']}}/1" target="_blank">{{$pp['ian']}}</a></td -->
+                                                <td class="value"><a href="/show/{{$pp['id']}}" target="_blank">{{$pp['ian']}}</a></td>
+                                                <td class="label">@CRD:</td>
                                                 <td class="value">{{ $crd->format('W/y') }} <input type="hidden" id="CRD_Date" value="{{  $crd->format('Y-m-d') }}" /></td>
                                             </tr>
-                                            <tr>
+                                            <!-- tr>
                                                 <td class="label">Lieferant:</td>
                                                 <td class="value">@if (isset($po['supplierid']))
                                                     <a href="adressen/show/{{$po['supplierid']}}" target="_blank">{{$po['supplier']}}</a>
@@ -517,10 +552,16 @@ Status Nicht OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusN
                                                 </td>
                                                 <td class="label">DDP:</td>
                                                 <td class="value">{{$pp['ddpltw']}}/{{$pp['ddplty']}}</td>
+                                            </tr -->
+                                            <tr>
+                                                <td class="label">Status:</td>
+                                                <td class="value">{{$pp['InternerStatus']}}</td>
+                                                <td class="label">DDP:</td>
+                                                <td class="value">{{$pp['ddpltw']}}/{{$pp['ddplty']}}</td>
                                             </tr>
                                             <tr>
-                                                <td class="label"></td>
-                                                <td class="value"></td>
+                                                <td class="label">PM/TC</td>
+                                                <td class="value" style='vertical-align:top;'><b>PM:</b> {{ isset($mitarbeiterNamen[$pp['PM']]->PPMitarbeiter_Kuerzel)?$mitarbeiterNamen[$pp['PM']]->PPMitarbeiter_Kuerzel:"N.N.";  }}   <b>TC:</b> {{ isset($mitarbeiterNamen[$pp['TC']]->PPMitarbeiter_Kuerzel)?$mitarbeiterNamen[$pp['TC']]->PPMitarbeiter_Kuerzel:"N.N.";  }}</td>
                                                 <td class="label" title="In der Terminliste mit '*' gekennzeichnet">man. Soll: <span style="color:darkblue;font-weight:bold;">(*)</span></td>
                                                 <td class="value" style="vertical-align:top;">
                                                     <?php
@@ -546,7 +587,7 @@ Status Nicht OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusN
                                                     @else 
                                                         <input type="hidden" class="datepickerAll" name="Termine_ManSollD{{$t['id']}}" id="Termine_ManSollD{{$t['id']}}" value='{{$dx2}}' />   
                                                     @endif
-                                                    <div>{{$t['id']}} ExW: {{ $ms }} Datum: {{$t['ManSollDate']}}  DX: {{$dx}} DX2: {{$dx2}} </div>
+                                                    <!-- div>{{$t['id']}} ExW: {{ $ms }} Datum: {{$t['ManSollDate']}}  DX: {{$dx}} DX2: {{$dx2}} </div -->
                                                     <div style="margin-top:8px;">CRD - <input disabled style="padding:5px; width:60px;" name="Termine_ManSoll{{$t['id']}}" id="Termine_ManSoll{{$t['id']}}" value="{{ $wochen??''}}" /> Wochen 
                                                     @if ($t['ManSoll'] != 0) => KW
                                                     @if ($pp['crdltw']-$t['ManSoll'] <= 0) 
@@ -570,9 +611,18 @@ Status Nicht OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusN
                                                 <td class="iHLabel" style="width:68px;">store</td>
                                             </tr>
                                             <tr>
-                                                <td class="iHValue"> {{
-                                                    Form::select('Termine_Status',$t['stati'],$t['status'],array('id'=>'Termine_Status'.$t['id'],'style'=>"width:120px;padding:5px;"))
-                                                    }}</td>
+                                                <td class="iHValue">@if (strpos($t['status'],'FREEZE') !== false )
+                                                                        <!-- span>{{$t['status']}}</span -->
+                                                                        <select id='Termine_Status' name='Termine_Status' style='width:120px;padding:5px;'>
+                                                                        <option selected >FREEZE</option>
+                                                                        @foreach ($t['stati'] as $st1)
+                                                                            <option >{{$st1}}</option>
+                                                                        @endforeach
+                                                                        </select>
+                                                                    @else 
+                                                                          {{Form::select('Termine_Status',$t['stati'],$t['status'],array('id'=>'Termine_Status'.$t['id'],'style'=>"width:120px;padding:5px;"))}}
+                                                                    @endif
+                                                </td>
                                                 <td class="iHValue">{{--
                                                     Form::select('Termine_Mitarbeiter',$mitarbeiterliste,$t['ma'],array('id'=>'Termine_Mitarbeiter'.$t['id'],'style'=>"width:100px;padding:5px;"))
                                                     --}}
@@ -680,6 +730,7 @@ Status Nicht OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusN
                                                 </select> -->
                                             </td>
                                             <td class="iHValue"><select id="Theme_Bearbeiter_{{$t['id']}}" style="padding: 5px;">
+                                                    <option title='' value="0">Bitte auswählen...</option>
                                                     @foreach ($mitarbeiterliste as $mid => $ma)
                                                     <option title='{{ isset($mitarbeiterNamen[$mid]->PPMitarbeiter_Name)?$mitarbeiterNamen[$mid]->PPMitarbeiter_Name.", ".$mitarbeiterNamen[$mid]->PPMitarbeiter_Vorname:"NNN";  }}' value="{{$mid}}">{{$ma}}</option>
                                                     @endforeach
@@ -838,6 +889,17 @@ Status Nicht OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusN
                 alert("Bitte zuständigen Mitarbeiter angeben!");
                 return;
             }
+            l = readValue($("#Termine_Label" + id)[0])
+            s = readValue($("#Termine_Status" + id)[0])
+            //if (s == 'OK' and  l.trim.lenghth < 1 ){
+              //alert("Bitte Anzeigetext eintragen!");
+             //return;
+            //}
+            if (s === 'OK' && l.length < 1){
+                //alert("Bitte Anzeigetext eingeben, wenn Status auf OK gesetzt wird! Datensatz wurde noch nicht gespeichert!");
+                //return;
+            }
+            console.log('STATUS:' + readValue($("#Termine_Status" + id)[0]));
             try {
                 var values = {
                     "Termine_Id": id,
@@ -1198,6 +1260,7 @@ Status Nicht OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusN
                     "PPTermineChanges_Id": id,
                     "PPTermineChanges_NewReceiver": readValueFromId("StatChange_NewReceiver_" + id),
                     "PPTermineChanges_NewRemark": readValueFromId("StatChange_NewRemark_" + id),
+                    "PPTermineChanges_NewRemarkReceiver": readValueFromId("StatChange_NewRemarkReceiver_" + id),
                     "PPTermineChanges_NewDoUntil": readValueFromId("StatChange_DoUntil_" + id),
                 }
                 var jsonString = JSON.stringify(values);
@@ -1259,11 +1322,12 @@ Status Nicht OK: {{$t['Header2'][$t['spalteId']]->PPBoardSpalteData_HilfeStatusN
                 }
             });
         }
-        function setErledigt(tid, id) {
+        function setErledigt(tid, id, board) {
             //alert(tid + " - " + id);
             var frmData = new FormData();
             frmData.append('id', id);
             frmData.append('tid', tid);
+            frmData.append('board', board);
             $.ajax({
                 type: "POST",
                 url: "/setChangeErledigt",

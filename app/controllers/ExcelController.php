@@ -49,7 +49,6 @@ class ExcelController extends BaseController {
 						'OSDK' =>'OnlineShop DK',
 						'OSHU' =>'OnlineShop HU',
 						'OSIT' =>'OnlineShop IT',
-						'OSPT' =>'OnlineShop PT',
 						'OSSI' =>'OnlineShop SI',
 						'KDE' =>'Kaufland DE',
 						'KPL' =>'Kaufland PL',
@@ -78,7 +77,6 @@ class ExcelController extends BaseController {
 		return $this->writeExcel_post(true);
 	}
 	public function writeExcel_post($neu = false){
-		//cpcDebug::cpc_debug(Input::all(),'@MailDL');
 		if (Input::has('ppid')){
 			$id = Input::get('ppid');
 		} else {
@@ -95,17 +93,13 @@ class ExcelController extends BaseController {
 		} else {
 			$send = false;
 		}
-		$cc = array();
+		$cc = '';
 		if (Input::has('mailcc')){
-			$cc[] = Input::get('mailcc');
+			$cc = Input::get('mailcc');
 		}
 		$cc2 = '';
 		if (Input::has('mailcc2')){
-			$cc[] = Input::get('mailcc2');
-		}
-		$cc4 = '';
-		if (Input::has('mailccPJM')){
-			$cc[] = Input::get('mailccPJM');
+			$cc = array($cc, Input::get('mailcc2'));
 		}
 		$download = false;
 		if (Input::has('download')){
@@ -115,7 +109,6 @@ class ExcelController extends BaseController {
 		if (Input::has('mailbody')){
 			$body = Input::get('mailbody');
 		}
-		//cpcDebug::cpc_debug($cc, '@MailDL');
         //echo( "ID: $id  Send: $send To: $to CC: $cc Body: $body Download: $download <br>");exit;
 		return $this->writeExcel_Anfrage($id, $send, $to, $cc, $body, $download, $neu);
 	}
@@ -181,7 +174,7 @@ class ExcelController extends BaseController {
 		$y = 2000 + $ddp[1];
 		$crd = new DateTime();
 		$crd->setISODate($y,$w);
-		$crd->modify('-12 week');
+		$crd->modify('-13 week');
 		return $crd->format('W/y');
 	}
 	private function replace0d ($text){
@@ -238,62 +231,17 @@ class ExcelController extends BaseController {
 		}
 		return $date;
 	}
-	private function getCRDString ($crd){
-		if ($crd == ''){
-			return '';
-		}
-		try {
-			$date = DateTime::createFromFormat('Y-m-d', $crd);
-		}
-		catch (Exception $ex){
-			return '';
-		}
-		return 'CW '. $date->format('W/o') . ' CRD' ;
-	}
-	private function getShipmentreleaseString ($crd){
-		if ($crd == ''){
-			return '';
-		}
-		try {
-			$date = DateTime::createFromFormat('Y-m-d', $crd);
-			$date->sub(new DateInterval('P2W'));
-		}
-		catch (Exception $ex){
-			return '';
-		}
-		return 'CW '. $date->format('W/o') . ' Shipment Release';
-	}
-	private function getPSIString ($crd){
-		if ($crd == ''){
-			return '';
-		}
-		try {
-			$date = DateTime::createFromFormat('Y-m-d', $crd);
-			$date->sub(new DateInterval('P3W'));
-		}
-		catch (Exception $ex){
-			return 'XXX';
-		}
-		return 'CW '. $date->format('W/o') . ' 100% PSI';
-	}
-	private function getCRD_Alt($y, $w) {
+	private function getCRD($y, $w) {
 		$crd = $this->getDateFromCW($y, $w);
-		$crd->sub(new DateInterval('P9W'));
+		$crd->sub(new DateInterval('P10W'));
 		//echo($crd->format('Y-m-d'));exit;
 		return $crd->format('Y-m-d');
 		/* $month = $crd->format('F');
 		$year =  $crd->format('Y');*/
 	}
-	private function getCRD($y, $w) {
-		if ($y == 0){
-			return '';
-		}
-		$crd = $this->getDateFromCW($y, $w);
-		return $crd->format('Y-m-d');
-	}
 	private function getRend($y, $w) {
 		$crd = $this->getDateFromCW($y, $w);
-		//$crd = $crd->sub(new DateInterval('P10W'));
+		$crd = $crd->sub(new DateInterval('P10W'));
 		$rend = $crd->sub(new DateInterval('P2W'));
 		return $rend->format('Y-m-d');
 		/* $month = $crd->format('F');
@@ -312,19 +260,22 @@ class ExcelController extends BaseController {
 	}
 	public function writeRFQ ($ppid,$type){
 		$newVersion = array(	'FKE' 			=> 1,
-								'AB_admin' 		=> 0,
+								'AB_admin' 		=> 1,
 								'CSP_admin'		=> 1,
-								'CST_admin'		=> 0,
+								'CST_admin'		=> 1,
 								'JA_admin'		=> 1,
-								'KTST_admin'	=> 0,
+								'KTST_admin'	=> 1,
 								'MM_admin'		=> 1,
-								'SOS_admin' 	=> 0 );
-		/* if (array_key_exists(Auth::user()->PPMitarbeiter_Kuerzel, $newVersion)){
-				$this->_writeRFQ2546($ppid,$type);
-		} else {
-			$this->_writeRFQ2541($ppid,$type);
-		} */
-		$this->_writeRFQ2546($ppid,$type);
+								'SOS_admin' 	=> 1 );
+		//$newVersion = array(	'FKE' 			=> 1 );
+		//if (array_key_exists(Auth::user()->PPMitarbeiter_Kuerzel, $newVersion)){
+		$this->_writeRFQ2533($ppid,$type);
+		//} else {
+		//	$this->_writeRFQ202403($ppid,$type);
+		//}
+		//} else {
+		//	$this->_writeRFQ($ppid,$type);
+		//}
 	}
     private function _writeRFQ ($ppid,$type){
 		$pp = PPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
@@ -369,9 +320,9 @@ class ExcelController extends BaseController {
 		}
 		$selection = $this->getSelection($pp->PPProduktpass_Ausmusterungnummer);
 		$this->worksheet->setCellValue($coord['Selection']['Cell'],$selection);
- 		$crd = $this->getCRD($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche);
+ 		$crd = $this->getCRD($pp->PPProduktpass_LieferterminJahr, $pp->PPProduktpass_Liefertermin);
 		$this->worksheet->setCellValue($coord['CRD']['Cell'],$crd);
-		$renderingDeadline = $this->getRend($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche);
+		$renderingDeadline = $this->getRend($pp->PPProduktpass_LieferterminJahr, $pp->PPProduktpass_Liefertermin);
 		$this->worksheet->setCellValue($coord['RenderingPriceOfferDeadline']['Cell'],$renderingDeadline);
 		$this->worksheet->setCellValue($coord['MOCKupDeadline']['Cell'],'???');
 		$this->worksheet->setCellValue($coord['EPCtill']['Cell'],$selection);
@@ -489,9 +440,9 @@ class ExcelController extends BaseController {
 		}
 		$selection = $this->getSelection($pp->PPProduktpass_Ausmusterungnummer);
 		$this->worksheet->setCellValue($coord['Selection']['Cell'],$selection);
- 		$crd = $this->getCRD($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche);
+ 		$crd = $this->getCRD($pp->PPProduktpass_LieferterminJahr, $pp->PPProduktpass_Liefertermin);
 		$this->worksheet->setCellValue($coord['CRD']['Cell'],$crd);
-		$renderingDeadline = $this->getRend($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche);
+		$renderingDeadline = $this->getRend($pp->PPProduktpass_LieferterminJahr, $pp->PPProduktpass_Liefertermin);
 		$this->worksheet->setCellValue($coord['RenderingPriceOfferDeadline']['Cell'],$renderingDeadline);
 		$this->worksheet->setCellValue($coord['MOCKupDeadline']['Cell'],'???');
 		$this->worksheet->setCellValue($coord['EPCtill']['Cell'],$selection);
@@ -573,30 +524,6 @@ class ExcelController extends BaseController {
 		$this->worksheet->setCellValue($coord, $text);
 		$this->worksheet->getRowDimension($row)->setRowHeight( $lines1  * 24);
 	}
-	private function setCellValueAndHight_ALTERNATIV($coord, $text)
-	{
-		$normalized = preg_replace('/\r\n|\r|\n/', "\n", (string)$text);
-		// Zeile sauber aus Koordinate holen (auch AA12 etc.)
-		preg_match('/\d+$/', $coord, $m);
-		$row = (int)$m[0];
-		$lineCountText = explode("\n", $normalized);
-		$lines = count($lineCountText);
-		$addLines = 0;
-		foreach ($lineCountText as $value) {
-			if (mb_strlen($value) > 100) {
-				$addLines++;
-			}
-		}
-		$lines1 = $lines + $addLines;
-		// WICHTIG: normalized schreiben, nicht $text
-		$this->worksheet->setCellValueExplicit(
-			$coord,
-			$normalized,
-			\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING
-		);
-		$this->worksheet->getStyle($coord)->getAlignment()->setWrapText(true);
-		$this->worksheet->getRowDimension($row)->setRowHeight($lines1 * 24);
-	}
 	private function _writeRFQ2533 ($ppid,$type){
 		$mainSheet = 'RFQ_Style A';
 		$pp = PPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
@@ -623,8 +550,8 @@ class ExcelController extends BaseController {
         $coord['colorD'] =  $this->getCellA(2,44);
         $coord['colorE'] =  $this->getCellA(2,45);
         $coord['colorF'] =  $this->getCellA(2,46);
-        $coord['PPProduktpass_Materialstaerke_der_Verkaufsverpackung'] =  $this->getCellA(6,77);
-        $coord['retailPackagingComment'] =  $this->getCellA(2,77);
+        $coord['PPProduktpass_Materialstaerke_der_Verkaufsverpackung'] =  $this->getCellA(2,75);
+        $coord['retailPackagingComment'] =  $this->getCellA(2,76);
 		$coord['Selection'] = $this->getCellA(2,5);
 		$coord['CRD'] = $this->getCellA(2,6);
 		$coord['RenderingPriceOfferDeadline'] = $this->getCellA(2,7);
@@ -666,9 +593,9 @@ class ExcelController extends BaseController {
 		}
 		$selection = $this->getSelection($pp->PPProduktpass_Ausmusterungnummer);
 		$this->setCellValueAndHight($coord['Selection']['Cell'],$selection);
- 		$crd = $this->getCRD($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche);
+ 		$crd = $this->getCRD($pp->PPProduktpass_LieferterminJahr, $pp->PPProduktpass_Liefertermin);
 		$this->setCellValueAndHight($coord['CRD']['Cell'],$crd);
-		$renderingDeadline = $this->getRend($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche);
+		$renderingDeadline = $this->getRend($pp->PPProduktpass_LieferterminJahr, $pp->PPProduktpass_Liefertermin);
 		$this->setCellValueAndHight($coord['RenderingPriceOfferDeadline']['Cell'],$renderingDeadline);
 		$this->setCellValueAndHight($coord['MOCKupDeadline']['Cell'],'???');
 		$this->setCellValueAndHight($coord['EPCtill']['Cell'],$selection);
@@ -743,424 +670,6 @@ class ExcelController extends BaseController {
 		$redirectLink ='/show/' . $ppid . "/RFQ";
 		return Redirect::to($redirectLink);
 	}
-	private function _writeRFQ2541 ($ppid,$type){
-		$mainSheet = 'RFQ_Style A';
-		$pp = PPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
-		if (! $pp){
-			return;
-		}
-		$pc = new ProjectsController();
-		$trans = $pc->getTranslation($ppid);
-		$coord = array();
-        $coord['PPProduktpass_Artikelbezeichnung'] =  $this->getCellA(2,1);
-		$coord['PPProduktpass_IAN'] = $this->getCellA(2,2);
-        $coord['weightWithoutPackaging'] =  $this->getCellA(2,31);
-        $coord['sizeWithoutPackaging'] =  $this->getCellA(2,32);
-        $coord['qualityTechnicalData'] =  $this->getCellA(2,33);
-        $coord['additionalQualityInformation'] =  $this->getCellA(2,35);
-        $coord['changesFromPredecessor'] =  $this->getCellA(2,36);
-        $coord['brandReference'] =  $this->getCellA(2,37);
-        $coord['material'] =  $this->getCellA(2,38);
-        $coord['materialThickness'] =  $this->getCellA(2,39);
-        $coord['color'] =  $this->getCellA(2,40);
-        $coord['colorA'] =  $this->getCellA(2,41);
-        $coord['colorB'] =  $this->getCellA(2,42);
-        $coord['colorC'] =  $this->getCellA(2,43);
-        $coord['colorD'] =  $this->getCellA(2,44);
-        $coord['colorE'] =  $this->getCellA(2,45);
-        $coord['colorF'] =  $this->getCellA(2,46);
-        $coord['PPProduktpass_Materialstaerke_der_Verkaufsverpackung'] =  $this->getCellA(6,77);
-        $coord['retailPackagingComment'] =  $this->getCellA(2,77);
-		$coord['Selection'] = $this->getCellA(2,5);
-		$coord['CRD'] = $this->getCellA(2,6);
-		$coord['RenderingPriceOfferDeadline'] = $this->getCellA(2,7);
-		$coord['MOCKupDeadline'] = $this->getCellA(2,8);
-		$coord['EPCtill'] = $this->getCellA(2,9);
-		$coord['Qty'] = $this->getCellA(2,10);
-		$coord['Kolliinhalt'] =  $this->getCellA(4,63);
-		/******************************************************************* */
-		$fileName = storage_path().'/data/templates/RFQ_Template_2541.xlsx';
-		/******************************************************************* */
-		$objReader =  new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-		$objPHPExcel = $objReader->load($fileName);
-		$objPHPExcel->setActiveSheetIndexByName($mainSheet);
-		$this->worksheet = $objPHPExcel->getActiveSheet();
-		foreach ($trans['Main'] as $key => $value){
-			$textEN = $this->replace0d($value['EN']);
-			$this->setCellValueAndHight($coord[$key]['Cell'],$textEN);
-			//$this->worksheet->getStyle($coord[$key]['Cell'])->getAlignment()->setWrapText(true);
-			//$this->worksheet->getStyle($coord[$key]['Cell'])->getAlignment()->setHorizontal('left');
-			//$this->setRowHeightText($coord[$key]['Row'], $textEN) ;
-		}
-		$styles = PPProduktpass_Style::where('PPProduktpass_Style_PPProduktpass_Id', $ppid)->orderBy('PPProduktpass_Style_Header')->get();
-		$colorFrist = 40;
-		$countZ = 1;
-		foreach ($styles as $style) {
-			if ($countZ > 1){
-				$this->setCellValueAndHight($coord['color']['Cell'],'');
-			}
-			$styleCharNo = 41 + ord(substr($style->PPProduktpass_Style_Header,-1)) - ord('A');
-			//$colCoord = $this->getCellA(2,$colorFrist++);
-			$colCoord = $this->getCellA(1,$styleCharNo);
-			$this->setCellValueAndHight($colCoord['Cell'],"(Color)-Style ".$style->PPProduktpass_Style_Header);
-			$colCoord = $this->getCellA(2,$styleCharNo);
-			$this->setCellValueAndHight($colCoord['Cell'],$trans['Styles'][$style->PPProduktpass_Style_Header]['color']['EN']);
-			//$this->setCellValueAndHight($colCoord['Cell'],$style->PPProduktpass_Style_Header);
-			//$this->worksheet->getStyle($coord[$key]['Cell'])->getAlignment()->setWrapText(true);
-			//$this->worksheet->getStyle($coord[$key]['Cell'])->getAlignment()->setHorizontal('left');
-			$countZ++;
-		}
-		$selection = $this->getSelection($pp->PPProduktpass_Ausmusterungnummer);
-		$this->setCellValueAndHight($coord['Selection']['Cell'],$selection);
- 		$crd = $this->getCRD($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche);
-		$this->setCellValueAndHight($coord['CRD']['Cell'],$crd);
-		$renderingDeadline = $this->getRend($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche);
-		$this->setCellValueAndHight($coord['RenderingPriceOfferDeadline']['Cell'],$renderingDeadline);
-		$this->setCellValueAndHight($coord['MOCKupDeadline']['Cell'],'???');
-		$this->setCellValueAndHight($coord['EPCtill']['Cell'],$selection);
-		$qty = $pp->PPProduktpass_Gesamtmenge;
-		$this->setCellValueAndHight($coord['Qty']['Cell'],$qty);
-		$sort = PPProduktpass_Sortierung::where('PPProduktpass_Sortierung_PPProduktpass_Id', $ppid)->orderBy('PPProduktpass_Sortierung_Id')->get()->first();
-		$kolli = 0;
-		if ($sort){
-			$kolli = $sort->PPProduktpass_Sortierung_Value02;
-		}
-		$this->setCellValueAndHight($coord['Kolliinhalt']['Cell'],$kolli);
-		$image = public_path().'/data/uploads/'.$pp->PPProduktpass_ProjektBild;
-		if (file_exists($image) and !is_dir( $image )){
-			$this ->writeImage($image, $this->getCell(2,30),'Projektbild', 'Projektbild IAN'.$pp->PPProduktpass_IAN );
-		}
-		if ($type == 'R'){
-			$path = public_path().'/data/uploads/RFQ/';
-		} else {
-			$path = public_path().'/data/tmp';			
-		}
-		$stylesArray = array('B', 'C', 'D', 'E', 'F');
-		foreach ($stylesArray as $styleChar) {
-			$this->writeStyle2533($pp->PPProduktpass_Id, $styleChar, $objPHPExcel, $trans);
-		}
-		//schreibe Mengen#
-		$objPHPExcel->setActiveSheetIndexByName('Quantity overview');
-		$this->worksheet = $objPHPExcel->getActiveSheet();
-		$laenderMengen = $this->getLaenderMengenX($pp->PPProduktpass_Id);
-		//cpcDebug::cpc_debug($laenderMengen['US']['Quantity'], '@RFQ2533');
-		//cpcDebug::cpc_debug($laenderMengen['US']['Kolli'], '@RFQ2533');
-		for ($i=5; $i <= 58; $i++){
-			//$cell = 'B'.$i;
-			$country = $this->worksheet->getCell("A$i")->getValue();
-			//cpcDebug::cpc_debug($country, '@RFQ2533');
-			//cpcDebug::cpc_debug('OK:'. $laenderMengen[$country]['Quantity'], '@RFQ2533');
-			try{
-				$m = $laenderMengen[$country]['Quantity'];
-				$k = $laenderMengen[$country]['Kolli'];
-				//cpcDebug::cpc_debug('OK' . $m , '@RFQ2533');
-				if (isset($laenderMengen[$country])){
-					//$this->worksheet->setCellValue("D$i",$k);
-					//$this->worksheet->setCellValue("E$i",$m);
-					$this->worksheet->setCellValue("B$i",$laenderMengen[$country]['Kolli']);
-					$this->worksheet->setCellValue("C$i",$laenderMengen[$country]['Quantity']);
-					$this->worksheet->setCellValue("D$i",$laenderMengen[$country]['LT1']);
-					$this->worksheet->setCellValue("E$i",$laenderMengen[$country]['LT1Kolli']);
-					$this->worksheet->setCellValue("F$i",$laenderMengen[$country]['LT2']);
-					$this->worksheet->setCellValue("G$i",$laenderMengen[$country]['LT2Kolli']);
-					$this->worksheet->setCellValue("H$i",$laenderMengen[$country]['LT3']);
-					$this->worksheet->setCellValue("I$i",$laenderMengen[$country]['LT3Kolli']);
-				}
-			}
-			catch (Exception $ex){
-				cpcDebug::cpc_debug('Exc:'.$country, '@RFQ2533');
-			}
-		}
-		$this->worksheet->setCellValue("B2",$pp->PPProduktpass_Gesamtmenge);
-		//$this->AndHightsetCellValue($coord['RenderingPriceOfferDeadline']['Cell'],$renderingDeadline);
-		//Ende Schreibe Mengen
-		$objPHPExcel->setActiveSheetIndexByName($mainSheet);
-		$this->worksheet = $objPHPExcel->getActiveSheet();
-		$this->worksheet->setSelectedCells('A1');
-		$ian = $pp->PPProduktpass_IAN;
-		$ausm = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
-		$bad = array_merge(array_map('chr', range(0,31)), array("<", ">", ":", '"', "/", "\\", "|", "?", "*", " "));
-		$article = str_replace($bad, "_",$trans['Main']['PPProduktpass_Artikelbezeichnung']['EN'] );	//
-		$heute = date('Ymd');
-		$dl_file = /* str_random(6).'-'. */ $ian.'-'.$ausm.'-RFQ-'.$article.'-'.$heute.'.xlsx';
-		$objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($objPHPExcel,'Xlsx');  
-		$objWriter->save($path.$dl_file);
-		if ($type == 'R'){
-			$this->saveFile($pp->PPProduktpass_Id, $dl_file, 'RFQ', 'EKPM','Produktdetails', 'Quote', 'RFQ');
-		}
-		//$dl = substr($dl_file,7);
-		$dl = $dl_file;
-		$this->makeDownload($dl_file,$path,'application/vnd.ms-excel', $dl);
-		if ($type == "E"){
-			if(file_exists($path.$dl_file)){
-				unlink($path.$dl_file);
-			}
-		}
-		$redirectLink ='/show/' . $ppid . "/RFQ";
-		return Redirect::to($redirectLink);
-	}
-	private function _writeRFQ2546 ($ppid,$type){
-		$mainSheet = 'RFQ_Style A';
-		$pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
-		//cpcDebug::cpc_debug($pp, '-RFQ2546');
-		if (! $pp){
-			return;
-		}
-		$pc = new ProjectsController();
-		$trans = $pc->getTranslation($ppid);
-		$coord = array();
-        $coord['PPProduktpass_Artikelbezeichnung'] =  $this->getCellA(2,1);
-		$coord['PPProduktpass_IAN'] = $this->getCellA(2,2);
-        $coord['weightWithoutPackaging'] =  $this->getCellA(2,34);
-        $coord['sizeWithoutPackaging'] =  $this->getCellA(2,35);
-        $coord['qualityTechnicalData'] =  $this->getCellA(2,36);
-        $coord['additionalQualityInformation'] =  $this->getCellA(2,41);
-        $coord['changesFromPredecessor'] =  $this->getCellA(2,43);
-        $coord['brandReference'] =  $this->getCellA(2,44);
-        $coord['material'] =  $this->getCellA(2,45);
-        $coord['materialThickness'] =  $this->getCellA(2,46);
-        $coord['color'] =  $this->getCellA(2,47);
-        $coord['colorA'] =  $this->getCellA(2,48);
-        $coord['colorB'] =  $this->getCellA(2,49);
-        $coord['colorC'] =  $this->getCellA(2,50);
-        $coord['colorD'] =  $this->getCellA(2,51);
-        $coord['colorE'] =  $this->getCellA(2,52);
-        $coord['colorF'] =  $this->getCellA(2,53);
-        $coord['colorG'] =  $this->getCellA(2,54);
-        $coord['colorH'] =  $this->getCellA(2,55);
-        $coord['colorI'] =  $this->getCellA(2,56);
-        $coord['colorJ'] =  $this->getCellA(2,57);
-        $coord['colorK'] =  $this->getCellA(2,58);
-        $coord['colorL'] =  $this->getCellA(2,59);
-        $coord['colorM'] =  $this->getCellA(2,60);
-        $coord['colorN'] =  $this->getCellA(2,61);
-        $coord['colorO'] =  $this->getCellA(2,62);
-        $coord['PPProduktpass_Materialstaerke_der_Verkaufsverpackung'] =  $this->getCellA(2,99);
-        $coord['retailPackagingComment'] =  $this->getCellA(2,100);
-		$coord['Selection'] = $this->getCellA(2,3);
-		$coord['ChildIAN'] = $this->getCellA(2,4);
-		$coord['KAT'] = $this->getCellA(2,5);
-		$coord['Qty'] = $this->getCellA(2,6);
-		$coord['CRD'] = $this->getCellA(2,7);
-		$coord['Shipmentrelease'] = $this->getCellA(2,8);
-		$coord['PSI'] = $this->getCellA(2,9);
-		$coord['RenderingPriceOfferDeadline'] = $this->getCellA(2,7);
-		$coord['MOCKupDeadline'] = $this->getCellA(2,8);
-		$coord['EPCtill'] = $this->getCellA(2,9);
-		$coord['Kolliinhalt'] =  $this->getCellA(4,63);
-		$coord['ProjectPicture'] =  $this->getCellA(2,33);
-		$coord['versandfertigeUmverpackung']  =  $this->getCellA(5,76);
-		$coord['Verkaufsverpackung']  =  $this->getCellA(2,101);
-		/* ********************************************
-			- Zelle C102: Übertrag aus PP Bereich „Verpackung Kaufland“, genauer „Verkaufsverpackung Kaufland“ - Beispiel „Banderole“.
-			- Zelle C103: Checkbox: Haken setzten, wenn im PP Bereich „Verpackung Kaufland“, genauer „Tray Kaufland“ „Ja“ hinterlegt ist.
-			- Zelle E103: Übertrag aus PP Bereich „Verpackung Kaufland“, genauer „Tray Art“ - Beispiel „U-Tray“
-			- Zelle C104: Übertrag aus PP Bereich „Verpackung Kaufland“, genauer „Farbiges Tray“ - Beispiel „Bedruckt (4C)“
-			- Zelle E104: Übertrag aus PP Bereich „Verpackung Kaufland“, genauer „Tray Kaufland Höhe (cm)“
-			- Zelle C105: Übertrag aus PP Bereich „Verpackung Kaufland“, genauer „Tray Kaufland Breite (cm)“
-			- Zelle E105: Übertrag aus PP Bereich „Verpackung Kaufland“, genauer „Tray Kaufland Länge (cm)“
-			- Zelle C106: Übertrag aus PP Bereich „Verpackung Kaufland“, genauer „Bemerkung Verpackung Kaufland“
-			- Zelle C107: Übertrag aus PP Bereich „Verpackung Kaufland“, genauer „Bemerkung Tray“
-		***********************************************/
-		$coord['VerkaufsverpackungKL']  =  $this->getCellA(3,102);
-		$coord['TrayKL']  				=  $this->getCellA(3,103);
-		$coord['TrayArtKL']  			=  $this->getCellA(5,103);
-		$coord['FarbigesTrayKL']  		=  $this->getCellA(3,104);
-		$coord['TrayHoeheKL']  			=  $this->getCellA(5,104);
-		$coord['TrayBreiteKL']  		=  $this->getCellA(3,105);
-		$coord['TrayLaengeKL']  		=  $this->getCellA(5,105);
-		$coord['VerpackungBemerkungKL'] =  $this->getCellA(3,106);
-		$coord['TrayBemerkungKL']  		=  $this->getCellA(3,107);
-		/* ******************************************************
-			- Zelle B141: Übertrag aus PP Bereich „Kennzeichnung“, genauer „Zertifikate“
-		*  ********************************************************/ 
-		$coord['Zertifikate']  			=  $this->getCellA(2,141);
-		/* ********************************************************
-		Risikokategorie:
-		- Zelle D182: Übertrag aus PP Bereich „Risikiokategorie“, genauer „Geeignet für Kinder“
-		- Zelle D183: Checkbox: Haken setzten, wenn im PP Bereich „Risikiokategorie“, genauer „LFGB“ ein Haken gesetzt ist
-		- Zelle D184: Checkbox: Haken setzten, wenn im PP Bereich „Risikiokategorie“, genauer „NGO Prüfung“ ein Haken gesetzt ist
-		- Zelle D185: Übertrag aus PP Bereich „Risikiokategorie“, genauer „NGO Prüfung Bem.“
-		- Zelle D186: Checkbox: Haken setzten, wenn im PP Bereich „Risikiokategorie“, genauer „PSA“ ein Haken gesetzt ist
-		- Zelle D187: Checkbox: Haken setzten, wenn im PP Bereich „Risikiokategorie“, genauer „Medizinprodukt“ ein Haken gesetzt ist
-		- Zelle D188: Checkbox: Haken setzten, wenn im PP Bereich „Risikiokategorie“, genauer „Referenztest“ ein Haken gesetzt ist
-		* *************************************************/
-		$coord['GeeignetfürKinder'] 		=  $this->getCellA(4,182);
-		$coord['LFGB']  					=  $this->getCellA(4,183);
-		$coord['NGOPruefung']  				=  $this->getCellA(4,184);
-		$coord['NGOPruefungBemerkung']  	=  $this->getCellA(4,185);
-		$coord['PSA']  						=  $this->getCellA(4,186);
-		$coord['Medizinprodukt']  			=  $this->getCellA(4,187);
-		$coord['Referenztest']  			=  $this->getCellA(4,188);
-		/******************************************************************* */
-		$fileName = storage_path().'/data/templates/RFQ_Template_2546.xlsx';
-		/******************************************************************* */
-		$objReader =  new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-		$objPHPExcel = $objReader->load($fileName);
-		$objPHPExcel->setActiveSheetIndexByName($mainSheet);
-		$this->worksheet = $objPHPExcel->getActiveSheet();
-		foreach ($trans['Main'] as $key => $value){
-			cpcDebug::cpc_debug($key, '-RFQ2546');
-			cpcDebug::cpc_debug($value, '-RFQ2546');
-			$textEN = $value['EN']; //$this->replace0d($value['EN']);
-			$this->setCellValueAndHight($coord[$key]['Cell'],$textEN);
-			$this->worksheet->getStyle($coord[$key]['Cell'])->getAlignment()->setWrapText(true);
-			//$this->worksheet->getStyle($coord[$key]['Cell'])->getAlignment()->setHorizontal('left');
-			//$this->setRowHeightText($coord[$key]['Row'], $textEN) ;
-		}
-		$styles = PPProduktpass_Style::where('PPProduktpass_Style_PPProduktpass_Id', $ppid)->orderBy('PPProduktpass_Style_Header')->get();
-		$colorFirst = 48;
-		$countZ = 1;
-		foreach ($styles as $style) {
-			if ($countZ > 1){
-				$this->setCellValueAndHight($coord['color']['Cell'],'');
-			}
-			$styleCharNo = $colorFirst + ord(substr($style->PPProduktpass_Style_Header,-1)) - ord('A');
-			//$colCoord = $this->getCellA(2,$colorFrist++);
-			$colCoord = $this->getCellA(1,$styleCharNo);
-			$this->setCellValueAndHight($colCoord['Cell'],"(Color)-Style ".$style->PPProduktpass_Style_Header);
-			$colCoord = $this->getCellA(2,$styleCharNo);
-			$this->setCellValueAndHight($colCoord['Cell'],$trans['Styles'][$style->PPProduktpass_Style_Header]['color']['EN']);
-			//$this->setCellValueAndHight($colCoord['Cell'],$style->PPProduktpass_Style_Header);
-			//$this->worksheet->getStyle($coord[$key]['Cell'])->getAlignment()->setWrapText(true);
-			//$this->worksheet->getStyle($coord[$key]['Cell'])->getAlignment()->setHorizontal('left');
-			$countZ++;
-		}
-		$selection =  substr($pp->PPProduktpass_Ausmusterungnummer, 0, 4);
-		$this->setCellValueAndHight($coord['Selection']['Cell'],$selection);
- 		$crd = $this->getCRDString($this->getCRD( $pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche));
-		$this->setCellValueAndHight($coord['CRD']['Cell'],$crd);
- 		$shipmentrelease =  $this->getShipmentreleaseString($this->getCRD($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche));
-		$this->setCellValueAndHight($coord['Shipmentrelease']['Cell'],$shipmentrelease);
-		$PSI =  $this->getPSIString($this->getCRD($pp->PPProduktpass_CRDJahr, $pp->PPProduktpass_CRDWoche));
-		$this->setCellValueAndHight($coord['PSI']['Cell'],$PSI);
-		//$renderingDeadline = $this->getRend($pp->PPProduktpass_LieferterminJahr, $pp->PPProduktpass_Liefertermin);
-		//$this->setCellValueAndHight($coord['RenderingPriceOfferDeadline']['Cell'],$renderingDeadline);
-		//$this->setCellValueAndHight($coord['MOCKupDeadline']['Cell'],'???');
-		//$this->setCellValueAndHight($coord['EPCtill']['Cell'],$selection);
-		$qty = $pp->PPProduktpass_Gesamtmenge;
-		$this->setCellValueAndHight($coord['Qty']['Cell'],$qty);
-		// packagingKL_materialThickness, packagingKL_retailPackagingComment, packagingKL_trayRemarks, packagingKL_rt_name, packagingKL_tray_name,
-		// packagingKL_trayType, packagingKL_trayFacingLayer, packagingKL_trayColor, packagingKL_trayMaxCartonLength, packagingKL_trayMaxCartonWidth, packagingKL_trayMaxCartonHeight
-		$this->setCellValueAndHight($coord['Verkaufsverpackung']['Cell'],   ServiceProvider::tl('EN',$pp->PPProduktpass_Verkaufsverpackung));
-		$this->setCellValueAndHight($coord['VerkaufsverpackungKL']['Cell'], ServiceProvider::tl('EN',$pp->packagingKL_rt_name));
-		$this->setCellValueAndHight($coord['TrayKL']['Cell'],   			ServiceProvider::tl('EN',$pp->packagingKL_tray_name));
-		$this->setCellValueAndHight($coord['TrayArtKL']['Cell'],			ServiceProvider::tl('EN',$pp->packagingKL_trayType));
-		$this->setCellValueAndHight($coord['FarbigesTrayKL']['Cell'],		ServiceProvider::tl('EN',$pp->packagingKL_trayColor));
-		$this->setCellValueAndHight($coord['TrayHoeheKL']['Cell'],			$pp->packagingKL_trayMaxCartonHeight);
-		$this->setCellValueAndHight($coord['TrayBreiteKL']['Cell'],			$pp->packagingKL_trayMaxCartonWidth);
-		$this->setCellValueAndHight($coord['TrayLaengeKL']['Cell'],			$pp->packagingKL_trayMaxCartonLength);
-		//$this->setCellValueAndHight($coord['VerpackungBemerkungKL']['Cell'],ServiceProvider::tl('EN',$pp->packagingKL_retailPackagingComment));
-		$this->worksheet->setCellValue($coord['VerpackungBemerkungKL']['Cell'],ServiceProvider::tl('EN',$pp->packagingKL_retailPackagingComment));
-		//$this->setCellValueAndHight($coord['TrayBemerkungKL']['Cell'], 		ServiceProvider::tl('EN',$pp->packagingKL_trayRemarks) );
-		$this->worksheet->setCellValue($coord['TrayBemerkungKL']['Cell'], 		ServiceProvider::tl('EN',$pp->packagingKL_trayRemarks) );
-		$this->setCellValueAndHight($coord['versandfertigeUmverpackung']['Cell'],$this->trueFalseToJaNein($pp->PPProduktpass_versandfertigeUmverpackung));
-		$zert =  	$pp->PPProduktpass_Zertifizierungen . ' '.
-					$pp->PPProduktpass_ZertifizierungEigenschaften2.' '.
-				 	$pp->PPProduktpass_ZertifizierungEigenschaften3.' '.
-					$pp->PPProduktpass_ZertifizierungEigenschaften4.' '.
-					$pp->PPProduktpass_ZertifizierungEigenschaften5;
-		$this->setCellValueAndHight($coord['Zertifikate']['Cell'], 		$zert );
-		$this->setCellValueAndHight($coord['GeeignetfürKinder']['Cell'], $this->trueFalseToJaNein($pp->childSuitable));
-		$this->setCellValueAndHight($coord['LFGB']['Cell'], $this->trueFalseToJaNein($pp->LFGB));
-		$this->setCellValueAndHight($coord['NGOPruefung']['Cell'], $this->trueFalseToJaNein($pp->ngoTest));
-		$this->setCellValueAndHight($coord['NGOPruefungBemerkung']['Cell'], ServiceProvider::tl('EN',$pp->ngoTestNote));
-		$this->setCellValueAndHight($coord['PSA']['Cell'], $this->trueFalseToJaNein($pp->ppe));
-		$this->setCellValueAndHight($coord['Medizinprodukt']['Cell'], $this->trueFalseToJaNein($pp->medProduct));
-		$this->setCellValueAndHight($coord['Referenztest']['Cell'], $this->trueFalseToJaNein($pp->referenceCheck));
-    	$this->worksheet->setCellValue($coord['PPProduktpass_Materialstaerke_der_Verkaufsverpackung']['Cell'], ServiceProvider::tl('EN', $pp->PPProduktpass_Materialstaerke_der_Verkaufsverpackung));
-       	$this->worksheet->setCellValue($coord['retailPackagingComment']['Cell'], ServiceProvider::tl('EN',$pp->retailPackagingComment));
-		$this->writeFirstStyle($coord, $pp->PPProduktpass_Id);
-		$child = 'n.A.';
-		if ($pp->isChild){
-			$child = 'Ja';  
-		}
-		$this->setCellValueAndHight($coord['ChildIAN']['Cell'], $child);
-		$kat = '';
-		if (strpos($pp->PPProduktpass_Artikelbezeichnung,'KAT') !== false){
-			$kat = 'Ja';
-		}
-		$this->setCellValueAndHight($coord['KAT']['Cell'], $kat );
-		$sort = PPProduktpass_Sortierung::where('PPProduktpass_Sortierung_PPProduktpass_Id', $ppid)->orderBy('PPProduktpass_Sortierung_Id')->get()->first();
-		$kolli = 0;
-		if ($sort){
-			$kolli = $sort->PPProduktpass_Sortierung_Value02;
-		}
-		$this->setCellValueAndHight($coord['Kolliinhalt']['Cell'],$kolli);
-		$image = public_path().'/data/uploads/'.$pp->PPProduktpass_ProjektBild;
-		if (file_exists($image) and !is_dir( $image )){
-			$this ->writeImage($image, $coord['ProjectPicture']['Cell'],'Projektbild', 'Projektbild IAN'.$pp->PPProduktpass_IAN );
-		}
-		if ($type == 'R'){
-			$path = public_path().'/data/uploads/RFQ/';
-		} else {
-			$path = public_path().'/data/tmp';			
-		}
-		$stylesArray = array('B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',	'U');
-		foreach ($stylesArray as $styleChar) {
-			$this->writeStyle2546($pp->PPProduktpass_Id, $styleChar, $objPHPExcel, $trans);
-		}
-		//schreibe Mengen#
-		$objPHPExcel->setActiveSheetIndexByName('Quantity overview');
-		$this->worksheet = $objPHPExcel->getActiveSheet();
-		$laenderMengen = $this->getLaenderMengenX($pp->PPProduktpass_Id);
-		//cpcDebug::cpc_debug($laenderMengen['US']['Quantity'], '@RFQ2533');
-		//cpcDebug::cpc_debug('Ländermengen eintragen', '-RFQ2546');
-		for ($i=5; $i <= 58; $i++){
-			//$cell = 'B'.$i;
-			$country = $this->worksheet->getCell("A$i")->getValue();
-			//cpcDebug::cpc_debug($country, '@RFQ2533');
-			//cpcDebug::cpc_debug('OK:'. $laenderMengen[$country]['Quantity'], '@RFQ2533');
-			try{
-				//$m = $laenderMengen[$country]['Quantity'];
-				//$k = $laenderMengen[$country]['Kolli'];
-				//cpcDebug::cpc_debug('OK' . $m , '@RFQ2533');
-				if (isset($laenderMengen[$country])){
-					//$this->worksheet->setCellValue("D$i",$k);
-					//$this->worksheet->setCellValue("E$i",$m);
-					$this->worksheet->setCellValue("B$i",$laenderMengen[$country]['Kolli']);
-					$this->worksheet->setCellValue("C$i",$laenderMengen[$country]['Quantity']);
-					$this->worksheet->setCellValue("D$i",$laenderMengen[$country]['LT1']);
-					$this->worksheet->setCellValue("E$i",$laenderMengen[$country]['LT1Kolli']);
-					$this->worksheet->setCellValue("F$i",$laenderMengen[$country]['LT2']);
-					$this->worksheet->setCellValue("G$i",$laenderMengen[$country]['LT2Kolli']);
-					$this->worksheet->setCellValue("H$i",$laenderMengen[$country]['LT3']);
-					$this->worksheet->setCellValue("I$i",$laenderMengen[$country]['LT3Kolli']);
-				}
-			}
-			catch (Exception $ex){
-				cpcDebug::cpc_debug('Exc:'. $ex->getMessage(), '-RFQ2546');
-				cpcDebug::cpc_debug('Exc:'.$country, '-RFQ2546');
-			}
-		}
-		$this->worksheet->setCellValue("B2",$pp->PPProduktpass_Gesamtmenge);
-		//$this->AndHightsetCellValue($coord['RenderingPriceOfferDeadline']['Cell'],$renderingDeadline);
-		//Ende Schreibe Mengen
-		$objPHPExcel->setActiveSheetIndexByName($mainSheet);
-		$this->worksheet = $objPHPExcel->getActiveSheet();
-		$this->worksheet->setSelectedCells('A1');
-		$ian = $pp->PPProduktpass_IAN;
-		$ausm = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
-		$bad = array_merge(array_map('chr', range(0,31)), array("<", ">", ":", '"', "/", "\\", "|", "?", "*", " "));
-		$article = str_replace($bad, "_",$trans['Main']['PPProduktpass_Artikelbezeichnung']['EN'] );	//
-		$heute = date('Ymd');
-		$dl_file = /* str_random(6).'-'. */ $ian.'-'.$ausm.'-RFQ-'.$article.'-'.$heute.'.xlsx';
-		$objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($objPHPExcel,'Xlsx');  
-		$objWriter->save($path.$dl_file);
-		if ($type == 'R'){
-			$this->saveFile($pp->PPProduktpass_Id, $dl_file, 'RFQ', 'EKPM','Produktdetails', 'Quote', 'RFQ');
-		}
-		//$dl = substr($dl_file,7);
-		$dl = $dl_file;
-		$this->makeDownload($dl_file,$path,'application/vnd.ms-excel', $dl);
-		if ($type == "E"){
-			if(file_exists($path.$dl_file)){
-				unlink($path.$dl_file);
-			}
-		}
-		$redirectLink ='/show/' . $ppid . "/RFQ";
-		return Redirect::to($redirectLink);
-	}
 	private function getLaendermengenX($id){
 		$laenderMengen = array();
 		$mengen = PPProduktpass_Menge::where('PPProduktpass_Menge_PPProduktpass_Id', $id)->get();
@@ -1189,8 +698,8 @@ class ExcelController extends BaseController {
 			} 
 		}
 		catch (Exception $ex){
-			cpcDebug::cpc_debug('getLaendermengenX: '.$ex->getMessage(), '-RFQ2546');
-				/*foreach ($this->_lbez as $land => $bez){
+			cpcDebug::cpc_debug('getLaendermengenX: '.$ex->getMessage(), '@RFQ2533');
+				foreach ($this->_lbez as $land => $bez){
 				$laenderMengen[$land] = array(
 					'Quantity' => 0, 
 					"LT" => '', 
@@ -1202,7 +711,7 @@ class ExcelController extends BaseController {
 					"LT3" => '',
 					"LT3Kolli" => 0
 				);
-			}*/
+			}
 		}
 		return $laenderMengen;
 	}
@@ -1211,8 +720,6 @@ class ExcelController extends BaseController {
 		if ($neu){
 			$redirectLink = '/show/'.$id.'/ServiceAnfrage';
 		}
-		cpcDebug::cpc_debug('writeExcel_Anfrage: Start PPID: '. $id , '-AnfrageExcel');
-		cpcDebug::cpc_debug(Input::all() , '-AnfrageExcel');
 		//$fileType = 'Excel2007';
 		$fileName = storage_path().'/data/templates/TemplateAnfrage2023.xlsx';
 		//$objReader = PHPExcel_IOFactory::createReader($fileType);
@@ -1233,11 +740,6 @@ class ExcelController extends BaseController {
 		$man = PPInputManuell::where('PPInputManuell_IsLatest', 1 )->where('PPInputManuell_PPProduktpass_Id', $id )->orderBy('PPInputManuell_Date', 'desc')->get()->first();
 		if ($man){
 			$man->PPInputManuell_StatusPM = 1;
-		    $isFinal = 0;
-			if(Input::has('isFinal')){
-				$isFinal = 1;
-			} 
-			$man->PPInputManuell_IsFinal = $isFinal;
 			//cpcDebug::cpc_debug('writeExcel_Anfrage: PPID: '. $man->PPInputManuell_PPProduktpass_Id .'  MaId:'. $man->PPInputManuell_Id .' switch StatusPM 0 => 1');
 			$man->save();
 			$pc = new ProjectsController();
@@ -1419,11 +921,7 @@ class ExcelController extends BaseController {
 	    $files->PPPPFiles_Ordnung          = $ordnung;
         $files->PPPPFiles_Description      = $remark.date("Y-m-d H:i:s");
         $files->PPPPFiles_LocalUpload      = 1;
-		$files->PPPPFiles_UserCreate       = Auth::user()->PPMitarbeiter_Id;	
-		$files->PPPPFiles_IsExtern     	   =  0;
-		if (ServiceProvider::AuthUserHasRole('EXTERN')){
-			$files->PPPPFiles_IsExtern     =  1;				
-		}
+		$files->PPPPFiles_UserCreate       = Auth::user()->PPMitarbeiter_Id;		
         $files->save();
 	}
 	private function  getDrawing ( $drawing ){
@@ -1708,7 +1206,6 @@ class ExcelController extends BaseController {
 		$pp->InternerStatus = $this->setValue($table, 'InternerStatus', $data); 
 		$pp->LinkedItemIAN = $this->setValue($table, 'LinkedItemIAN', $data); 
 		$pp->PPProduktpass_PMAdmin = $this->getAdmin('PM'); 
-		$pp->PPProduktpass_PJMAdmin = $this->getAdmin('PJM'); 
 		$pp->PPProduktpass_TCAdmin = $this->getAdmin('TC'); 
 		$pp->PPProduktpass_ThemaRequierdSamples = $this->setValue($table,'PPProduktpass_ThemaRequierdSamples',$data);
 		$pp->PPProduktpass_ThemaKolli = $this->setValue($table,'PPProduktpass_ThemaKolli',$data);
@@ -1729,9 +1226,6 @@ class ExcelController extends BaseController {
 			return $ma->PPMitarbeiter_Id;
 		}
 		if ($art == 'PM'){
-			return 1275;
-		}
-		if ($art == 'PJM'){
 			return 1353;
 		}
 		if ($art == 'TC'){
@@ -2030,7 +1524,7 @@ class ExcelController extends BaseController {
 		//var_dump($ddp);exit;
 		try{
 			$ddp = new  DateTime($_ddp);
-			$ddp->modify('-9 weeks');
+			$ddp->modify('-84 days');
 			$crd = $ddp->format("Y-m-d");
 		}
 		catch (Exception $ex){}
@@ -2135,12 +1629,8 @@ class ExcelController extends BaseController {
 				$data_pp_values[$row]['InternerStatus'] = "MUSTERUNG";
 				$data_pp_values[$row]['PPProduktpass_Status'] = "Neu";
 				$data_pp_values[$row]['PPProduktpass_PPProjekte_Projekt'] = $data_pp_values[$row]['PPProduktpass_IAN'];
-				$pm = PPMitarbeiter::where('PPMitarbeiter_Taetigkeit', '=', 'PM')->where('PPMitarbeiter_isDefault', '=', 1)->get()->first();
-        		$pjm = PPMitarbeiter::where('PPMitarbeiter_Taetigkeit', '=', 'PJM')->where('PPMitarbeiter_isDefault', '=', 1)->get()->first();
-        		$tc = PPMitarbeiter::where('PPMitarbeiter_Taetigkeit', '=', 'TC')->where('PPMitarbeiter_isDefault', '=', 1)->get()->first();
-				$data_pp_values[$row]['PPProduktpass_PMAdmin'] =  $pm->PPMitarbeiter_Id;
-				$data_pp_values[$row]['PPProduktpass_PJMAdmin'] = $pjm->PPMitarbeiter_Id;				
-				$data_pp_values[$row]['PPProduktpass_TCAdmin'] =  $tc->PPMitarbeiter_Id;
+				//$data_pp_values[$row]['PPProduktpass_PMAdmin'] = $data_pp_values[$row]['PPProduktpass_PMAdmin'];
+				//$data_pp_values[$row]['PPProduktpass_TCAdmin'] = 1324;
 				$data_pp_values[$row]['PPProduktpass_Import_Datum'] = date('Y-m-d H:i:s');
 				$data_pp_values[$row]['PPProduktpass_RevisionDatum'] = date('Y-m-d H:i:s');
 				$year = 2999;
@@ -2178,7 +1668,7 @@ class ExcelController extends BaseController {
 					$ppid = 0;
 				}
 				$message .= '<tr>';
-				$message .= '<td style="border:1px solid lightgray;padding:8px;"><a href="https://' .  $_SERVER['SERVER_NAME']. '/show/'.$new['ppid'].'" target="_blank">'.$pp['PPProduktpass_IAN'].'</a></td>';
+				$message .= '<td style="border:1px solid lightgray;padding:8px;"><a href="https://' .  $_SERVER['SERVER_NAME']. '/show/'.$new['ppid'].'/ServiceAnfrage" target="_blank">'.$pp['PPProduktpass_IAN'].'</a></td>';
 				$message .= '<td style="border:1px solid lightgray;padding:8px;">'.$data_pp_values[$row]['PPProduktpass_Ausmusterungnummer'].'</td>';
 				if ($ppid > 0){
 					$ianArray[$pp['PPProduktpass_IAN']] = $ppid;
@@ -2436,78 +1926,5 @@ class ExcelController extends BaseController {
 		if (file_exists($image) and !is_dir( $image )){
 			$this ->writeImage($image, $this->getCell(2,3),'Projektbild', 'Projektbild IAN'.$pp->PPProduktpass_IAN );
 		}
-	}	
-	private function writeStyle2546($ppid, $styleChar, $objPHPExcel, $transAll) {
-		//cpcDebug::pe(DB::getQueryLog());
-		$styleSearch = '%'.$styleChar;
-		$styleDataExists = PPProduktpass_Style::where('PPProduktpass_Style_PPProduktpass_Id', $ppid)->where('PPProduktpass_Style_Header','like', trim($styleSearch))->exists();
-		if ($styleDataExists === false){
-			//cpcDebug::cpc_debug("Style $styleChar ausgeblendet",'@DBExcel');
-			$objPHPExcel->getSheetByName("Style $styleChar")->setSheetState(PHPExcel_Worksheet::SHEETSTATE_VERYHIDDEN);
-			return;
-		}
-		//cpcDebug::cpc_debug("Style $styleChar eingeblendet",'@DBExcel');
-		$styleData = PPProduktpass_Style::where('PPProduktpass_Style_PPProduktpass_Id', $ppid)->where('PPProduktpass_Style_Header','like', trim($styleSearch))->get()->first();
-		$trans=$transAll['Styles'];
-		$objPHPExcel->setActiveSheetIndexByName("Style $styleChar");
-		$this->worksheet = $objPHPExcel->getActiveSheet();
-		$coord['weightWithoutPackaging'] = $this->getCellA(2,4);
-		$coord['sizeWithoutPackaging'] = $this->getCellA(2,5);
-		$coord['qualityTechnicalData'] = $this->getCellA(2,6);
-		/// DoppleZeile
-		$coord['additionalQualityInformation'] = $this->getCellA(2,8);
-		$coord['changesFromPredecessor'] = $this->getCellA(2,9);
-		$coord['brandReference'] = $this->getCellA(2,10);
-		$coord['material'] = $this->getCellA(2,11);
-		$coord['materialThickness'] = $this->getCellA(2,12);
-		$coord['color'] = $this->getCellA(2,13);
-		foreach($coord as $att => $cell){
-			$this->setCellValueAndHight($cell['Cell'],$trans[$styleData->PPProduktpass_Style_Header][$att]['EN']);
-		}
-		/*$this->worksheet->setCellValue($coord['StyleSize']['Cell'],$styleData->sizeWithoutPackaging);
-		$this->worksheet->setCellValue($coord['StyleQuality']['Cell'],$styleData->qualityTechnicalData);
-		$this->worksheet->setCellValue($coord['StyleQualityAdd']['Cell'],$styleData->additionalQualityInformation);
-		$this->worksheet->setCellValue($coord['StyleChanges']['Cell'],$styleData->changesFromPredecessor);
-		$this->worksheet->setCellValue($coord['StyleBrandRef']['Cell'],$styleData->brandReference);
-		$this->worksheet->setCellValue($coord['StyleMaterial']['Cell'],$styleData->material);
-		$this->worksheet->setCellValue($coord['StyleMaterialThickness']['Cell'],$styleData->materialThickness);
-		$this->worksheet->setCellValue($coord['StyleColor']['Cell'],$styleData->color);*/
-		$pp = tPPProduktpass::find($ppid);
-		if ($pp === null){
-			//cpcDebug::p('Keine Daten '." P: $ppid Style: $styleChar <br> ");
-			//cpcDebug::p(DB::getQueryLog());
-			return;
-		}
-		$image = public_path().'/data/uploads/'.$pp->PPProduktpass_ProjektBild;
-		if (file_exists($image) and !is_dir( $image )){
-			$this ->writeImage($image, $this->getCell(2,3),'Projektbild', 'Projektbild IAN'.$pp->PPProduktpass_IAN );
-		}
-	}
-	private function writeFirstStyle($coord, $ppid){
-		$firstStyle = PPProduktpass_Style::where('PPProduktpass_Style_PPProduktpass_Id', $ppid)->where('PPProduktpass_Style_Header', 'like', '%A%')->get()->first();
-		if (!$firstStyle){
-			return;
-		}
-		$this->worksheet->setCellValue($coord['weightWithoutPackaging']['Cell'],ServiceProvider::tl('EN',$firstStyle->weightWithoutPackaging));
-		$this->worksheet->setCellValue($coord['sizeWithoutPackaging']['Cell'],ServiceProvider::tl('EN',$firstStyle->sizeWithoutPackaging));
-		$this->worksheet->setCellValue($coord['qualityTechnicalData']['Cell'],ServiceProvider::tl('EN',$firstStyle->qualityTechnicalData));
-		$this->worksheet->setCellValue($coord['additionalQualityInformation']['Cell'],ServiceProvider::tl('EN',$firstStyle->additionalQualityInformation));
-		$this->worksheet->setCellValue($coord['changesFromPredecessor']['Cell'],ServiceProvider::tl('EN',$firstStyle->changesFromPredecessor));
-		$this->worksheet->setCellValue($coord['brandReference']['Cell'],ServiceProvider::tl('EN',$firstStyle->brandReference));
-		$this->worksheet->setCellValue($coord['material']['Cell'],ServiceProvider::tl('EN',$firstStyle->material));
-		$this->worksheet->setCellValue($coord['materialThickness']['Cell'],ServiceProvider::tl('EN',$firstStyle->materialThickness));
-		$this->worksheet->setCellValue($coord['color']['Cell'],ServiceProvider::tl('EN',$firstStyle->color));
-	}
-	private function trueFalseToJaNein($value): string
-	{
-		if ($value === null) {
-			return 'No';
-		}
-		$trueValues = ['true', 'wahr', 'ja', 'yes', '1', 1, true];
-		return in_array(
-			is_string($value) ? strtolower(trim($value)) : $value,
-			$trueValues,
-			true
-		) ? 'Yes' : 'No';
 	}
 }

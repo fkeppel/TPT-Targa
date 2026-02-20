@@ -23,14 +23,14 @@ class BISUserController extends BaseController {
         //    echo('<h1>Testsystem steht heute nicht zur Verfügung!</h1>');
         //    exit;
         //}
-        $msgTooMany = 'Zuviele Anmeldeversuche. Bitte setzen Sie sich mit dem Administrator in Verbindung!  ';
-        $msgWrong = 'Benutzername oder Passwort sind falsch! Max: 5. Bislang '.cpcHelp::loginAttemptCount(Input::get('email')).' Fehlversuche.';
+        $msgTooMany = 'Zuviele Anmeldeversuche. Bitte setzen sie sich mit dem Administrator in Verbindung!  ';
+        $msgWrong = 'Benutzername oder Passwort sind falsch! Max: 10. Bislang '.cpcHelp::loginAttemptCount(Input::get('email')).' Fehlversuche.';
         if ($this->getUserLanguage() != 'de'){
             App::setLocale('en');
             $msgTooMany = ServiceProvider::tl('EN', $msgTooMany );
             $msgWrong = ServiceProvider::tl('EN', $msgWrong );
         }
-        if (cpcHelp::loginAttemptCount(Input::get('email')) > 5){
+        if (cpcHelp::loginAttemptCount(Input::get('email')) > 100){
             return Redirect::to('login')
                             ->with('message', $msgTooMany)
                             ->withInput();

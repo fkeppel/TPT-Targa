@@ -18,9 +18,9 @@
         {{HTML::script('jquery/dropzone.js');}}
         {{ HTML::style('css/bisstyle.css'); }}
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
-<link rel="stylesheet" href="/resources/demos/style.css">
-<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-<script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>    
+        <link rel="stylesheet" href="/resources/demos/style.css">
+        <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+        <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>    
         {{-- HTML::style('css/magicsuggest.css'); --}}
         {{-- HTML::script('js/magicsuggest-min.js'); --}}
         {{--HTML::script('jquery/FileUpload/js/vendor/jquery.ui.widget.js')--}}
@@ -54,14 +54,6 @@
                 alert(str);
             }
         </script>
-        <!--script>
-            function preventUnload( state )
-            {
-                unloadMessage = "Es wurden Daten geändert\nSind Sie sicher?";
-                window.onbeforeunload = state ? function() { return unloadMessage; } : null;
-            }
-            preventUnload( true );
-        </script-->
         <script>
             function resetFormTerminliste() {
                 document.getElementById('qiIAN').setAttribute('value', '');
@@ -163,15 +155,10 @@
                 }
         </style>
     </head>
-    <html>
-        <body style="margin: 0 auto;background:#afafaf;text-align:center;border-collapse: collapse;width:99.8%;height:94%;">
-            <div style="position:relative;width:100%;margin: 0 auto;border:1px solid lightgray;">
-                <div style="position:relative;text-align: center; margin:0 auto;z-index: 10000;">
-                    <div>
-                        @include('jqmenu')
-                    </div>
-                </div>
-                <div style="position:relative;text-align: center; margin:0 auto;margin-top:0px;height:calc(100% - 25px); overflow: auto;z-index: 10;border-radius: 0px;margin-top:30px;">
+    <html style="border-radius:0px;">
+        <body style="margin: 0 auto;text-align:center;border-collapse: collapse;border-radius:0px;padding:0px;">
+                @include('jqmenu')
+                <div style="position:relative;text-align: center; margin:0 auto;margin-top:30px;height:calc(100% - 62px); overflow: auto;z-index: 10;border-radius: 0px;">
                     {{$content}}
                 </div>
                 <div style="background-color:#d0d0d0;text-align: center; margin:0 auto;height:30px;border:1px solid lightgray;position:relative;padding-left:10px;">
@@ -179,9 +166,8 @@
                         <p style="color:#0D0D0D;font-size:10px;">Status: {{$footer['Status'] or ''}} {{ isset($_SESSION['TPT_Message']) ? $_SESSION['TPT_Message'] : '';   }}  @if(isset($DAUER)) {{ date('s') - $DAUER  }}s @endif</p>
                     </div>
                     <div style="width:100px;background-color:#d0d0d0;position:absolute; right:0;height:25px;text-align: right;padding-right:10px;">
-                        <p style="color:#0D0D0D;font-size:10px;">Kalenderwoche: {{date('W')}}</p>
+                        <p style="color:#0D0D0D;font-size:10px;">Kalenderwoche {{date('W')}}</p>
                     </div>
                 </div>
-            </div>
         </body>
     </html>

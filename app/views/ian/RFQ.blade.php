@@ -18,10 +18,8 @@
    .item textarea {
         padding: 8px;
         border: none;
-        --width: calc(100% - 13px);
-        --height: calc(100% - 16px);
-        width: 100%;
-        height: 100%;
+        width: calc(100% - 13px);
+        height: calc(100% - 16px);
         font-size:1em;
     }
     #RFQ textarea {
@@ -49,7 +47,6 @@
     $color[''] = '';
     $color['OK'] = 'green';
     $color['New'] = 'green';
-    $color['Reset'] = 'green';
     $color['Change'] = 'orange';
     $lang = $data['lang'];
 ?>
@@ -80,24 +77,24 @@
                 </ul>
                 <div id="main" style="text-align: left;">
                     <div class="container" >
-                        @foreach ($data['translation']['WebTab'] as $key =>  $trans)
+                        @foreach ($data['translation']['Main'] as $key =>  $trans)
                             <div class="item" style="">
                                 <div style="padding-top:15px;padding-left:10px;height:{{ 20 * $trans['RowCount'] }}px;"><b>{{ ServiceProvider::tl($lang,$coord[$key]) }}</b></div>
                             </div>
                             <div class="item" style="background-color:lightgray;" >
-                                <textarea style="display:none;" name="DE[{{$trans['ID']}}]">{{$trans['DE']}}</textarea>
-                                <textarea  title="{{ $trans['OLDDE'] }}" disabled style="background-color:transparent;" >{{$trans['DE']}}</textarea>
+                                <textarea style="display:none;" name="DE[{{$trans['ID']}}]">{{ $trans['DE']}}</textarea>
+                                <textarea  title="{{ $trans['OLDDE'] }}" disabled style="background-color:transparent;" >{{ $trans["DE"]}}</textarea>
                             </div>
                             <div class="item" style="">
                                 <?php  
-                                    $bg="background-color:transparent   ;";
-                                    if (substr($trans["EN"],0,14) == "Not Translated"){
-                                        $bg='background-color:plum;';
-                                    }
-                                ?>
-                                <textarea style="{{$bg}} width:100%; height:100%;" name="EN[{{$trans['ID']}}]" >{{$trans['EN']}}</textarea>
+                                $bg="background-color:transparent   ;";
+                                if (substr($trans["EN"],0,14) == "Not Translated"){
+                                    $bg='background-color:plum;';
+                                }
+                                    ?>
+                                <textarea style="{{$bg}}" name="EN[{{$trans['ID']}}]">{{ $trans["EN"]}}</textarea>
                             </div>
-                            <div class="item" style="padding:0px;">
+                            <div class="item" style="">
                                 <div style="border-radius:0px; background-color:{{ $color[$trans['Status']] }};">&nbsp;</div>
                             </div>
                         @endforeach
@@ -110,9 +107,9 @@
                             <div class="item" style="">
                                 <div style="padding-top:15px;padding-left:10px;height:{{ 20 * $trans['RowCount'] }}px;"><b>{{ ServiceProvider::tl($lang,$coord[$key]) }}</b></div>
                             </div>
-                            <div class="item" style="background-color:lightgray;padding:0px;" >
-                                <textarea style="display:none;" name="DE[{{$trans['ID']}}]">{{$trans['DE']}}</textarea>
-                                <textarea  title="{{ $trans['OLDDE'] }}" disabled style="background-color:transparent;width:100%; height:100%;" >{{$trans['DE']}}</textarea>
+                            <div class="item" style="background-color:lightgray;" >
+                                <textarea style="display:none;" name="DE[{{$trans['ID']}}]">{{ $trans['DE']}}</textarea>
+                                <textarea  title="{{ $trans['OLDDE'] }}" disabled style="background-color:transparent;" >{{ $trans["DE"]}}</textarea>
                             </div>
                             <div class="item" style="">
                                 <?php  
@@ -121,10 +118,10 @@
                                     $bg='background-color:plum;';
                                 }
                                     ?>
-                                <textarea style="{{$bg}}" name="EN[{{$trans['ID']}}]">{{ $trans['EN']}}</textarea>
+                                <textarea style="{{$bg}}" name="EN1[{{$trans['ID']}}]">{{ $trans['EN']}}</textarea>
                             </div>
                             <div class="item" style="">
-                                <div style="border-radius:0px; background-color:{{ $color[$trans['Status']] }};">&nbsp;</div>
+                                <div style="border-radius:0px; background-color:{{ $color[$trans['Status']] }};">&nbsp;XXX</div>
                             </div>
                         @endforeach
                     </div>

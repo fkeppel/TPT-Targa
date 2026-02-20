@@ -6,7 +6,6 @@ class EmbargoController extends BaseController {
         $embargo['Russia Emb.']  = 0;
         $embargo['EUDR']             = 0;
         $embargo['CBAM']             = 0;
-        $embargo['10 Jahre Reparaturartikel']             = 0;
         $pp = tPPProduktpass::find($id);
         if (!$pp) {
             cpcDebug::cpc_debug("Produktpass not found for ID: $id", '@Embargo');
@@ -25,7 +24,6 @@ class EmbargoController extends BaseController {
         $embargo['Russia Emb.']  = $this->getEmbargoType($shortZT, 'RusslandEmbargo');
         $embargo['EUDR']             = $this->getEmbargoType($shortZT, 'EUDR');
         $embargo['CBAM']             = $this->getEmbargoType($shortZT, 'CBAM');
-        $embargo['10 Jahre Reparaturartikel']             = $this->getEmbargoType($zolltarif, '10 Jahre Reparaturartikel');
         cpcDebug::cpc_debug($embargo, '@Embargo');
         return $embargo;
     }

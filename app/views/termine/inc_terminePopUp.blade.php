@@ -564,53 +564,55 @@
         $_st='Border:4px solid red;';
     }
     $lang = isset($_COOKIE['TPTLanguage'])?$_COOKIE['TPTLanguage']:Auth::user()->PPMitarbeiter_Language;
-    //$MplanColor = 'border:4px solid #ff1a1a;'; 
-    $MplanColor = 'border:1px solid lightgray;'; 
-    if ($t['PPTermine_IsMPlan'] == 1){
-        //$MplanColor = 'border:4px solid #009900;'; // light red
-    } 
+    $MplanColor = 'border:4px solid #ff1a1a;'; 
+    //if ($t['PPTermine_IsMPlan'] == 1){
+    //    $MplanColor = 'border:4px solid #009900;'; // light red
+    //}
+    if (MasterplanController::testDateBefore($t['start'], $t['ManSollDate'])){
+        $MplanColor = 'border:4px solid #009900;'; // light red
+    }
 ?>
 <div style="text-align:left;border:1px solid gray; width:1877px;height:98%;text-align: center; {{ $_st }}">
     <div style="border:none;padding:0px;">
         <?php $i = 1;   ?>
         @foreach ($termineLinks as $tm)
-        <?php 
-            $pmCol      = '#003D7C';
-            $pmColActiv = '#3399FF';
-            $tcCol      = $pmCol;  //'#009900'; Test Green
-            $tcColActiv = $pmColActiv; //'#33FF33'; Test light Green
-            $fontCol = 'white';
-            if($tm->PPBoardSpalte_Bezeichnung != $t['terminart']) {
-                $col = $pmCol;
-                if(strpos($tm->PPBoardSpalteData_Kind ,'PM') === false) {
-                    $col = $tcCol;
+            <?php 
+                $pmCol      = '#003D7C';
+                $pmColActiv = '#3399FF';
+                $tcCol      = $pmCol;  //'#009900'; Test Green
+                $tcColActiv = $pmColActiv; //'#33FF33'; Test light Green
+                $fontCol = 'white';
+                if($tm->PPBoardSpalte_Bezeichnung != $t['terminart']) {
+                    $col = $pmCol;
+                    if(strpos($tm->PPBoardSpalteData_Kind ,'PM') === false) {
+                        $col = $tcCol;
+                    }
+                } else {
+                    $fontCol = 'black';
+                    $col = $pmColActiv;
+                    if(strpos($tm->PPBoardSpalteData_Kind ,'PM') === false) {
+                        $col = $tcColActiv;
+                    }
                 }
-            } else {
-                $fontCol = 'black';
-                $col = $pmColActiv;
-                if(strpos($tm->PPBoardSpalteData_Kind ,'PM') === false) {
-                    $col = $tcColActiv;
-                }
-            }
             ?>
-        <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, {{$tm->PPTermine_Id}}, {{$board}}, 'All', 1)"  style="background-color:{{$col}};color:{{$fontCol}};" title="Spalten-Id: {{ $tm->PPBoardSpalte_Id ?? 'NN' }}">
+            <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, {{$tm->PPTermine_Id}}, {{$board}}, 'All', 1)"  style="background-color:{{$col}};color:{{$fontCol}};" >
                 <span style='font-size:0.85em;'>{{ ServiceProvider::tl($lang, $tm->PPBoardSpalte_Bezeichnung) }}</span>
-        </div>
-        <?php
+            </div>
+            <?php
                 if (($i % 17) == 0) {
-            echo ("<div style='clear:both;'></div>");
-        }
-        $i++;
-        ?>
+                    echo ("<div style='clear:both;'></div>");
+                }
+                $i++;
+            ?>
         @endforeach
         @if ($board == 1000)
-        <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1001, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
-            {{ ServiceProvider::tl($lang, 'Termine Musterung') }}
-        </div>
+            <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1001, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
+                {{ ServiceProvider::tl($lang, 'Termine Musterung') }} 
+            </div>
         @else
-        <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1000, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
-             {{ ServiceProvider::tl($lang, 'Termine Projekte') }}
-        </div>
+            <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1000, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
+                {{ ServiceProvider::tl($lang, 'Termine Projekte') }} 
+            </div>
         @endif
         <div style="clear:both;"></div>
     </div>
@@ -625,14 +627,14 @@
                                 <span style="font-size: 18px; font-weight: bold;padding: 5px; padding-top:8px; padding-bottom: 8px;color:gray;">{{ ServiceProvider::tl($lang, 'Hauptaufgabe') }}</span>  <span style="font-size: 18px; font-weight: bold;padding: 5px; padding-top:8px; padding-bottom: 8px;color:#003D7C;">{{ ServiceProvider::tl($lang,$t['terminart']) }} 
                             </div>
                             <div style="border:none;height:284px;">
-                                <div style="border: none; margin-bottom: 0px;">
+                                <div style="border:none; margin-bottom: 0px; ">
                                     <div style="border: none;float: left; padding-bottom:0px;">
-                                                    <?php
+                                        <?php
                                                         $dx = null;
                                                         $dx2 = null;
                                                         $wochen=null;
                                                         $ms = $t['ManSoll'];
-                                                            //$t['ManSoll']=null;
+                                                        //$t['ManSoll']=null;
                                                         if ($t['ManSoll'] != 0) {
                                                             $crd->modify('-' . $t['ManSoll'] . ' week');
                                                             $dx = $crd->modify('next friday')->format('d.m.Y');
@@ -642,7 +644,7 @@
                                                             $dx2 = $msd->format('d.m.Y');
                                                             $diff = $msd->diff($crd,1);
                                                             $tage = $diff->format('%R%a');
-                                                                $wochen = floor($tage/7);   
+                                                            $wochen = floor($tage/7);   
                                                         }
                                                         if ($lang == 'DE'){
                                                             $orgLabel = $t['label'];
@@ -665,8 +667,7 @@
                                                 <td class="value"> @if ($t['rot'] != '' or $t['rot'] == 0 ) {{ ServiceProvider::tl($lang, 'Soll')}}: CRD {{$t['rot'] +10}} {{ ServiceProvider::tl($lang, 'Wochen') }} @endif
                                                     CW @if ($crd->format('W')+$t['rot']+10 <  0){{$crd->format('W')+$t['rot']+62}}/{{$crd->format('y')-1}} @else @if ($crd->format('W')+$t['rot']+10 > 52 )  {{$crd->format('W')+$t['rot']-42}}/{{$crd->format('y')+1}} @else  {{$crd->format('W')+$t['rot']+10}}/{{$crd->format('y')}}@endif @endif</td>
                                                 <td class="label" title="In der Terminliste mit '*' gekennzeichnet">{{ ServiceProvider::tl($lang, 'Budget Datum')}}: <span style="color:darkblue;font-weight:bold;">(*)</span></td>
-                                                <td class="value" style="vertical-align:top;">   
-                                                    @if (Auth::User()->PPMitarbeiter_Gruppe == 'admin')
+                                                <td class="value" style="vertical-align:top;">   @if (Auth::User()->PPMitarbeiter_Gruppe == 'admin')
                                                         <input class="datepickerAll" name="Termine_ManSollD{{$t['id']}}" id="Termine_ManSollD{{$t['id']}}" value='{{$dx2}}' />
                                                     @else 
                                                         <input type="hidden" class="datepickerAll" name="Termine_ManSollD{{$t['id']}}" id="Termine_ManSollD{{$t['id']}}" value='{{$dx2}}' />   
@@ -680,13 +681,13 @@
                                                 <td class="label"></td>
                                                 <td class="value"> 
                                                     <div style="margin:0px;">CRD - <input disabled style="padding:5px; width:60px;" name="Termine_ManSoll{{$t['id']}}" id="Termine_ManSoll{{$t['id']}}" value="{{ $wochen??''}}" /> Wochen 
-                                                    @if ($t['ManSoll'] != 0) => KW
-                                                    @if ($pp['crdltw']-$t['ManSoll'] <= 0) 
-                                                        {{$pp['crdltw']-$t['ManSoll']+52}}/{{$pp['crdlty']-1}} 
-                                                    @else 
-                                                        {{$pp['crdltw']-$t['ManSoll']}}/{{$pp['crdlty']}}
-                                                    @endif 
-                                                    @endif
+                                                        @if ($t['ManSoll'] != 0) => KW
+                                                            @if ($pp['crdltw']-$t['ManSoll'] <= 0) 
+                                                                {{$pp['crdltw']-$t['ManSoll']+52}}/{{$pp['crdlty']-1}} 
+                                                            @else 
+                                                                {{$pp['crdltw']-$t['ManSoll']}}/{{$pp['crdlty']}}
+                                                            @endif 
+                                                        @endif
                                                     </div>
                                                 </td>
                                             </tr>
@@ -728,12 +729,12 @@
                                                 <td class="iHValue">
                                                     <select id='Termine_Status{{$t['id']}}' name='Termine_Status' style='width:120px;padding:5px;'>
                                                         @if (strpos($t['status'],'FREEZE') !== false )
-                                                                        <option selected >FREEZE</option>
-                                                                    @else 
+                                                            <option selected>FREEZE</option>
+                                                        @else
                                                             @foreach ($t['stati'] as $st1)
                                                             <option value='{{$st1}}' @if (strpos($t['status'],$st1) !== false ) selected @endif >{{ ServiceProvider::tl($lang, $st1) }}</option>
                                                             @endforeach
-                                                                    @endif
+                                                        @endif
                                                     </select>
                                                 </td>
                                                 <td class="iHValue">{{--
@@ -776,10 +777,10 @@
                         <input type="checkbox" id="{{$tm->PPBoardSpalte_Bezeichnung}}_{{$t['id']}}" name="{{$tm->PPBoardSpalte_Bezeichnung}}"><span style="color:#003D7C;font-size: 11px;">{{$tm->PPBoardSpalte_Bezeichnung}}</span>
                     </div>
                     <?php
-                    if (($i % 9) == 0) {
-                        echo ("<div style='clear:both;'></div>");
-                    }
-                    $i++;
+                        if (($i % 9) == 0) {
+                            echo ("<div style='clear:both;'></div>");
+                        }
+                        $i++;
                     ?>
                     @endforeach
                 </div>
@@ -870,6 +871,7 @@
     </div>
     <script>
         function History(show) {
+            //alert("History: " + show);
             var hist = document.getElementById('boxHistory');
             var btn = document.getElementById('buttonHistory');
             hist.classList.remove('displayBox', 'hiddenBox', 'msgBox' );
@@ -1379,7 +1381,7 @@
                 console.log(e.message);
             }
             console.log(values);
-        }*/
+        } */
         function cpc_SendAjaxJsonRequest(url, jsonObject, fileData, id, type) {
             console.log("cpc_SendAjaxJsonRequest: " + url + " Id: " + id + " Type: " + type);
             var frmData = new FormData();

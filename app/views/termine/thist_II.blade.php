@@ -16,16 +16,8 @@
                 $sSelect2 = 'All';
             }
             ?>
-            <!--
-           <div style="float:left; width:15px;height:15px;background-color:darkblue;padding:3px;"><input type="checkbox" style="margin:0px;width:15px; height:15px;" @if($select == 'Hauptaufgabe') checked @endif   onclick="ajax_getTerminTab({{$pp['id']}}, {{$t['id']}}, {{$board}}, '{{$sSelect}}', {{ $onlyOpen }})"/></div>
-           <div style="margin-left: 8px;float:left; width:15px;height:15px;background-color:#383018;padding:3px;"><input type="checkbox" style="margin:0px;width:15px; height:15px; " @if($select == 'Unteraufgabe') checked @endif onclick="ajax_getTerminTab({{$pp['id']}}, {{$t['id']}}, {{$board}}, '{{$sSelect2}}', {{ $onlyOpen }})"/></div>
-            -->
         </td>
-        <!-- td class="thHeader2" style="width:5px; border:none;"></td>
-        <td class="thHeader2" style="width:5px; border:none;"></td>
-        <td class="thHeader2" style="width:5px; border:none;"></td-->
         <td class="thHeader2" style="width:40px;">{{ ServiceProvider::tl($lang, 'Zuständig') }}</td>
-        <!-- td class="thHeader" style="width:40px;">Receiver</td -->
         <td class="thHeader2" style="width:150px;">{{ ServiceProvider::tl($lang, 'Status') }}</td>
         <td class="thHeader2" style="width:70px;">{{ ServiceProvider::tl($lang, 'Datum') }}</td>
         <td class="thHeader2" style="width:250px;">{{ ServiceProvider::tl($lang, 'ToDo') }}</td>

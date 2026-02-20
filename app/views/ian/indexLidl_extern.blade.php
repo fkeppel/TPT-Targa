@@ -377,8 +377,8 @@
         <li><a class='cref'  href="#MeetingProtokoll">{{ ServiceProvider::tl($data['lang'], 'Meeting Protokoll') }}</a></li>
         <li><a class='cref'  href="#Notizen">{{ ServiceProvider::tl($data['lang'], 'Notizen') }}</a></li>
         <li><a class='cref'  href="#ServiceAnfrage">{{ ServiceProvider::tl($data['lang'], 'Service Anfrage') }}</a></li>
-        @endif
         <li><a class='cref'  href="#RFQ">{{ ServiceProvider::tl($data['lang'], 'RFQ') }}</a></li>
+        @endif
     </ul>
     <div class='divContainer' id="InfoLidl">
             @include ('ian.infoLidl')
@@ -395,8 +395,8 @@
     <div class='divContainer' id="MeetingProtokoll"></div>
     <div class='divContainer' id="Notizen"></div>
     <div class='divContainer' id="ServiceAnfrage"></div>
-    @endif
     <div class='divContainer' id="RFQ"></div>
+    @endif
 </div>
 <script>
     function clickLink (){

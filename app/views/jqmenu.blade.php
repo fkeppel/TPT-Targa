@@ -2,7 +2,7 @@
     $style = '';
     $config = Config::get('app.cEnv');
     if (Config::get('app.cEnv') != 'production'){
-        $style='Border:4px  solid red;background-color:#12abef;';
+        $style='border:1px solid blue; background-color:#12abef;';
     }
     if (isset ($_COOKIE['TPTLanguage'])){
         $lang = $_COOKIE['TPTLanguage'];
@@ -11,52 +11,42 @@
     }  
 ?>
 <style>
-#dirac {
-    vertical-align: middle;
-}
-#dirAc input:focus {
-    background-color: lightskyblue;
-    color:darkblue;
-    border-radius:0px;
-    font-weight: bold;
-    outline:none;
-}
-#dirAc input {
-    padding:5px;
-    border:1px solid darkblue;
-    border-radius:0px;
-    font-size:0.7rem;
-}
-#dirAc button {
-    padding:5px;
-    border:1px solid darkblue;
-    background-color: lightgray;
-    border-radius:0px;
-    font-size:0.7rem;
-    color:darkblue;
-}
-#dirAc button:focus {
-    border:2px solid darkgreen;
-    font-weight:bold;
-    color:white;
-    background-color: green;
-}
+    #dirac {
+        vertical-align: middle;
+    }
+    #dirAc input:focus {
+        background-color: lightskyblue;
+        color:darkblue;
+        border-radius:0px;
+        font-weight: bold;
+        outline:none;
+    }
+    #dirAc input {
+        padding:5px;
+        border:1px solid darkblue;
+        border-radius:0px;
+        font-size:0.7rem;
+    }
+    #dirAc button {
+        padding:5px;
+        border:1px solid darkblue;
+        background-color: lightgray;
+        border-radius:0px;
+        font-size:0.7rem;
+        color:darkblue;
+    }
+    #dirAc button:focus {
+        border:2px solid darkgreen;
+        font-weight:bold;
+        color:white;
+        background-color: green;
+    }
 </style>
-<div id='cssmenu' style="border-radius:0px;position:absolute;width:100%;{{$style}}">
+<div id='cssmenu' style="border-radius:0px;border:4px solid red;position:absolute;top:0;width:100%;z-index:10000;{{$style}}">
     <ul>
         <li  style="text-align: left;">
-            <a href='/home'>Home</a>
+            <a href='/home'>Home </a>
         </li>
-        @if (ServiceProvider::AuthUserHasRole('SYSADMIN'))
-        <li  class='has-sub' style="text-align: left;">
-            <a href='#'>Sysadmin</a>
-            <ul>
-                <li  style="text-align: left;">
-                    <a href='/frmSystem'>{{ ServiceProvider::tl($lang, 'System') }}</a>
-                </li>
-            </ul>
-        </li>
-        @endif
         @if (Auth::user()->PPMitarbeiter_Gruppe == 'XXXadmin')
          <li  style="text-align: left;">
             <a href='#'><span style='font-size:1.2em;color: red;'><b>SPO Upload</b></span></a>
@@ -71,52 +61,52 @@
             <ul>
                 @if (Auth::user()->PPMitarbeiter_Gruppe == 'admin')
                 <li  style="text-align: left;">
-                    <a href='/adressen/liste/4'>{{ ServiceProvider::tl($lang, 'Lieferanten') }}</a>
+                    <a href='/adressen/liste/4'>Lieferanten</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/adressen/liste/7'>{{ ServiceProvider::tl($lang, 'Produzenten') }}</a>
+                    <a href='/adressen/liste/7'>Produzenten</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/adressen/liste/8'>{{ ServiceProvider::tl($lang, 'Agenten') }}</a>
+                    <a href='/adressen/liste/8'>Agenten</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/adressen/liste/3'>{{ ServiceProvider::tl($lang, 'Spediteure') }}</a>
+                    <a href='/adressen/liste/3'>Spediteure</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/adressen/liste/9'>{{ ServiceProvider::tl($lang, 'Frachtführer') }}</a>
+                    <a href='/adressen/liste/9'>Frachtführer</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/adressen/liste/2'>{{ ServiceProvider::tl($lang, 'Kunden') }}</a>
+                    <a href='/adressen/liste/2'>Kunden</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/adressen/liste/0'>{{ ServiceProvider::tl($lang, 'Alle') }}</a>
+                    <a href='/adressen/liste/0'>Alle</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/stammdaten/ausmusterung'>{{ ServiceProvider::tl($lang, 'Logistikpauschale') }}</a>
+                    <a href='/stammdaten/ausmusterung'>Logistikpauschale</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/mitarbeiter'>{{ ServiceProvider::tl($lang, 'Mitarbeitende') }}</a>
+                    <a href='/mitarbeiter'>Mitarbeiter</a>
                 </li>
                 @endif
                 @if (Auth::user()->PPMitarbeiter_Gruppe == 'Xadmin')
                 <li  style="text-align: left;">
-                    <a href='/textbausteine'>{{ ServiceProvider::tl($lang, 'Textbausteine') }}</a>
+                    <a href='/textbausteine'>Textbausteine</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/warengruppen'>{{ ServiceProvider::tl($lang, 'Warengruppen') }}</a>
+                    <a href='/warengruppen'>Warengruppen</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/stammdaten/cs'>{{ ServiceProvider::tl($lang, 'Ländergrössen') }}</a>
+                    <a href='/stammdaten/cs'>Ländergrössen</a>
                 </li>
                 @endif
                 @if (strpos(Auth::user()->PPMitarbeiter_Role,'ZOLL') !== false or Auth::user()->PPMitarbeiter_Gruppe == 'admin')
                 <li  style="text-align: left;">
-                    <a href='/Zoll'>{{ ServiceProvider::tl($lang, 'Zoll Restriktionen') }}</a>
+                    <a href='/Zoll'>Zoll Restriktionen</a>
                 </li>
                 @endif
                 @if (Auth::user()->PPMitarbeiter_Gruppe == 'admin')
                 <li  style="text-align: left;">
-                    <a href='/formDeleteIAN'>PP {{ ServiceProvider::tl($lang, 'löschen') }}</a>
+                    <a href='/formDeleteIAN'>PP löschen</a>
                 </li>
                 @endif
             </ul>
@@ -128,16 +118,16 @@
             <ul>
                 @if (Auth::User()->PPMitarbeiter_Gruppe  == 'admin' )
                     <li  style="text-align: left;">
-                        <a href='/uploadForm/0'>{{ ServiceProvider::tl($lang, 'Import XML-Datei o. Zip-Archiv') }}</a>
+                        <a href='/uploadForm/0'>Import XML-Datei o. Zip-Archiv</a>
                     </li>
                     @if (strtoupper(Auth::User()->PPMitarbeiter_Kuerzel)  == 'MM_ADMIN' or strtoupper(Auth::User()->PPMitarbeiter_Kuerzel)  == 'CSP_ADMIN' or strtoupper(Auth::User()->PPMitarbeiter_Kuerzel)  == 'FKE'  or strtoupper(Auth::User()->PPMitarbeiter_Kuerzel)  == 'JA_ADMIN' )
                     <li  style="text-align: left;">
-                        <a href='/uploadMultiZipForm'>{{ ServiceProvider::tl($lang, 'Massen-Import über Lidl Zip-Archiv') }}</a>
+                        <a href='/uploadMultiZipForm'>Massen-Import über Lidl Zip-Archiv</a>
                     </li>
                     @endif
                     @if(false)
                     <li  style="text-align: left;">
-                            <a href='/upl2spo'>{{ ServiceProvider::tl($lang, 'Dateitransfer nach Sharepoint') }}</a>
+                            <a href='/upl2spo'>Dateitransfer nach Sharepoint</a>
                     </li>
                     @endif
                 @endif
@@ -147,11 +137,11 @@
                 </li>
                 -->
                 <li  style="text-align: left;">
-                    <a href='/showImportThemenplanung'>{{ ServiceProvider::tl($lang, 'Import Themenplanung') }}</a>
+                    <a href='/showImportThemenplanung'>Import Themenplanung</a>
                 </li>
                 @if (strpos(Auth::User()->PPMitarbeiter_Role,'PPIMP')  !== false) 
                 <li  style="text-align: left;">
-                    <a href='/getFormUploadPruefplaene'>{{ ServiceProvider::tl($lang, 'Massen-Import Prüfpläne') }}</a>
+                    <a href='/getFormUploadPruefplaene'>Massen-Import Prüfpläne</a>
                 </li>
                 @endif
             </ul>
@@ -181,12 +171,10 @@
                         </li>
                     @endif
                 @endforeach
-                @if (ServiceProvider::AuthUserHasRole('INTERN') or ServiceProvider::AuthUserHasRole('EXTERN') )
+                @if (strpos(Auth::User()->PPMitarbeiter_Role, 'INTERN') !== false )
                 <li style="text-align: left;">
                     <a href='/termine/projekt/U/2000/1'>Dashboard {{ ServiceProvider::tl($lang, 'Archiv (GELIEFERT)') }}</a>
                 </li>
-                @endif
-                @if (ServiceProvider::AuthUserHasRole('INTERN') or ServiceProvider::AuthUserHasRole('EXTERN') )
                 <li style="text-align: left;">
                     <a href='/termine/projekt/U/2002/1'>Dashboard {{ ServiceProvider::tl($lang, 'Archiv (ABSAGE)') }}</a>
                 </li>
@@ -298,6 +286,7 @@
         });
     }
     function onSuccessLangSet (json){
+        //console.log(json);
         location.reload();
     }
 </script>

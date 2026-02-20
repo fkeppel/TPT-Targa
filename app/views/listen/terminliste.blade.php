@@ -51,19 +51,7 @@
         } 
         if (Session::get('art') == 'MU'){
             $_art .= ServiceProvider::tl($lang,'Musterung');
-        } 
-        $komms = $data['searchValues']['tas'];
-        $tas = array();
-        if ($lang != 'DE'){
-            foreach($komms as $v){
-                $tas[$v->PPBoardSpalte_Bezeichnung] = ServiceProvider::tl('EN', $v->PPBoardSpalte_Bezeichnung);
-                asort($tas);
-            }
-        } else {
-            foreach($komms as $v){
-                $tas[$v->PPBoardSpalte_Bezeichnung] = $v->PPBoardSpalte_Bezeichnung;
-            }
-        }
+        }  
     ?>
     <div style="display: grid; grid-template-columns: 7% 28% 7% 7% 7% 8% 14% 14% 6%;    font-size:11px; ">
             <div style="grid-column: 1/ span 9;"><p style="font-size:1.5rem;color:#1c94c4;padding:0px;"><b>{{ $_art }}</b></p></div>
@@ -145,8 +133,8 @@
             <div class="searchP">
                 <select name="qTerminart" id="qTerminart" style="border-radius:0px!important;">
                     <option value="%">{{ ServiceProvider::tl($lang,'Alle') }}</option>
-                    @foreach ($tas as $tas_de => $ta)
-                        <option value="{{ $tas_de }}" @if ($ta == Session::get('qTerminart')) selected="selected" @endif>{{$ta }}</option>
+                    @foreach ($data['searchValues']['tas'] as $ta)
+                        <option value="{{ $ta->PPBoardSpalte_Bezeichnung }}" @if ($ta->PPBoardSpalte_Bezeichnung == Session::get('qTerminart')) selected="selected" @endif>{{ $ta->PPBoardSpalte_Bezeichnung }}</option>
                     @endforeach
                 </select>
                 <!-- input  style="width:266px;" type="text" name="qTerminart" id="qTerminart" value="{{Session::get('qTerminart');}}"/-->
@@ -164,8 +152,6 @@
                         <td style="padding:4px;  text-align:center;"><input style="height:15px;" type="checkbox" name="fcol[onlyMy]"  @if (isset($fcol['onlyMy'])) checked='checked' @endif /></td>
                     </tr>
                 </table>
-                <!-- div  style="padding:6px;  float: left;">{{ ServiceProvider::tl($lang,'Erledigte anzeigen:') }}</div> <div  style="padding:6px;  float: left;"><input style="height:15px;" type="checkbox" name="fcol[all]"  @if (isset($fcol['all'])) checked='checked' @endif /></div -->
-                <!-- div  style="padding:6px;  float: left;" title='Termine, bei denen ich als Vertretung eingetragen bin, werden nicht angezeigt!'>{{ ServiceProvider::tl($lang,'Nur eigene:') }}</div> <div  style="padding:6px;  float: left;"><input style="height:15px;" type="checkbox" name="fcol[onlyMy]"  @if (isset($fcol['onlyMy'])) checked='checked' @endif /></div -->
             </div>
             <!-- COL8 -->
             <div   class="searchP" >
@@ -212,7 +198,7 @@
                 <a href="/show/{{$row->PPProduktpass_Id}}" target="_blank" style="text-decoration: none;color:#000; cursor:pointer;">
                     <span style="margin-right: 25px; color:darkblue;font-weight: bold;">{{$row->PPProduktpass_IAN}}</span> <br><span> {{ ServiceProvider::tl($lang,'Liefertermin')}}: {{$row->PPProduktpass_Liefertermin}}/{{$row->PPProduktpass_LieferterminJahr}}</span>
                 </a><br>
-                {{ ServiceProvider::tl($lang, $row->PPProduktpass_Artikelbezeichnung ) }}
+                {{ ServiceProvider::transContent($lang,'PPProduktpass', 'PPProduktpass_Artikelbezeichnung', $row->PPProduktpass_Id, $row ) }}<br>
             </div>
             <div>{{substr($row->PPProduktpass_Ausmusterungnummer,0,4)}}</div>
             <div title='{{ $row->{$attLabel_translate} }}' style="max-height:110px; ovefolow:auto;font-size:0.7rem;" >

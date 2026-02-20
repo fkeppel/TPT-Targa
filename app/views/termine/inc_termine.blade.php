@@ -50,7 +50,7 @@
                                     <div style="border: none;float: left;">
                                         <table class="cell">
                                             <tr>
-                                                <td>IAN</td>
+                                                <td>IAN1</td>
                                                 <td><a href="show/{{ $pp['id'] }}" target="_blank">{{ $pp['ian'] }}</a>
                                                     <!-- a href="showAfterUpload/{{ $pp['id'] }}/6/Musterung/11/0" target="_blank">{{ $pp['ian'] }}</a -->
                                                 </td>
@@ -180,7 +180,8 @@
                     <div style="padding:10px;">
                         <div style="padding-top: 8px; padding-bottom: 8px;">
                             <span
-                                style="font-size: 18px; font-weight: bold;padding: 5px; padding-top:8px; padding-bottom: 8px;color:darkblue;">Termin History</span>
+                                style="font-size: 18px; font-weight: bold;padding: 5px; padding-top:8px; padding-bottom: 8px;color:darkblue;">Termin
+                                History</span>
                         </div>
                         <div
                             style="width:1375px;border:1px solid darkblue; border-radius: 0px; height:450px;padding:0px;overflow: auto;padding:5px;text-align: left;">

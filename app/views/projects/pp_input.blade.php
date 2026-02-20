@@ -171,8 +171,8 @@
     }
     ?>
         <div style='border:1px solid var(--tgDarkBlue);background-color:var(--tgBlue);border-radius:0px;color:white;'>
-            <h3>PM Eingabefelder!!!</h3>
-            <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;"><b>Bitte Zahlen in der Form 1.2345,789 eingeben!</b> </div>
+            <h3>PM EingabefelderB</h3>
+            <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;"><b>Bitte Zahlen in der Form 1.2345,789 eingeben</b> </div>
         </div>
         <div style="padding:20px;border:1px solid var(--tgBlue);border-radius:0px;">
             <div style="margin-bottom:30px;">
@@ -209,7 +209,7 @@
                         <option value="{{ $imid }}"> {{ $dataVersion }} </option>
                         @endforeach
                     </select>
-                    <button type="button" onclick="getVersion();" style="width:150px; height:30px; padding:8px;font-weight:bold;">anzeigen!</button> <br>
+                    <button type="button" onclick="getVersion();" style="width:150px; height:30px; padding:8px;font-weight:bold;">anzeigen</button> <br>
                     <br>
                     <label>{{ ServiceProvider::tl($lang, 'Geplanter EK Währung') }}</label>
                     <select {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_EKWSYM']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_EKWSYM']['OldValue'] }}" name='man[PPInputManuell_EKWSYM]'>
