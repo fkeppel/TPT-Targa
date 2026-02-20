@@ -27,10 +27,14 @@
     }
     </style>
     <?php 
-    $lang = isset($_COOKIE['TPTLanguage'])?$_COOKIE['TPTLanguage']:Auth::user()->PPMitarbeiter_Languge
+        $lang = isset($_COOKIE['TPTLanguage'])?$_COOKIE['TPTLanguage']:Auth::user()->PPMitarbeiter_Languge;
+        $langOrg='DE';
+        if ($lang == 'DE') {
+            $langOrg='EN';
+        }
     ?>
 <div style = "width:1695px;padding:20px;text-align:left;margin:0 auto;border:1px solid darkblue; height: 965px;margin-top:30px;">
-    <h3>{{$data['Header']}}</h3>
+    <h3>{{ ServiceProvider::tl($lang,$data['Header'])}}</h3>
     <div id="form" style="border:none; height: 40px;">
         {{Form::open(array('url' => '/showOrderAll', 'method' => 'POST', 'id' => 'searchAll'))}}
         {{Form::hidden('IsPost', 1)}}
@@ -66,13 +70,15 @@
     @foreach ($data['liqs'] as $liq)
        <div class = "item">{{$liq->PPProduktpass_IAN}}</div>
         <div class = "item">{{substr($liq->PPProduktpass_Ausmusterungnummer,0,4)}}</div>
-        <div class = "item">{{ServiceProvider::tl($lang,$liq->InternerStatus)}}</div>
+        <div class = "item" title="{{$liq->InternerStatus}}">{{ ServiceProvider::tl($lang,$liq->InternerStatus)}}</div>
         <div class = "item">{{$liq->PPProduktpass_PPProjekte_Projekt}}</div>
         <div class = "item"><a href="show/{{$liq->PPProduktpass_Id}}" target="_blank" style="text-decoration:none;color:darkblue;"><b>[Produktpass]</b></a>
                             <br>
                             <a href="dbIANdirect/{{$liq->PPProduktpass_IAN}}_{{substr($liq->PPProduktpass_Ausmusterungnummer,0,4)}}" target="_blank" style="text-decoration:none;color:darkblue;"><b>[Dashboard]</b></a>
         </div>
-        <div class = "item">{{ServiceProvider::tl($lang,$liq->PPProduktpass_Artikelbezeichnung)}}</div>
+        <div class = "item" title='' >
+            {{ ServiceProvider::tl($lang, $liq->PPProduktpass_Artikelbezeichnung) }}
+        </div>
         <div class = "item">{{$liq->PPProduktpass_Liefertermin."/".$liq->PPProduktpass_LieferterminJahr}}</div>
         <div class = "item">{{$liq->PM}}</div>
         <div class = "item">{{$liq->PJM}}</div>

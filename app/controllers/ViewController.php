@@ -176,7 +176,9 @@ class ViewController extends BaseController {
                     $link = "https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage".$extern."/Freigegebene%20Dokumente/IANs/$ian/".$spFile."?csf=1&web=1";
                     break;
                 case 2:
-                    $link = "https://targagmbh.sharepoint.com/sites/TPTStorage".$extern."/_layouts/15/download.aspx?UniqueId=$spId";
+                    //$link = "https://targagmbh.sharepoint.com/sites/TPTStorage".$extern."/_layouts/15/download.aspx?UniqueId=$spId";
+                    //$link = "https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage".$extern."/Freigegebene%20Dokumente/IANs/$ian/".$spFile."?csf=1&download=1";
+                    $link = "https://targagmbh.sharepoint.com/sites/TPTStorage".$extern."/_layouts/15/download.aspx?SourceUrl=".rawurlencode("Freigegebene Dokumente/IANs/$ian/$spFile");
                     break;
                 case 3:
                     //$link = "https://targagmbh.sharepoint.com/sites/TPTStorage/Freigegebene%20Dokumente/IANs/$ian/$spLink";
@@ -338,7 +340,7 @@ class ViewController extends BaseController {
             return 0;
         }
         if ($serviceAnfrage->PPInputManuell_MengeIAN == 0) {
-            $pp = tPPProduktpass::find($sid);
+            $pp = tPPProduktpass::find($serviceAnfrage->PPInputManuell_PPProduktpass_Id);
             if ($pp){
                 return  number_format($pp->PPProduktpass_Gesamtmenge, 0, ',', '.');
             }

@@ -155,10 +155,15 @@
                 }
         </style>
     </head>
-    <html style="border-radius:0px;">
-        <body style="margin: 0 auto;text-align:center;border-collapse: collapse;border-radius:0px;padding:0px;">
+    <html>
+        <body style="margin: 0 auto;background:#afafaf;text-align:center;border-collapse: collapse;width:99.8%;height:94%;">
+            <div style="position:relative;width:100%;margin: 0 auto;border:1px solid lightgray;">
+                <div style="position:relative;text-align: center; margin:0 auto;z-index: 10000;">
+                    <div>
                 @include('jqmenu')
-                <div style="position:relative;text-align: center; margin:0 auto;margin-top:30px;height:calc(100% - 62px); overflow: auto;z-index: 10;border-radius: 0px;">
+                    </div>
+                </div>
+                <div style="position:relative;text-align: center; margin:0 auto;margin-top:0px;height:calc(100% - 25px); overflow: auto;z-index: 10;border-radius: 0px;margin-top:30px;">
                     {{$content}}
                 </div>
                 <div style="background-color:#d0d0d0;text-align: center; margin:0 auto;height:30px;border:1px solid lightgray;position:relative;padding-left:10px;">
@@ -166,8 +171,9 @@
                         <p style="color:#0D0D0D;font-size:10px;">Status: {{$footer['Status'] or ''}} {{ isset($_SESSION['TPT_Message']) ? $_SESSION['TPT_Message'] : '';   }}  @if(isset($DAUER)) {{ date('s') - $DAUER  }}s @endif</p>
                     </div>
                     <div style="width:100px;background-color:#d0d0d0;position:absolute; right:0;height:25px;text-align: right;padding-right:10px;">
-                        <p style="color:#0D0D0D;font-size:10px;">Kalenderwoche {{date('W')}}</p>
+                        <p style="color:#0D0D0D;font-size:10px;">Kalenderwoche: {{date('W')}}</p>
                     </div>
                 </div>
+            </div>
         </body>
     </html>

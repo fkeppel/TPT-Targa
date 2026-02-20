@@ -595,7 +595,7 @@
                     }
                 }
             ?>
-            <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, {{$tm->PPTermine_Id}}, {{$board}}, 'All', 1)"  style="background-color:{{$col}};color:{{$fontCol}};" >
+        <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, {{$tm->PPTermine_Id}}, {{$board}}, 'All', 1)"  style="background-color:{{$col}};color:{{$fontCol}};" title="Spalten-Id: {{ $tm->PPBoardSpalte_Id ?? 'NN' }}">
                 <span style='font-size:0.85em;'>{{ ServiceProvider::tl($lang, $tm->PPBoardSpalte_Bezeichnung) }}</span>
             </div>
             <?php
@@ -667,7 +667,8 @@
                                                 <td class="value"> @if ($t['rot'] != '' or $t['rot'] == 0 ) {{ ServiceProvider::tl($lang, 'Soll')}}: CRD {{$t['rot'] +10}} {{ ServiceProvider::tl($lang, 'Wochen') }} @endif
                                                     CW @if ($crd->format('W')+$t['rot']+10 <  0){{$crd->format('W')+$t['rot']+62}}/{{$crd->format('y')-1}} @else @if ($crd->format('W')+$t['rot']+10 > 52 )  {{$crd->format('W')+$t['rot']-42}}/{{$crd->format('y')+1}} @else  {{$crd->format('W')+$t['rot']+10}}/{{$crd->format('y')}}@endif @endif</td>
                                                 <td class="label" title="In der Terminliste mit '*' gekennzeichnet">{{ ServiceProvider::tl($lang, 'Budget Datum')}}: <span style="color:darkblue;font-weight:bold;">(*)</span></td>
-                                                <td class="value" style="vertical-align:top;">   @if (Auth::User()->PPMitarbeiter_Gruppe == 'admin')
+                                                <td class="value" style="vertical-align:top;">   
+                                                    @if (Auth::User()->PPMitarbeiter_Gruppe == 'admin')
                                                         <input class="datepickerAll" name="Termine_ManSollD{{$t['id']}}" id="Termine_ManSollD{{$t['id']}}" value='{{$dx2}}' />
                                                     @else 
                                                         <input type="hidden" class="datepickerAll" name="Termine_ManSollD{{$t['id']}}" id="Termine_ManSollD{{$t['id']}}" value='{{$dx2}}' />   

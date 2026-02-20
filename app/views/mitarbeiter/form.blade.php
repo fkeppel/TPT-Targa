@@ -87,7 +87,7 @@
 <li><label>Anmeldename</label> <input name="username" value="{{isset($ma['username'])?$ma['username']:'' }}" /></li>
 <li><label>Passwort</label>  <input id="pwd" type="password" name="1password"  /></li>
 <li><label></label><button  style="margin-left: 6px; margin-top: 6px;" type="button" onclick="showPW();">Show Password</button>
-    @if (false) <button  style="margin-left: 6px; margin-top: 6px;" type="button" onclick="unlockUser();">entsperren</button> @endif</li>      
+             <button  style="margin-left: 6px; margin-top: 6px;" type="submit"  name='submit' value='unlock'>entsperren Fails:{{ isset($login_attempts)?$login_attempts:0; }}</button></li>      
 </ul>
 </fieldset>
 <input type="submit" name="submit" value="speichern" class="cpcbtn"/>

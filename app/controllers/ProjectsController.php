@@ -2558,17 +2558,20 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
     private function getDBTranslation($table, $tableId, $col, $textDE, $reset)
     {
         $prnReset = $reset ? "RESET" : "";
+        if (is_null($textDE)) {
+            $textDE = "";
+        }
         //cpcDebug::cpc_debug("getDBTranslation: Tabelle: $table   TId: $tableId Column: $col  Reset: $prnReset", "@Trans3");
-        $transPP = Translations::where('Translations_Table', $table)->where('Translations_TableId', $tableId)->where('Translations_Column', $col)->get()->first();
+        $transPP = Translations::where('Translations_Table', $table)->where('Translations_TableId', $tableId)->where('Translations_Column', $col)->first();
         if ($transPP) {
             if ($reset) {
-                $transPP->Translations_DE = $textDE;
+                $transPP->Translations_DE = trim($textDE);
                 $transPP->Translations_EN = $this->translateDeepl($textDE);
                 $transPP->save();
                 //cpcDebug::cpc_debug("Reset Translation: " . $transPP->Translations_Id ."\nNeue Übersetzung: \n". $transPP->Translations_EN,  "@Trans3");
                 return array('Status' => 'Reset', 'DE' => $textDE, 'EN' => $transPP->Translations_EN, 'ID' => $transPP->Translations_Id, 'OLDDE' => '', 'RowCount' => substr_count($textDE, "\n") + 1);
             } else {
-                if (!is_null($transPP->Translations_DE) or $this->strcmp_normalized($textDE, $transPP->Translations_DE) === 0) {
+                if (!is_null($transPP->Translations_DE) and $this->strcmp_normalized($textDE, $transPP->Translations_DE) === 0) {
                     //cpcDebug::cpc_debug("No Change Translation: " . $transPP->Translations_Id, "@Trans3");
                     return array('Status' => 'OK', 'DE' => trim($textDE), 'EN' => trim($transPP->Translations_EN), 'ID' => $transPP->Translations_Id, 'OLDDE' => '', 'RowCount' => substr_count($textDE, "\n") + 1);
                 } else {
@@ -2761,6 +2764,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             $new->PPInputManuell_Bemerkungen = '';
             $new->PPInputManuell_Date = date('Y-m-d H:i:s');
             $new->PPInputManuell_UAWGB = '0000-00-00';
+            $new->PPInputManuell_ZWEEWert = 0;
             $de = $this->getMengeDE($new->PPInputManuell_PPProduktpass_Id);
             $eu = $this->getMengeEU($new->PPInputManuell_PPProduktpass_Id);
             $new->PPInputManuell_MengeDE = $de['Menge'];
@@ -2777,7 +2781,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
     private function getNumFields()
     {
         $decFields = "PPInputManuell_GeplanterEKUSD, PPInputManuell_GeplanterVK, PPInputManuell_DeckelAusfallrate, PPInputManuell_Ausfallrate, PPInputManuell_GutschriftenbetragKunde, PPInputManuell_ZukaufServiceWare, PPInputManuell_Servicekostensatz";
-        $decFields .= "PPInputManuell_EingangsfrachtZFRD, PPInputManuell_LogistikZLGK, PPInputManuell_AusgangsfrachtZRF2, PPInputManuell_GutschriftenbetragKunde, ";
+        $decFields .= "PPInputManuell_EingangsfrachtZFRD, PPInputManuell_LogistikZLGK, PPInputManuell_AusgangsfrachtZRF2, PPInputManuell_GutschriftenbetragKunde,  PPInputManuell_ZWEEWert";
         $intFields = "PPInputManuell_StkProPalette, PPInputManuell_ContPlan20, PPInputManuell_ContPlan40, PPInputManuell_ContPlan40HC, ";
         $intFields .= "PPInputManuell_Exportkarton_Masse, PPInputManuell_Exportkarton_Laenge, PPInputManuell_Exportkarton_Breite, PPInputManuell_Exportkarton_Hoehe, ";
         $intFields .= "PPInputManuell_Exportkarton_Masse_V2, PPInputManuell_Exportkarton_Laenge_V2, PPInputManuell_Exportkarton_Breite_V2, PPInputManuell_Exportkarton_Hoehe_V2, ";
@@ -5914,10 +5918,10 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $api_Key = '10ee3599-028f-961f-ca7e-8c941bfaac5a';
         $deeplURL = "https://api.deepl.com/v2/translate";
         $lang = 'EN-US';
-        $protected = $this->deeplProtectLinebreaks($text);
-        $protected = $this->deeplTextToHtml($protected);
+        //$protected = $this->deeplProtectLinebreaks($text);
+        //$protected = $this->deeplTextToHtml($protected);
         $vars = http_build_query([
-            'text'                => $protected,
+            'text'                => $text,
             'target_lang'         => $lang,
             'preserve_formatting' => 1,              // oder 'true'
             'tag_handling'        => 'html',
@@ -5947,7 +5951,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         curl_close($ch);
         $data = json_decode($translation, true);
         $translated = $data['translations'][0]['text'] ?? 'Not Translated [Qutoa?]';
-        $translated = $this->deeplRestoreLinebreaks($translated);
+        //$translated = $this->deeplRestoreLinebreaks($translated);
         return $translated;
     }
     private function _saveTranslation($id, $EN, $DE)

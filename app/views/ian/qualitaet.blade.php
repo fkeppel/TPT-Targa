@@ -19,7 +19,7 @@
                 <div class='value'>{{{ServiceProvider::tl($data['lang'],$style->qualityTechnicalData)}}}</div>
                 <div class='value'>{{{ ServiceProvider::tl($data['lang'],$style->additionalQualityInformation) }}}</div>
                 <div class='value'>{{{ ServiceProvider::tl($data['lang'],$style->changesFromPredecessor) }}}</div>
-                <div class='value'>{{{ $style->brandReference }}}</div>
+                <div class='value'>{{{ ServiceProvider::tl($data['lang'],$style->brandReference ) }}}</div>
                 <div class='value'>{{{ ServiceProvider::tl($data['lang'],$style->material) }}}</div>
                 <div class='value'>{{{ ServiceProvider::tl($data['lang'],$style->materialThickness) }}}</div>
                 <div class='value'>{{{ ServiceProvider::tl($data['lang'],$style->color) }}}</div>

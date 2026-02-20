@@ -324,9 +324,26 @@
       #History-Top {
         background-color: transparent;
     }
+    .___ui-tabs-nav {
+        height: 50px;      
+        border:1px solid orange;
+    }
     #infoTabs ul {
         position:absolute;
         width:96.5%;
+    }
+    .cpcAttachmentList {
+        border:1px solid gray;
+        position: relative;
+        border-radius:5px;
+        margin:0px;
+        padding: 0px;
+    }
+    .cpcAttachmentList li {
+        list-style-type: upper-disc;
+        margin: 0px;
+        padding: 0px;
+        font-size: 0.9em;        
     }
 </style>
 <script>
@@ -378,10 +395,13 @@
     <ul>
         <li><a class='cref' href="#InfoLidl">{{ ServiceProvider::tl($data['lang'], 'LIDL-Info') }} [{{$data['pp']->PPProduktpass_IAN}}_{{substr($data['pp']->PPProduktpass_Ausmusterungnummer,0,4)}}]</a></li>
         <li><a class='cref'  href="#Dateien">{{ ServiceProvider::tl($data['lang'], 'Dateien') }}</a></li>
+        @if (ServiceProvider::AuthUserHasRole('INTERN'))
         <li><a class='cref'  href="#ProduktpassEdit">{{ ServiceProvider::tl($data['lang'], 'Produktpass Edit') }}</a></li>
         <li><a class='cref'  href="#MeetingProtokoll">{{ ServiceProvider::tl($data['lang'], 'Meeting Protokoll') }}</a></li>
         <li><a class='cref'  href="#Notizen">{{ ServiceProvider::tl($data['lang'], 'Notizen') }}</a></li>
         <li><a class='cref'  href="#ServiceAnfrage">{{ ServiceProvider::tl($data['lang'], 'Service Anfrage') }}</a></li>
+        @endif
+        @if (ServiceProvider::AuthUserHasRole('RFQ'))
         <li><a class='cref'  href="#RFQ">{{ ServiceProvider::tl($data['lang'], 'RFQ') }}</a></li>
     </ul>
     <div class='divContainer'  id="InfoLidl">
@@ -394,11 +414,15 @@
         <div style='width:250px;heihght:100%;padding:10px;'>{{ ServiceProvider::tl($lang, 'Bitte warten...') }}</div>
     @endif
     </div>
+    @if (ServiceProvider::AuthUserHasRole('INTERN'))
     <div class='divContainer' id="ProduktpassEdit"></div>
     <div class='divContainer' id="MeetingProtokoll"></div>
     <div class='divContainer' id="Notizen"></div>
     <div class='divContainer' id="ServiceAnfrage"></div>
+    @endif
+    @if (ServiceProvider::AuthUserHasRole('RFQ'))
     <div class='divContainer' id="RFQ"></div>
+    @endif
 </div>
 <script>
     function clickLink (){

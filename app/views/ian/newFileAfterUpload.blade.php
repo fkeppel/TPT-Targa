@@ -134,8 +134,12 @@
                                     $lc = 'SPO: ' .  $data['FilesLastChange'][$file['PPPPFiles_Name']];
                                 }
                                 $externColor = 'darkblue';
+                                $classCHN = 'MoveShow';
+                                $classINT = 'MoveHide';
                                 if ($file['PPPPFiles_IsExtern']){
                                     $externColor = 'red';
+                                    $classCHN = 'MoveHide';
+                                    $classINT = 'MoveShow';
                                 }
                             ?>
                             @if ($file['PPPPFiles_Type'] == $type['Type'] and  $file['PPPPFiles_SubKat'] == $kat['Kategorie'])
@@ -146,18 +150,19 @@
                                         <input type="hidden" name="ppid" id="hiddenActivmainTab" value="{{$data['pp']['PPProduktpass_Id']}}">
                                         <div id="FileDetails" style="border:none; ">
                                             @if (strlen($file['PPPPFiles_Link']) > 0 )
-                                            <div><a href="{{ $file['PPPPFiles_Link'] }}" target="_blank">{{ $file['PPPPFiles_LinkName'] }}</a></div>
+                                            <div><a id="Link1_{{ $file['PPPPFiles_Link'] }}"  href="{{ $file['PPPPFiles_Link'] }}" target="_blank">{{ $file['PPPPFiles_LinkName'] }}</a></div>
                                             @else 
                                             <div style="overflow:hidden;position:relative;">
                                                 <div style='border:none;float:left;padding:0px;position:relative;overflow:hidden;width:calc(100% - 68px);'>
                                                     @if(strlen($file['PPPPFiles_SharePointLink'])>0)
                                                     <div style="border:none;padding:0px;padding-left:10px;margin-left:10px;font-size:0.9em;display:block;height:65px;width:calc(100% - 25px);">
-                                                            <div style='font-size:0.5vw;border:none;font-weight:bold;height:auto;overflow: auto;overflow-wrap: anywhere;min-width:calc(100% - 25px);color:{{$externColor}};' title='{{ $file['PPPPFiles_Name'] }}'>{{ $file['PPPPFiles_Name'] }}</div>
+                                                            <div id='fnBox_{{$file['PPPPFiles_Id']}}' style='font-size:0.5vw;border:none;font-weight:bold;height:auto;overflow: auto;overflow-wrap: anywhere;min-width:calc(100% - 25px);color:{{$externColor}};' title='{{ $file['PPPPFiles_Name'] }}'>
+                                                               {{ $file['PPPPFiles_Name'] }}</div>
                                                             <br><br>
-                                                            <a href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 2) }}" target="_blank"><img src="{{url('/data/Icons/Download.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'DOWNLOAD')}}" ></a>
-                                                            <a href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 1) }}" target="_blank"><img src="{{url('/data/Icons/OpenInBrowser.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}" ></a>
+                                                            <a id="Link2_{{ $file['PPPPFiles_Id'] }}" href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 2) }}" target="_blank"><img src="{{url('/data/Icons/Download.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'DOWNLOAD')}}" ></a>
+                                                            <a id="Link3_{{ $file['PPPPFiles_Id'] }}" href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 1) }}" target="_blank"><img src="{{url('/data/Icons/OpenInBrowser.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}" ></a>
                                                             @if ($showEdit2)
-                                                            <a href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 3) }}" target="_blank"><img src="{{url('/data/Icons/OpenInApp.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Oeffnen in App (wenn hinterlegt)')}}"></a>
+                                                            <a id="Link4_{{ $file['PPPPFiles_Id'] }}"  href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 3) }}" target="_blank"><img src="{{url('/data/Icons/OpenInApp.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Oeffnen in App (wenn hinterlegt)')}}"></a>
                                                             @endif
                                                             @if ($ext == 'xml')
                                                             <a href='{{url("/diffXML/".$data['pp']['PPProduktpass_Id']."/".$file['PPPPFiles_Id'])}}' target='_blank' style='color:gray;text-decoration:none;font-size:0.8em;'><img src="{{url('/data/Icons/Compare.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Vergleichen')}}"></a>
@@ -166,6 +171,10 @@
                                                             @endif
                                                             @endif
                                                             <a href="#"><img src="{{url('/data/Icons/delete.png')}}" class='fileIcons' title="{{ ServiceProvider::tl($lang,'Datei loeschen!')}}"  onclick="deleteFile('{{$file['PPPPFiles_Id']}}');"  style='margin-left:28px;'></a>
+                                                            @if (strpos(Auth::user()->PPMitarbeiter_Role,'TESXXXTER') !== false)
+                                                                    <a class='{{$classINT}}' id="LinkMoveCHN_{{ $file['PPPPFiles_Id'] }}"  href="#"><img src="{{url('/data/Icons/MakeAvailExternal_blue.png')}}" class='fileIcons'  onclick="moveFileSPO('{{$file['PPPPFiles_Id']}}', 'CHN');" title="{{ ServiceProvider::tl($lang,'Nach intern verschieben')}}"></a>
+                                                                    <a class='{{$classCHN}}' id="LinkMoveDE_{{ $file['PPPPFiles_Id'] }}" href="#"><img src="{{url('/data/Icons/MakeAvailExternal_red.png')}}" class='fileIcons'  onclick="moveFileSPO('{{$file['PPPPFiles_Id']}}', 'DE');" title="{{ ServiceProvider::tl($lang,'Extern verfügbar machen')}}"></a>
+                                                            @endif
                                                     </div>
                                                     @else
                                                         @if ($type['Type'] == 'PPUpload')
@@ -189,7 +198,13 @@
                                                         @endif<br>
                                                     @endif
                                                 </div>
-                                                <div style='padding:0px;overflow:hidden;position:absolute;top:0;right:0;'>
+                                                @if (( ServiceProvider::canMoveSPO() ) )
+                                                <div style='padding:0px;overflow:hidden;position:absolute;top:0;right:100;border:none;height:100%;padding-top:10px;'>
+                                                        <img id='LockINT_{{$file['PPPPFiles_Id']}}' class='{{$classINT}}' src="{{url('/data/Icons/LockOpen.png')}}" style="height:68px;width:auto;border:none;" onclick="moveFileSPO('{{$file['PPPPFiles_Id']}}', 'CHN');">
+                                                        <img id='LockCHN_{{$file['PPPPFiles_Id']}}'  class='{{$classCHN}}' src="{{url('/data/Icons/LockClosed.png')}}" style="height:68px;width:auto;border:none;" onclick="moveFileSPO('{{$file['PPPPFiles_Id']}}', 'DE');">
+                                                </div>
+                                                @endif
+                                                <div style='padding:0px;overflow:hidden;position:absolute;top:0;right:0;border:none;'>
                                                     @if (strtoupper(substr($file['PPPPFiles_Name'],-4)) == '.JPG' || strtoupper(substr($file['PPPPFiles_Name'],-5)) == '.JPEG' || strtoupper(substr($file['PPPPFiles_Name'],-4)) == '.PNG'|| strtoupper(substr($file['PPPPFiles_Name'],-4)) == '.GIF' )
                                                         <div style="border:none;padding:0px;height:calc(100% - 4px); ">
                                                             @if($isSharepoint)
@@ -209,15 +224,9 @@
                                                             @endif
                                                         </div>
                                                         <div style="border:none;position:absolute; bottom:0px; left:0px;padding:0px;margin:0; overflow:hidden;height:28px;">
-                                                            <!-- form method="POST" action="/setProjectPic" accept-charset="UTF-8" data-ajax="true" style="border:none;margin:0;" enctype="multipart/form-data">
-                                                                <input name="ppid" type="hidden" value="{{ $data['pp']['PPProduktpass_Id'] }}">
-                                                                <input name="pppic" type="hidden" value="{{ $file['PPPPFiles_Name'] }}">
-                                                                <input type="hidden" name="ActivmainTab" id="hiddenActivmainTab" value="#tabs-6">
-                                                                <input type="hidden" name="ActivsubTabIndex" id="hiddenActivsubTabIndex" value="{{$data['tabs']['subTabIndex']}}">
-                                                                <input type="hidden" name="ActivsubTabName" id="hiddenActivsubTabName" value="{{$data['tabs']['subTabName']}}">
-                                                                <input type="hidden" name="ActivsubsubTabIndex" id="hiddenActivsubsubTabIndex" value="{{$data['tabs']['subsubTabIndex']}}">
-                                                                <button style="margin-top:52px;border:none;width:74px;padding:10px;margin:0;opacity: 0.8;font-size:0.7rem;" type="submit" value="als Projektbild festlegen">{{ ServiceProvider::tl($lang,'Projektbild')}}</button>
-                                                            </form -->
+                                                            <form method="POST" action="/updateProjektPicAjax" accept-charset="UTF-8" data-ajax="true" style="border:none;margin:0;" enctype="multipart/form-data">
+                                                                <button style="margin-top:52px;border:none;width:74px;padding:10px;margin:0;opacity: 0.8;font-size:0.7rem;" type="button" onclick="updateProjectPic({{ $data['pp']['PPProduktpass_Id'] }},  {{$file['PPPPFiles_Id']}});" value="als Projektbild festlegen">{{ ServiceProvider::tl($lang,'Projektbild')}}</button>
+                                                            </form>
                                                         </div>
                                                     @else
                                                         @if ($type['Type'] == 'PPUpload')

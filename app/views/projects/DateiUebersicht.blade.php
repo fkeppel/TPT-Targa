@@ -58,7 +58,7 @@
 ?>
 <div style = "width:90%;padding:20px;text-align:left;margin:0 auto;border:1px solid gray; border-radius:0px; height:90%;margin-top:30px;">
     <div id="form" style="">
-        <h3>{{$data['Header']}}</h3>
+        <h3>{{ ServiceProvider::tl($lang,$data['Header']) }}</h3>
         {{Form::open(array('url' => '/showFilesAll', 'method' => 'POST', 'id' => 'searchAll'))}}
         {{Form::hidden('IsPost', 1)}}
             <input type="hidden" id="search_type" name="search_type" value="{{ $data['inp']['search_type'] }}"  style="width:150px;">

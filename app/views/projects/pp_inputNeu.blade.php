@@ -171,8 +171,8 @@
     }
     ?>
         <div style='border:1px solid var(--tgDarkBlue);background-color:var(--tgBlue);border-radius:0px;color:white;'>
-            <h3>PM EingabefelderA</h3>
-            <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;"><b>Bitte Zahlen in der Form 1.2345,789 eingeben</b> </div>
+            <h3>PM Eingabefelder</h3>
+            <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;"><b>xBitte Zahlen in der Form 1.2345,789 eingeben</b> </div>
         </div>
         <div style="padding:20px;border:1px solid var(--tgBlue);border-radius:0px;">
             <div style="margin-bottom:30px;">
@@ -192,7 +192,7 @@
                     <input type="text" disabled value="{{substr($data['pp']['PPProduktpass_Ausmusterungnummer'],0,4)}}" />
                     <label>{{ ServiceProvider::tl($lang, 'Projektname') }}</label>
                     <input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Projektname']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Projektname']['OldValue'] }}" type="text" name='man[PPInputManuell_Projektname]' value="{{$data['InpMan']->PPInputManuell_Projektname}}" />
-                    <button type="button" onclick="aktuelleVersion({{$data['pp']['PPProduktpass_Id']}});" style="width:150px; height:30px; padding:8px;font-weight:bold;"> Aktuelle Version </button>
+                    <button type="button" onclick="aktuelleVersion({{$data['pp']['PPProduktpass_Id']}});" style="width:150px; height:30px; padding:8px;font-weight:bold;">Aktuelle Version!</button>
                     <br>
                     <label>{{ ServiceProvider::tl($lang, 'Lieferant') }}</label>
                     <input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Lieferant']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Lieferant']['OldValue'] }}" type="text" name='man[PPInputManuell_Lieferant]' value="{{$data['InpMan']->PPInputManuell_Lieferant}}" />
@@ -209,7 +209,7 @@
                         <option value="{{ $imid }}"> {{ $dataVersion }} </option>
                         @endforeach
                     </select>
-                    <button type="button" onclick="getVersion();" style="width:150px; height:30px; padding:8px;font-weight:bold;">anzeigen</button> <br>
+                    <button type="button" onclick="getVersion();" style="width:150px; height:30px; padding:8px;font-weight:bold;">anzeigen?</button> <br>
                     <br>
                     <label>{{ ServiceProvider::tl($lang, 'Geplanter EK Währung') }}</label>
                     <select {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_EKWSYM']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_EKWSYM']['OldValue'] }}" name='man[PPInputManuell_EKWSYM]'>
@@ -652,7 +652,7 @@
         }
         function aktuelleVersion(id) {
             //alert('Aktuelle version von ' + id);
-            var server  = "http://tpt-dev.ad.targa.de";
+            var server  = "https://tpt-dev.ad.targa.de";
             window.location.href = server+"/show/" + id + "#tabs-99";
             location.reload();
         }

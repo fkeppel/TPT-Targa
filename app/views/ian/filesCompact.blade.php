@@ -283,6 +283,12 @@
         color: white;
         background-color: red;
     }
+    .MoveShow {
+        display:inline;
+    }
+    .MoveHide {
+        display:none;
+    }
     @include('ian.inc_fileCompactStyle');
 </style>
 <?php
@@ -344,7 +350,7 @@
                 <th>{{ ServiceProvider::tl($lang, 'Datei') }}</th>
                 <th>{{ ServiceProvider::tl($lang, 'Hochgeladen am') }}</th>
                 <th>{{ ServiceProvider::tl($lang, 'Hochgeladen von') }}</th>
-                <th>{{ ServiceProvider::tl($lang, 'Gelöscht am') }}</th>
+                <th>{{ ServiceProvider::tl($lang, 'Letzte Änderung') }}</th>
                 <th>{{ ServiceProvider::tl($lang, 'Gelöscht von') }}</th>
             </tr>
             @if (isset($data['FileProtokoll']) and count($data['FileProtokoll']) > 0)
@@ -352,17 +358,17 @@
                     <?php
                     $dateC = date_format(date_create($p->created_at), 'd.m.y [H:i:s]');
                     $dateU = date_format(date_create($p->updated_at), 'd.m.y [H:i:s]');
+                        $colorStyle = '';
+                        if ($p->PPPPFiles_Status == 0){
+                            $colorStyle = "style='color:red;'";
+                        }
                     ?>
                     <tr>
-                        <td>{{ $p->PPPPFiles_Name }}</td>
-                        <td>{{ $dateC }}</td>
-                        <td>{{ $p->CreateUser }}</td>
-                        <td>
-                            @if ($p->PPPPFiles_Status == 0)
-                                {{ $dateU }}
-                            @endif
-                        </td>
-                        <td>
+                        <td {{ $colorStyle}}>{{ $p->PPPPFiles_Name }}</td>
+                        <td {{ $colorStyle}}>{{ $dateC }}</td>
+                        <td {{ $colorStyle}}>{{ $p->CreateUser }}</td>
+                        <td {{ $colorStyle}}>{{ $dateU }}</td>
+                        <td {{ $colorStyle}}>
                             @if ($p->PPPPFiles_Status == 0)
                                 {{ $p->DeleteUser }}
                             @endif
@@ -377,6 +383,7 @@
     var lang = "{{ $data['lang'] }}";
     var delFile = 'Datei wirklich löschen?';
     var datensatzGespeichert = 'Datensatz gespeichert';
+    var Projektbild = 'Projektbild gesetzt!';
     var datensatzGeloescht = 'Datensatz gelöscht!';
     var keineKategorie = 'Keine Kategorie ausgewählt!';
     var keineDatei = 'Keine Datei ausgewählt!';
@@ -399,7 +406,7 @@
     var fileInputActive = new Array();
     if (!fileClickHandlers) var fileClickHandlers = {};
     if (lang == 'EN') {
-        delFile = 'Realy delete this File?';
+        delFile = 'Really delete this File?';
         datensatzGespeichert = 'Record saved' ;
         datensatzGeloescht = 'Record deleted!' ;
         keineKategorie = 'No Category selected!';
@@ -415,6 +422,7 @@
         yes = 'Yes';
         no = 'No';
         neueVersion = 'New Version?';
+        Projektbild = 'Projectpicture set!';
     }
     $('.parent').click(function(evt) {})
     $('.child').click(function(evt) {
@@ -656,6 +664,25 @@
             }
         });
     }
+    function updateProjectPic(ppid, fid) {
+        //console.log('File_Id: ' + fid);
+        var url = '/updateProjektPicAjax';
+        var data = {
+            fileid: fid,
+            ppid: ppid
+        };
+        //console.log (data);
+        $.ajax({
+            url: url, //the page containing php script
+            type: "post", //request type,
+            dataType: 'json',
+            data: data,
+            success: function(data) {
+                //console.log(data);
+                alert(Projektbild);
+            }
+        });
+    }
     function deleteFile(fid) {
         if (!validatedelete()) {
             return;
@@ -722,9 +749,12 @@
                 console.log ('refresh');
                 var html = response.view;
                 var kat = response.kat;
+                kat = kat.replace(/ /g, "_");
                 initFiles(html);
                 var activeDiv = document.getElementById('cont_' + kat);
+                if (activeDiv) {
                 activeDiv.classList.remove('hidden');
+                }
                 _activate(kat);
             }
         });
@@ -979,7 +1009,7 @@
             console.log('Kat: '  + kat);
         }
     }
-    function _activate(kat) {
+    function _activate(kat, parent = '') {
         init(kat);
         console.log('_activate XX: ' + kat);
         try {
@@ -1090,5 +1120,101 @@
         var msg = document.getElementById('messageUpl' + kat);
         msg.classList.add('hidden');
         msg.innerHTML = '';
+    }
+    function moveFileSPO(fileId, fromSPO){
+        var confMsg = "Soll die Datei wirklich in den externen Bereich verschoben werden?";
+        var clr = 'red';
+        if (fromSPO == 'CHN'){
+            confMsg = "Soll die Datei wirklich in den internen Bereich verschoben werden?";
+            clr = 'darkblue';
+        } 
+        if (!confirm(confMsg)) {
+            return; // Abbrechen
+        }
+        $.ajax({
+            url: '/moveFileFrom',     // Datei, die deine PHP-Funktion ausführt
+            type: 'POST',
+            data: {
+                    ppfileId: fileId,
+                    from: fromSPO
+            },
+            success: function(response) {
+                //console.log("Server-Antwort:", response);
+                const elem = document.getElementById('fnBox_' + fileId);
+                swapStorage('Link2_' + fileId);
+                swapStorage('Link3_' + fileId);
+                swapStorage('Link4_' + fileId);
+                if(elem){
+                    elem.style.color = clr;
+                }
+                if(clr == 'red'){
+                    showButton('DE', fileId);
+                } else {
+                    showButton('CHN', fileId );
+                }
+            },
+            error: function(xhr, status, error) {
+                //console.error("AJAX Fehler:", error);
+            }
+        });
+    }
+    function showButton(origin, fileId){
+        let idShow, idHide;
+        if (origin === 'DE') {
+            idShow = 'LinkMoveCHN_' + fileId;
+            idHide = 'LinkMoveDE_' + fileId;
+        } else if (origin === 'CHN') {
+            idShow = 'LinkMoveDE_' + fileId;
+            idHide = 'LinkMoveCHN_' + fileId;
+        } else {
+            //console.error("Unbekannter origin:", origin);
+            return;
+        }
+        const elemShow = document.getElementById(idShow);
+        if (elemShow){
+            elemShow.classList.remove("MoveHide");
+            elemShow.classList.add("MoveShow");
+        } 
+        const elemHide = document.getElementById(idHide);
+        if (elemHide){
+            elemHide.classList.remove("MoveShow");
+            elemHide.classList.add("MoveHide");
+        } 
+        hideLock(origin, fileId );
+    }
+    function hideLock(origin, fileId){
+        console.log('hide Lock: ' + origin + ' FileId: ' + fileId );
+        let idLockShow, idLockHide;
+        if (origin === 'CHN') {
+            idLockShow = 'LockCHN_' + fileId;
+            idLockHide = 'LockINT_' + fileId;
+        } else if (origin === 'DE') {
+            idLockHide = 'LockCHN_' + fileId;
+            idLockShow = 'LockINT_' + fileId;
+        } else {
+            //console.error("Unbekannter origin:", origin);
+            return;
+        }
+        const elemShow = document.getElementById(idLockShow);
+        if (elemShow){
+            elemShow.classList.remove("MoveHide");
+            elemShow.classList.add("MoveShow");
+        } 
+        const elemHide = document.getElementById(idLockHide);
+        if (elemHide){
+            elemHide.classList.remove("MoveShow");
+            elemHide.classList.add("MoveHide");
+        } 
+    }
+    function swapStorage(linkId){
+        const link = document.getElementById(linkId);
+        if (!link) return;
+        let href = link.href;
+        if (href.includes("/TPTStorageChina/")) {
+            href = href.replace('/TPTStorageChina/', '/TPTStorage/');
+        } else if (href.includes("/TPTStorage/")) {
+            href = href.replace('/TPTStorage/', '/TPTStorageChina/');
+        }
+        link.href = href;
     }
 </script>

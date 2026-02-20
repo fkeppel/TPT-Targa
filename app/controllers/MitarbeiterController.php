@@ -25,7 +25,7 @@ class MitarbeiterController extends BaseController {
      */
     public function postCreate() {
         //
-        $data['content'] = View::make('mitarbeiter.form')->with('ma', array('PPMitarbeiter_Id' => "Neu", 'PPMitarbeiter_Gruppe' => '', 'isMaster' => 0));
+        $data['content'] = View::make('mitarbeiter.form')->with('ma', array('PPMitarbeiter_Id' => "Neu", 'PPMitarbeiter_Gruppe' => '', 'isMaster' => 0))->with('login_attempts', 0);
         return View::make('main', $data);
     }
     public function frmChangePassword() {
@@ -192,6 +192,10 @@ class MitarbeiterController extends BaseController {
             $this->deleteMitarbeiter($delid);
             return Redirect::to('mitarbeiter');    
         }
+        if ($submit == 'unlock'){
+            $this->unlockUser($delid);
+            return $this->postShow($delid);   
+        }
         if ($id != "Neu") {
             $ma = PPMitarbeiter::find($id);
         }
@@ -252,7 +256,7 @@ class MitarbeiterController extends BaseController {
         if (!$ma)
             $data['content'] = 'Empty';
         else
-            $data['content'] = View::make('mitarbeiter.form')->with('ma', $ma);
+            $data['content'] = View::make('mitarbeiter.form')->with('ma', $ma)->with('login_attempts', cpcHelp::loginAttemptCount($ma->username));
         return View::make('main', $data);
     }
     /**
@@ -288,7 +292,6 @@ class MitarbeiterController extends BaseController {
     public function setLanguage (){
         $id = Input::get('id');
         $lang = Input::get('lang');
-        cpcDebug::cpc_debug("setLanguage: $id  $lang", '@SetLanguage');
         $ma = PPMitarbeiter::where('PPMitarbeiter_Id', $id)->get()->first();
         if ($ma){
             $ma->PPMitarbeiter_Language = $lang;
@@ -297,4 +300,16 @@ class MitarbeiterController extends BaseController {
         $ret = array('status' => 'OK', 'Lang' => $lang ); 
         return json_encode($ret);
     } 
+    private function unlockUser($user) {
+        $ma = PPMitarbeiter::find($user);
+        if ($ma){
+            echo('username: '.$ma->username);
+            $la = login_attempt::where('login_attempt_user', $ma->username)->get()->first();
+            if ($la) {
+                echo( '    Fails: '.$la->login_attempt_count);
+                $la->login_attempt_count = 0;
+                $la->save();
+            } 
+        }
+    }
 }

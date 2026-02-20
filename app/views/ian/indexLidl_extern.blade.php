@@ -395,8 +395,8 @@
     <div class='divContainer' id="MeetingProtokoll"></div>
     <div class='divContainer' id="Notizen"></div>
     <div class='divContainer' id="ServiceAnfrage"></div>
-    <div class='divContainer' id="RFQ"></div>
     @endif
+    <div class='divContainer' id="RFQ"></div>
 </div>
 <script>
     function clickLink (){

@@ -7,7 +7,17 @@ class MailController extends BaseController {
     public function __construct() {
         $this->mailer_config = Config::get('app.mailer');
         $this->mail = new PHPMailer(true); // Passing `true` enables exceptions
-        cpcDebug::cpc_debug(print_r($this->mailer_config,1),'TESThandleFiles');
+        //cpcDebug::cpc_debug(print_r($this->mailer_config,1),'TESThandleFiles');
+    }
+    private function getMitarbeiterLanguage($mailAdr){
+        $lang = 'DE';
+        if ($mailAdr != null) {
+            $m = PPMitarbeiter::where('PPMitarbeiter_email', $mailAdr)->get()->first();
+            if ($m) {
+                $lang = $m->PPMitarbeiter_Language;
+            }
+        }
+        return $lang;
     }
     public function sendMail ($to, $cc, $subject, $body, $attachment=null, $attachmentname = 'Testfile.xlsx'){
         //cpcdebug::cpc_debug($this->mailer_config);
@@ -35,13 +45,13 @@ class MailController extends BaseController {
             if (is_array($cc)){
                 foreach($cc as $mailadr){
                     if (strlen($mailadr) > 6){
-                        cpcDebug::cpc_debug('Arary:'.$mailadr,'MailDL');
+                        //cpcDebug::cpc_debug('Arary:'.$mailadr,'MailDL');
                         $this->mail->addCC($mailadr);
                     }
                 }
             } else {
                 if (strlen($cc) > 6){
-                    cpcDebug::cpc_debug('CC:'.$cc,'MailDL');
+                    //cpcDebug::cpc_debug('CC:'.$cc,'MailDL');
                     $this->mail->addCC($cc);
                 }
             }
@@ -50,25 +60,25 @@ class MailController extends BaseController {
             //Attachments
             //echo("Att: $attachment");exit;
             if (!is_null($attachment)){
-                cpcDebug::cpc_debug($attachment,'TESThandleFiles');
+                //cpcDebug::cpc_debug($attachment,'TESThandleFiles');
                 if (is_array($attachment)){
-                    cpcDebug::cpc_debug("Multiple File attachment:",'TESThandleFiles');
+                    //cpcDebug::cpc_debug("Multiple File attachment:",'TESThandleFiles');
                     foreach ($attachment as $key =>  $att){
-                        cpcDebug::cpc_debug("attach: $att",'TESThandleFiles');
+                        //cpcDebug::cpc_debug("attach: $att",'TESThandleFiles');
                         if ( ! $this->mail->addAttachment($att)){
                             echo ('Mail-Anhang konnte nicht angehängt werden');
                             exit;
                         }           // Add attachments
                     }
                 } else {
-                    cpcDebug::cpc_debug("File attachment: $attachment ",'TESThandleFiles');
+                    //cpcDebug::cpc_debug("File attachment: $attachment ",'TESThandleFiles');
                     if ( ! $this->mail->addAttachment($attachment, $attachmentname)){
                         echo ('Mail-Anhang konnte nicht angehängt werden');
                         exit;
                     }           // Add attachments
                 }
             } else {
-                cpcDebug::cpc_debug("No Attachment ",'TESThandleFiles');
+                //cpcDebug::cpc_debug("No Attachment ",'TESThandleFiles');
             }
             //Content
             $this->mail->isHTML(true);                                      // Set email format to HTML

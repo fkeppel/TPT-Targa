@@ -180,7 +180,7 @@
     <form action="/InputManuellInitNeu" id="FormPMInit" method="post">
         <input type="hidden" name="ppid" id="ppid" value="{{$data['pp']['PPProduktpass_Id']}}">
         <input type="hidden" name="ActivmainTab" id="hiddenActivmainTab1" value="99">
-        <button id="san_neu" type="submit" name='submit' value="NeuFirst" style="margin-top:40px; margin-left:150px;width:400px; height:30px; padding:8px;font-weight:bold;margin-bottom:8px;">{{ ServiceProvider::tl($lang, 'Neue Serviceanfrage anlegen')}}A</button>
+        <button id="san_neu" type="submit" name='submit' value="NeuFirst" style="margin-top:40px; margin-left:150px;width:400px; height:30px; padding:8px;font-weight:bold;margin-bottom:8px;">{{ ServiceProvider::tl($lang, 'Neue Serviceanfrage anlegen')}}</button>
     </form>
     </div>
 @else
@@ -198,13 +198,19 @@
     if ($data['InpMan']->PPInputManuell_StatusPM == 1 and $data['InpMan']->PPInputManuell_StatusMaWi == 0) {
         $disabledMaWi = '';
     }
-    $pm = '';
+    $pm = 'Leer PMA1';
     if (isset($data['Mitarbeiter'][$data['pp']->PPProduktpass_PMAdmin])) {
         $pm = $data['Mitarbeiter'][$data['pp']->PPProduktpass_PMAdmin]['email'];
     }
+    $pjm = 'Leer PJMA2';
+    if (isset($data['Mitarbeiter'][$data['pp']->PPProduktpass_PJMAdmin])) {
+        if ($data['pp']->InternerStatus != 'MUSTERUNG' and $data['pp']->InternerStatus != 'PLAN') {
+            $pjm = $data['Mitarbeiter'][$data['pp']->PPProduktpass_PJMAdmin]['email'];
+        }
+    }
     ?>
     <div style='border:1px solid var(--tgDarkBlue);background-color:var(--tgBlue);border-radius:0px;color:white;padding-left:15px;'>
-        <h3>{{ ServiceProvider::tl($lang, 'PM Eingabefelder')}}AAA</h3>
+        <h3>{{ ServiceProvider::tl($lang, 'PM Eingabefelder')}}</h3> 
     </div>
     <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;background-color:#FFF;"><b>{{ ServiceProvider::tl($lang, 'Bitte Zahlen in der Form 1.2345,789 eingeben')}}</b> </div>
         <div style="padding:20px;border:1px solid var(--tgBlue);border-radius:0px;">
@@ -213,6 +219,7 @@
                     <input type="hidden" name="ppid" id="ppid" value="{{$data['pp']['PPProduktpass_Id']}}">
                     <input type="hidden" name="FormHasChanged" id="FormHasChanged" value="0">
                     <input type="hidden" name="id" id="id" value="{{$data['InpMan']->PPInputManuell_Id}}">
+                    <input type="hidden" name="SelectedId" id="SelectedId" value="{{$data['InpMan']->PPInputManuell_Id}}">
                     <input type="hidden" name="ActivmainTab" id="hiddenActivmainTab1" value="99">
                     <input type="hidden" name="man[PPInputManuell_IsLatest]" value="{{$data['InpMan']->PPInputManuell_IsLatest}}">
                     <div class='inpGrid'>
@@ -243,23 +250,44 @@
                         <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Lieferant') }}</div>
                         <div class='inpValue'><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Lieferant']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Lieferant']['OldValue'] }}" type="text" name='man[PPInputManuell_Lieferant]' value="{{$data['InpMan']->PPInputManuell_Lieferant}}" /></div>
                         <div></div>
-                        <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Stand vom') }}</div>
+                        <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Stand vom') }}
+                            <div style="display: flex; gap: 2px; align-items: center;padding-top:8px;">
+                                <span>{{ ServiceProvider::tl($lang, 'Bemerkung') }}</span>
+                                <span>{{ ServiceProvider::tl($lang, 'Version') }}</span>
+                                <!-- button style='margin-left:5px;margin-top:4px;' type="button" onclick='saveRemarkVersion();'>speichern</button -->
+                            </div>
+                        </div>
                         <div class='inpValue'>
                             <?php
                                 $d = new DateTimeImmutable($data['InpMan']->PPInputManuell_Date);
                                 $date = $d->format('d.m.Y H:i:s');
+                                $remText = '';
+                                if(!is_null($data['InpMan']->PPInputManuell_VersionRemark)) {
+                                    $remText = $data['InpMan']->PPInputManuell_VersionRemark;
+                                }
                             ?>
                             <input {{$disabled}} type="text" id="versionDate" disabled value="{{ $date }}" />
+                            <div style="margin-top:5px;">
+                                <input style='width:100%;border:none;padding-left:6px;padding-top:6px;background-color:lightgray;' onchange="handleChangeRemark();"  name="man[PPInputManuell_VersionRemark]" id='VersionRemark' value='{{$remText}}' />
+                            </div>
                         </div>
                         <div></div>
-                        <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Versionen') }}</div>
+                        <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Versionen') }}<br> 
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="width:180px;">{{ ServiceProvider::tl($lang, 'Finale Version') }}</span>
+                                <input type="checkbox" style="width:100px; height:2.2em;" id="IsFinalCheckbox"  onchange="handleChangeIsFinal();"   @if ($data['InpMan']->PPInputManuell_IsFinal) checked="checked" @endif >
+                            </div>
+                        </div>
                         <div class='inpValue'>
-                            <select id="selectVersion">
+                            <select id="selectVersion"  onchange="chgSelectVersion()">
                                 <option value='Bitte auswählen...'>{{ ServiceProvider::tl($lang, 'Bitte auswählen...')}}</option>
                                 @foreach( $data['InpManVersions'] as $imid => $dataVersion )
-                                <option value="{{ $imid }}"> {{ $dataVersion }} </option>
+                                <option @if( isset($data['InpManVersionsIsFinal'][$imid]) && $data['InpManVersionsIsFinal'][$imid] == 1)  style='color:red;'  @endif  value="{{ $imid }}"> {{ $dataVersion }}   @if ( isset($data['InpManVersionsRemark'][$imid])) [{{ $data['InpManVersionsRemark'][$imid] }}] @else [-] @endif </option>
                                 @endforeach
                             </select>
+                             <div style="display: flex; gap: 2px; align-items: center;padding-top:8px;">
+                                <!-- button style='margin-left:5px;margin-top:4px;' type="button" onclick='saveIsFinal();'  >speichern</button -->
+                            </div>
                         </div> 
                         <div></div>
                         {{-- Neue Zeile 
@@ -430,6 +458,14 @@
                                         <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Hoehe']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Hoehe']['OldValue'] }}" type="text" name='man[PPInputManuell_Hoehe]' value="{{number_format($data['InpMan']->PPInputManuell_Hoehe,0,',','.')}}" /></td>
                                     </tr>
                                     <tr>
+                                        <td style="padding:8px;">{{ ServiceProvider::tl($lang, 'Giftbox 2') }}</td>
+                                        <td style="padding:8px;text-align:right;">1</td>
+                                        <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Masse2']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Masse2']['OldValue'] }}" type="text" name='man[PPInputManuell_Masse2]' value="{{number_format($data['InpMan']->PPInputManuell_Masse2,0,',','.')}}" /></td>
+                                        <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Laenge2']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Laenge2']['OldValue'] }}" type="text" name='man[PPInputManuell_Laenge2]' value="{{number_format($data['InpMan']->PPInputManuell_Laenge2,0,',','.')}}" /></td>
+                                        <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Breite2']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Breite2']['OldValue'] }}" type="text" name='man[PPInputManuell_Breite2]' value="{{number_format($data['InpMan']->PPInputManuell_Breite2,0,',','.')}}" /></td>
+                                        <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Hoehe2']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Hoehe2']['OldValue'] }}" type="text" name='man[PPInputManuell_Hoehe2]' value="{{number_format($data['InpMan']->PPInputManuell_Hoehe2,0,',','.')}}" /></td>
+                                    </tr>
+                                    <tr>
                                         <td style="padding:8px;">{{ ServiceProvider::tl($lang,'LIDL VE') }}</td>
                                         <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Exportkarton_VE']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Exportkarton_VE']['OldValue'] }}" type="text" name='man[PPInputManuell_Exportkarton_VE]' value="{{number_format($data['InpMan']->PPInputManuell_Exportkarton_VE,0,',','.')}}" /></td>
                                         <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Exportkarton_Masse']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Exportkarton_Masse']['OldValue'] }}" type="text" name='man[PPInputManuell_Exportkarton_Masse]' value="{{number_format($data['InpMan']->PPInputManuell_Exportkarton_Masse,0,',','.')}}" /></td>
@@ -502,8 +538,8 @@
                          <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Gesamtmenge aus IAN (Aktuell)') }}</div>
                         <div class='inpValue'><input disabled type="text" id="GesamtmengeAktuell" value="{{number_format($data['pp']['PPProduktpass_Gesamtmenge'],0,',','.')}}" /></div>
                         <div></div>
-                        <div></div>
-                        <div></div>
+                        <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Planmenge PM') }}</div>
+                        <div class='inpValue'><input  type="text" name='man[PPInputManuell_PlanmengePM]' value="{{number_format($data['InpMan']->PPInputManuell_PlanmengePM,0,',','.')}}" /></div>
                         <div></div>
                         <div></div>
                         <div></div>
@@ -547,10 +583,12 @@
                         //$mailuser = 'info@compecon.de'; 
                         $mailcc   = $pm;
                         $mailcc2   = 'daniel.lenz@targa.de';
-                        if (strtoupper( Auth::user()->PPMitarbeiter_Kuerzel) == 'FKE'){
+                        $mailPJM  = $pjm;
+                        if (strtoupper( Auth::user()->PPMitarbeiter_Kuerzel) == 'xFKE'){
                                 $mailuser = 'f.keppel@compecon.de';
                                 $mailcc = 'Targa-PM@compecon.de';
                                 $mailcc2   = 'Targa-TC@compecon.de';
+                                $mailPJM  = 'Targa-PJM@compecon.de';
                             }
                         ?>
                         <fieldset style="border:none;">
@@ -559,6 +597,12 @@
                                 <th style='width:100px;text-align:left;padding:8px;'>{{ ServiceProvider::tl($lang, 'Versenden') }}</th>
                                 <th style='width:100px;text-align:left;padding:0px;'><input type="checkbox" checked="checked" name="sendmail" id="sendmail" style="width:200px; height:2.2em;" /></th>
                             </tr>
+                            @if (Auth::user()->PPMitarbeiter_Kuerzel == 'FKE')
+                                <tr>
+                                    <th style='width:100px;text-align:left;padding:8px;'>{{ ServiceProvider::tl($lang, 'Ist Final') }}</th>
+                                    <th style='width:100px;text-align:left;padding:0px;'><input type="checkbox"  name="isFinal" id="isFinal" style="width:200px; height:2.2em;" /></th>
+                                </tr>
+                            @endif
                             <tr>
                                 <th style='text-align:left;padding:8px;'>{{ ServiceProvider::tl($lang, 'Download') }}</th>
                                 <th style='text-align:left;padding:0px;'><input type="checkbox" name="download" id="download" style="width:200px; height:2.2em;" /></th>
@@ -568,12 +612,16 @@
                                 <th style='text-align:left;padding:0px;'><input type="hidden" name="mailto" id="mailto" value="{{ $mailuser }}" /> <input type="text" value="{{ $mailuser }}" disabled /></th>
                             </tr>
                             <tr>
-                                <th style='text-align:left;padding:8px;'>{{ ServiceProvider::tl($lang, 'Kopie an') }}</th>
-                                <th style='text-align:left;padding:0px;'><input   type="email" name="mailcc2" id="mailcc2" value="{{ $mailcc2 }}"  /></th>
+                                <th style='text-align:left;padding:8px;'>{{ ServiceProvider::tl($lang, 'Kopie (PM)') }}</th>
+                                <th style='text-align:left;padding:0px;'><input   type="email" name="mailcc" id="mailcc" value="{{ $mailcc }}" /></th>
                             </tr>
                             <tr>
-                                <th style='text-align:left;padding:8px;'>{{ ServiceProvider::tl($lang, 'Kopie2 an') }}</th>
-                                <th style='text-align:left;padding:0px;'><input   type="email" name="mailcc" id="mailcc" value="{{ $mailcc }}" /></th>
+                                <th style='text-align:left;padding:8px;vertical-align:top;'>{{ ServiceProvider::tl($lang, 'Kopie (PJM)') }}</th>
+                                <th style='text-align:left;padding:0px;'><input   type="email" name="mailccPJM" id="mailccPJM" value="{{ $mailPJM }}"  /></th>
+                            </tr>
+                            <tr>
+                                <th style='text-align:left;padding:8px;vertical-align:top;'>{{ ServiceProvider::tl($lang, 'Kopie') }}</th>
+                                <th style='text-align:left;padding:0px;'><input   type="email" name="mailcc2" id="mailcc2" value="{{ $mailcc2 }}"  /> </th>
                             </tr>
                             <tr>
                                 <th style='text-align:left;padding:8px;'>{{ ServiceProvider::tl($lang, 'E-Mailtext') }}</th>
@@ -605,10 +653,11 @@
                     <button id="san_uebernahme" name="submit" value="Uebernahme" type="submit" style="margin-left:210px;width:820px; height:35px; padding:8px;font-weight:bold;margin-bottom: 18px;">{{ ServiceProvider::tl($lang, 'Daten aus Vorversion übernehmen') }}</button>
                     @endif
                 @endif
+                <h4>Alle Preise in EUR</h4>
                 <div class='inpGrid'>
-                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Service ZSK2 [EUR]') }}</div>
+                     <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Frachtkosten Import (ZFRT) ') }}</div>
                     <div class='inpValue'>
-                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_Ausfallrate']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Ausfallrate']['OldValue'] }}" type="text" name='man[PPInputManuell_Ausfallrate]' value="{{number_format($data['InpMan']->PPInputManuell_Ausfallrate,4,',','.')}}" />
+                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_EingangsfrachtZFRD']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_EingangsfrachtZFRD']['OldValue'] }}" type="text" name='man[PPInputManuell_EingangsfrachtZFRD]' value="{{number_format($data['InpMan']->PPInputManuell_EingangsfrachtZFRD,4,',','.')}}" />
                     </div>
                     <div></div>
                     <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Zukauf Service Ware [%]') }}</div>
@@ -616,9 +665,19 @@
                         <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_ZukaufServiceWare']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_ZukaufServiceWare']['OldValue'] }}" type="text" name='man[PPInputManuell_ZukaufServiceWare]' value="{{number_format($data['InpMan']->PPInputManuell_ZukaufServiceWare,4,',','.')}}" />
                     </div>
                     <div></div>
-                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Servicekostensatz (SKS) [EUR]') }}</div>
+                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Servicekostensatz (SKS) ') }}</div>
                     <div class='inpValue'>
                         <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_Servicekostensatz']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Servicekostensatz']['OldValue'] }}" type="text" name='man[PPInputManuell_Servicekostensatz]' value="{{number_format($data['InpMan']->PPInputManuell_Servicekostensatz,4,',','.')}}" />
+                    </div>
+                    <div></div>
+                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Einlagerungs-/Nachlaufkosten (ZFRL) ') }}</div>
+                    <div class='inpValue'>
+                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_LogistikZLGK']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_LogistikZLGK']['OldValue'] }}" type="text" name='man[PPInputManuell_LogistikZLGK]' value="{{number_format($data['InpMan']->PPInputManuell_LogistikZLGK,4,',','.')}}" />
+                    </div>
+                    <div></div>
+                   <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Ausgangsfracht (ZFRH) ') }}</div>
+                    <div class='inpValue'>
+                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_AusgangsfrachtZRF2']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_AusgangsfrachtZRF2']['OldValue'] }}" type="text" name='man[PPInputManuell_AusgangsfrachtZRF2]' value="{{number_format($data['InpMan']->PPInputManuell_AusgangsfrachtZRF2,4,',','.')}}" />
                     </div>
                     <div></div>
                     <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Preisblatt') }}</div>
@@ -633,19 +692,9 @@
                         <input {{$disabledMaWi}} name='man[PPInputManuell_Preisblatt]' style="{{ $data['InpManCompare']['PPInputManuell_Preisblatt']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Preisblatt']['OldValue'] }}" value="{{$data['InpMan']->PPInputManuell_Preisblatt}}"/>
                     </div>
                     <div></div>
-                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Eingangsfracht ZFRD [EUR]') }}</div>
+                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Servicekosten Prozess (ZSKP) ') }}</div>
                     <div class='inpValue'>
-                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_EingangsfrachtZFRD']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_EingangsfrachtZFRD']['OldValue'] }}" type="text" name='man[PPInputManuell_EingangsfrachtZFRD]' value="{{number_format($data['InpMan']->PPInputManuell_EingangsfrachtZFRD,4,',','.')}}" />
-                    </div>
-                    <div></div>
-                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Logistik ZLGK [EUR]') }}</div>
-                    <div class='inpValue'>
-                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_LogistikZLGK']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_LogistikZLGK']['OldValue'] }}" type="text" name='man[PPInputManuell_LogistikZLGK]' value="{{number_format($data['InpMan']->PPInputManuell_LogistikZLGK,4,',','.')}}" />
-                    </div>
-                    <div></div>
-                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Ausgangsfracht ZRF2 [EUR]') }}</div>
-                    <div class='inpValue'>
-                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_AusgangsfrachtZRF2']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_AusgangsfrachtZRF2']['OldValue'] }}" type="text" name='man[PPInputManuell_AusgangsfrachtZRF2]' value="{{number_format($data['InpMan']->PPInputManuell_AusgangsfrachtZRF2,4,',','.')}}" />
+                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_Ausfallrate']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Ausfallrate']['OldValue'] }}" type="text" name='man[PPInputManuell_Ausfallrate]' value="{{number_format($data['InpMan']->PPInputManuell_Ausfallrate,4,',','.')}}" />
                     </div>
                     <div></div>
                     <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Stück pro Palette') }}</div>
@@ -658,8 +707,13 @@
                         <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_DeckelAusfallrate']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_DeckelAusfallrate']['OldValue'] }}" type="text" name='man[PPInputManuell_DeckelAusfallrate]' value="{{number_format($data['InpMan']->PPInputManuell_DeckelAusfallrate,4,',','.')}}" />
                     </div>
                     <div></div>   
+                    <div class='inpLable'>{{ ServiceProvider::tl($lang, 'ZWEE Wert') }}</div>
+                    <div class='inpValue'>
+                        <input {{$disabledMaWi}} style="{{ $data['InpManCompare']['PPInputManuell_ZWEEWert']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_ZWEEWert']['OldValue'] }}" type="text" name='man[PPInputManuell_ZWEEWert]' value="{{number_format($data['InpMan']->PPInputManuell_ZWEEWert,4,',','.')}}" />
+                    </div>
+                    <div></div>   
                     <div class='inpLable'>{{ ServiceProvider::tl($lang, 'Bemerkungen') }}</div>
-                    <div class='inpValue' style='grid-column: 2 /-1;'>
+                    <div class='inpValue' style='grid-column: 5 /-1;'>
                         <?php $bemHeight = 20 * (substr_count($data['InpMan']->PPInputManuell_Bemerkungen, "\n") + 2) + 5; ?>
                         <textarea {{$disabledMaWi}} style="padding:8px; width:615px; height:{{$bemHeight}}px; min-height:100px; border-radius:0px;{{ $data['InpManCompare']['PPInputManuell_Bemerkungen']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Bemerkungen']['OldValue'] }}" name='man[PPInputManuell_Bemerkungen]'>{{$data['InpMan']->PPInputManuell_Bemerkungen}}</textarea>
                     </div>
@@ -744,6 +798,12 @@
                                 <td><input name="container[{{$pcvId}}][C20]"  value='{{$cv20}}'  id='{{$i}}_C20' /></td>                            
                             </tr>
                             @endfor
+                            <tr>
+                                <th></th>
+                                <th>{{number_format($totalCVMenge,0,',','.')}}</th>
+                                <th>{{number_format($totalCV40,4,',','.')}}</th>
+                                <th>{{number_format($totalCV20,4,',','.')}}</th>                            
+                            </tr>
                         </table>  
                     </div>
                 </div>
@@ -778,21 +838,48 @@
     </div>
     @endif
     <script>
+"use strict";
+// Konstanten (Server-Template bleibt wie von dir vorgesehen)
     const KeineVer  = '{{ ServiceProvider::tl($lang, 'Keine Version ausgewählt') }}';
     const BitteAus  = '{{ ServiceProvider::tl($lang, 'Bitte auswählen...') }}';
     const BitteAlle = '{{ ServiceProvider::tl($lang, 'Bitte alle Felder ausfüllen!') }}';
     const BitteAb   = '{{ ServiceProvider::tl($lang, 'Bitte absenden nicht vergessen!') }}';
     const BitteAen  = '{{ ServiceProvider::tl($lang, 'Bitte Änderungen erst speichern!') }}';
+// Hilfsfunktionen
+function toNumber(v, fallback = 0) {
+  if (v === null || v === undefined) return fallback;
+  if (typeof v === "number") return isNaN(v) ? fallback : v;
+  const s = String(v).trim().replace(/\./g, '').replace(',', '.'); // 1.234,56 -> 1234.56
+  const n = parseFloat(s);
+  return isNaN(n) ? fallback : n;
+}
+function toInt(v, fallback = 0) {
+  const n = parseInt(String(v).trim(), 10);
+  return isNaN(n) ? fallback : n;
+}
+function mySql2num(num, dec) {
+  if (num === null || num === undefined || num === '' || isNaN(num)) {
+    return (dec === 0) ? '0' : ('0,' + '0'.repeat(dec));
+  }
+  const val = Number(num);
+  if (!isFinite(val)) {
+    return (dec === 0) ? '0' : ('0,' + '0'.repeat(dec));
+  }
+  // Deutschformat: Komma als Dezimaltrennzeichen
+  const raw = val.toFixed(dec);
+  const [i, d] = raw.split('.');
+  return d ? `${i},${d}` : i;
+}
         function getVersion() {
             console.log("Start: GetVersion");
-            ver = document.getElementById('selectVersion').value;
-            if (ver == BitteAus) {
+  const ver = document.getElementById('selectVersion')?.value;
+  if (ver === BitteAus) {
                 console.log(KeineVer);
                 return;
             }
             console.log(ver);
-            ppid = document.getElementById('ppid').value;
-            var frmData = new FormData();
+  const ppid = document.getElementById('ppid')?.value;
+  const frmData = new FormData();
             frmData.append('miid', ver);
             frmData.append('ppid', ppid);
             $.ajax({
@@ -807,142 +894,83 @@
                 }
             });
         }
-        function mySql2num(num, dec) {
-            if (num == null){
-                return '0,00';
-            }
-            str = Number.parseFloat(num).toFixed(dec).replace('.', ',');
-            console.log(str);
-            return str;
-        }
         function aktuelleVersion(id) {
-            alert('Aktuelle version von ' + id);
-            var server  = "https://tpt-dev.ad.targa.de";
-            window.location.href = server+"/show/" + id + "/ServiceAnfrage";
-            location.reload();
+  alert('Aktuelle Version wird geladen!');
+  const base = window.location.origin || "https://tpt-dev.ad.targa.de";
+  const server = `${base}/show/${id}/ServiceAnfrage`;
+  window.location.href = server;
+  // location.reload();
         }
         function contGesamt() {
-            c1 = document.getElementsByName('man[PPInputManuell_ContPlan20]')[0].value;
-            c2 = document.getElementsByName('man[PPInputManuell_ContPlan40]')[0].value;
-            c3 = document.getElementsByName('man[PPInputManuell_ContPlan40HC]')[0].value;
-            total = c1 + c2 + c3;
-            return total;
+  const c1 = toNumber(document.getElementsByName('man[PPInputManuell_ContPlan20]')[0]?.value);
+  const c2 = toNumber(document.getElementsByName('man[PPInputManuell_ContPlan40]')[0]?.value);
+  const c3 = toNumber(document.getElementsByName('man[PPInputManuell_ContPlan40HC]')[0]?.value);
+  return c1 + c2 + c3;
         }
         function isEmpty(elem) {
-            if (elem.name == 'man[PPInputManuell_IsLatest]') {
-                return false;
-            };
-            if (elem.name == 'man[PPInputManuell_Projektname]') {
-                return elem.value == '';
-            };
-            if (elem.name == 'man[PPInputManuell_Lieferant]') {
-                return elem.value == '';
-            };
-            if (elem.name == 'man[PPInputManuell_GeplanterEKUSD]') {
-                return parseFloat(elem.value) <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_GeplanterVK]') {
-                return parseFloat(elem.value) <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_LaufzeitGarantie]') {
-                return elem.value == BitteAus;
-            };
-            if (elem.name == 'man[PPInputManuell_GarantieLieferant]') {
-                return elem.value == '';
-            };
-            if (elem.name == 'man[PPInputManuell_AbwicklungGarantie]') {
-                return elem.value == '';
-            };
-            if (elem.name == 'man[PPInputManuell_SonderleistungLieferant]') {
-                return elem.value == '';
-            };
-            if (elem.name == 'man[PPInputManuell_MaxAusfallrate]') {
-                return elem.value == '';
-            };
-            if (elem.name == 'man[PPInputManuell_ServiceVetrag]') {
-                return elem.value < 0;
-            };
-            if (elem.name == 'man[PPInputManuell_ContPlan20]') {
-                return elem.value == 0;
-            };
-            if (elem.name == 'man[PPInputManuell_ContPlan40]') {
-                return elem.value == 0;
-            };
-            if (elem.name == 'man[PPInputManuell_ContPlan40HC]') {
-                return elem.value == 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Verschiffungshafen]') {
-                return elem.value == '';
-            };
-            if (elem.name == 'man[PPInputManuell_Masse]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Laenge]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Breite]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Hoehe]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Exportkarton_VE]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Exportkarton_Masse]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Exportkarton_Laenge]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Exportkarton_Breite]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Exportkarton_Hoehe]') {
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_TextGroesse]') {
-                return elem.value == '';
-            };
-            if (elem.name == 'man[PPInputManuell_MengeDE]') {
-                if (document.getElementById('Gesamtmenge').value > 0) {
-                    return false;
+  const name = elem.name;
+  const valStr = elem.value ?? '';
+  const valNum = toNumber(valStr);
+  if (name === 'man[PPInputManuell_IsLatest]') return false;
+  if (name === 'man[PPInputManuell_Projektname]') return valStr === '';
+  if (name === 'man[PPInputManuell_Lieferant]') return valStr === '';
+  if (name === 'man[PPInputManuell_GeplanterEKUSD]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_GeplanterVK]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_LaufzeitGarantie]') return valStr === BitteAus;
+  if (name === 'man[PPInputManuell_GarantieLieferant]') return valStr === '';
+  if (name === 'man[PPInputManuell_AbwicklungGarantie]') return valStr === '';
+  if (name === 'man[PPInputManuell_SonderleistungLieferant]') return valStr === '';
+  if (name === 'man[PPInputManuell_MaxAusfallrate]') return valStr === '';
+  if (name === 'man[PPInputManuell_ServiceVetrag]') return valNum < 0; // Bezeichnung ggf. prüfen!
+  if (name === 'man[PPInputManuell_ContPlan20]') return valNum === 0;
+  if (name === 'man[PPInputManuell_ContPlan40]') return valNum === 0;
+  if (name === 'man[PPInputManuell_ContPlan40HC]') return valNum === 0;
+  if (name === 'man[PPInputManuell_Verschiffungshafen]') return valStr === '';
+  if (name === 'man[PPInputManuell_Masse]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_Laenge]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_Breite]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_Hoehe]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_Exportkarton_VE]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_Exportkarton_Masse]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_Exportkarton_Laenge]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_Exportkarton_Breite]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_Exportkarton_Hoehe]') return valNum <= 0;
+  if (name === 'man[PPInputManuell_TextGroesse]') return valStr === '';
+  if (name === 'man[PPInputManuell_MengeDE]') {
+    const gesamt = toNumber(document.getElementById('Gesamtmenge')?.value);
+    if (gesamt > 0) return false;
+    return valNum < 0;
                 }
-                return elem.value < 0;
-            };
-            if (elem.name == 'man[PPInputManuell_MengeEU]') {
-                if (document.getElementById('Gesamtmenge').value > 0) {
-                    return false;
+  if (name === 'man[PPInputManuell_MengeEU]') {
+    const gesamt = toNumber(document.getElementById('Gesamtmenge')?.value);
+    if (gesamt >= 0) return false; // FIX: >= statt => 
+    return valNum < 0;
                 }
-                return elem.value <= 0;
-            };
-            if (elem.name == 'man[PPInputManuell_Onlinekartonage]') {
-                console.log(elem.name + "  Wert: " + elem.value);
-                return elem.value < 0;
-            };
-            if (elem.name == 'man[PPInputManuell_UAWGB]') {
-                return elem.value == '0000-00-00';
-            };
+  if (name === 'man[PPInputManuell_Onlinekartonage]') {
+    console.log(name + "  Wert: " + valStr);
+    return valNum < 0;
+  }
+  if (name === 'man[PPInputManuell_UAWGB]') return valStr === '0000-00-00';
             return false;
         }
         function refresh() {
-            setTimeout(function() {
-                location.reload();
-            }, 500);
+  setTimeout(function() { location.reload(); }, 500);
         }
         function setSession2() {
-            mailcc_mawi = document.getElementById('mailcc_mawi').value;
-            window.sessionStorage.setItem('MailCCMaWi', mailcc_mawi);
+  const mailcc_mawi = document.getElementById('mailcc_mawi')?.value;
+  window.sessionStorage.setItem('MailCCMaWi', mailcc_mawi ?? '');
         }
         function setSession() {
             console.log('call setSession');
-            mailto = document.getElementById('mailto').value;
-            mailcc = document.getElementById('mailcc').value;
-            mailcc2 = document.getElementById('mailcc2').value;
-            mailbody = document.getElementById('mailbody').value;
+  const mailto  = document.getElementById('mailto')?.value ?? '';
+  const mailcc  = document.getElementById('mailcc')?.value ?? '';
+  const mailcc2 = document.getElementById('mailcc2')?.value ?? '';
+  const mailccPJM = document.getElementById('mailccPJM')?.value ?? '';
+  const mailbody= document.getElementById('mailbody')?.value ?? '';
             window.sessionStorage.setItem('MailTo', mailto);
             window.sessionStorage.setItem('MailCC', mailcc);
             window.sessionStorage.setItem('MailCC2', mailcc2);
+  window.sessionStorage.setItem('MailCCPJM',  mailccPJM);
             window.sessionStorage.setItem('MailBody', mailbody);
         }
         function validate2() {
@@ -950,16 +978,19 @@
             return true;
         }
         function validate1() {
-            var elements = document.getElementById("FormPM").elements;
-            ret = true;
-            for (i = 0; i < elements.length; i++) {
-                //console.log(elements[i].name + "(" +elements[i].value+") Länge: " + elements[i].value.length );
-                //console.log('Index: ' + elements[i].name.indexOf('man['));
-                if (elements[i].name.indexOf('man[') != -1) {
-                    console.log(elements[i].name + ': ' + elements[i].value);
-                    if (isEmpty(elements[i])) {
-                        elements[i].style.border = '2px solid red';
+  const form = document.getElementById("FormPM");
+  if (!form) return true;
+  const elements = form.elements;
+  let ret = true;
+  for (let i = 0; i < elements.length; i++) {
+    const el = elements[i];
+    if ((el.name || '').indexOf('man[') !== -1) {
+      console.log(el.name + ': ' + el.value);
+      if (isEmpty(el)) {
+        el.style.border = '2px solid red';
                         ret = false;
+      } else {
+        el.style.border = ''; // Reset
                     }
                 }
             }
@@ -972,142 +1003,161 @@
             return ret;
         }
         function summeTotalHC(){
-            total = parseInt(document.getElementById('man[PPInputManuell_ContHCRot]').value) +
-                    parseInt(document.getElementById('man[PPInputManuell_ContHCBar]').value) + 
-                    parseInt(document.getElementById('man[PPInputManuell_ContHCKop]').value) + 
-                    parseInt(document.getElementById('man[PPInputManuell_ContHCUSA]').value);
+  const total =
+    toInt(document.getElementById('man[PPInputManuell_ContHCRot]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_ContHCBar]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_ContHCKop]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_ContHCUSA]')?.value);
             return total;
         }
         function summeTotal40(){
-            total = parseInt(document.getElementById('man[PPInputManuell_Cont40Rot]').value) +
-                    parseInt(document.getElementById('man[PPInputManuell_Cont40Bar]').value) + 
-                    parseInt(document.getElementById('man[PPInputManuell_Cont40Kop]').value) + 
-                    parseInt(document.getElementById('man[PPInputManuell_Cont40USA]').value);
+  const total =
+    toInt(document.getElementById('man[PPInputManuell_Cont40Rot]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_Cont40Bar]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_Cont40Kop]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_Cont40USA]')?.value);
             return total;
         }
         function summeTotal20(){
-            total = parseInt(document.getElementById('man[PPInputManuell_Cont20Rot]').value) +
-                    parseInt(document.getElementById('man[PPInputManuell_Cont20Bar]').value) + 
-                    parseInt(document.getElementById('man[PPInputManuell_Cont20Kop]').value) + 
-                    parseInt(document.getElementById('man[PPInputManuell_Cont20USA]').value);
+  const total =
+    toInt(document.getElementById('man[PPInputManuell_Cont20Rot]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_Cont20Bar]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_Cont20Kop]')?.value) +
+    toInt(document.getElementById('man[PPInputManuell_Cont20USA]')?.value);
             return total;
         }
   function getVersion_success(result) {
-            inputs = result.inp.InpMan;
-            containerVer = result.inp.Container;
             console.log(result);
-            //elems = document.getElementsByName('man[PPInputManuell_GeplanterEKUSD]');
-            decFields = "[ 'PPInputManuell_GeplanterEKUSD', 'PPInputManuell_GeplanterVK', 'PPInputManuell_DeckelAusfallrate', 'PPInputManuell_GutschriftenbetragKunde', 'PPInputManuell_Ausfallrate', 'PPInputManuell_Servicekostensatz', 'PPInputManuell_EingangsfrachtZFRD', 'PPInputManuell_AusgangsfrachtZRF2', 'PPInputManuell_ZukaufServiceWare', 'PPInputManuell_LogistikZLGK', 'PPInputManuell_DeckelAusfallrate']";
-            intFields = "[ 'PPInputManuell_StkProPalette', 'PPInputManuell_ContPlan20', 'PPInputManuell_ContPlan40', 'PPInputManuell_ContPlan40HC', 'PPInputManuell_Exportkarton_Masse','PPInputManuell_Exportkarton_Laenge', 'PPInputManuell_Exportkarton_Breite', 'PPInputManuell_Exportkarton_Hoehe', 'PPInputManuell_Masse', 'PPInputManuell_Laenge','PPInputManuell_Breite', 'PPInputManuell_Hoehe', 'PPInputManuell_MengeDE', 'PPInputManuell_VE', 'PPInputManuell_MengeEU', 'PPInputManuell_StkProPalette', 'PPInputManuell_MengeIAN' ]";
-            elems = document.querySelectorAll('[name^="man["]');
-            for (elem of elems) {
-                att = elem.name.replace('man[', '').replace(']', '');
-                //console.log(att);
-                //console.log(inputs[att]);
-                elem.value = inputs[att];
+  const inputs = result?.inp?.InpMan ?? {};
+  const containerVer = result?.inp?.Container ?? [];
+  // Felderlisten als echte Arrays
+  const decFields = [
+    'PPInputManuell_GeplanterEKUSD','PPInputManuell_GeplanterVK',
+    'PPInputManuell_DeckelAusfallrate','PPInputManuell_GutschriftenbetragKunde',
+    'PPInputManuell_Ausfallrate','PPInputManuell_Servicekostensatz',
+    'PPInputManuell_EingangsfrachtZFRD','PPInputManuell_AusgangsfrachtZRF2',
+    'PPInputManuell_ZukaufServiceWare','PPInputManuell_LogistikZLGK','PPInputManuell_ZWEEWert'
+  ];
+  const intFields = [
+    'PPInputManuell_StkProPalette','PPInputManuell_ContPlan20','PPInputManuell_ContPlan40',
+    'PPInputManuell_ContPlan40HC','PPInputManuell_Exportkarton_Masse','PPInputManuell_Exportkarton_Laenge',
+    'PPInputManuell_Exportkarton_Breite','PPInputManuell_Exportkarton_Hoehe','PPInputManuell_Masse',
+    'PPInputManuell_Laenge','PPInputManuell_Breite','PPInputManuell_Hoehe','PPInputManuell_MengeDE',
+    'PPInputManuell_VE','PPInputManuell_MengeEU','PPInputManuell_MengeIAN'
+  ];
+  const selectedId = inputs.PPInputManuell_Id;
+  const elemSelectId = document.getElementById('SelectedId');
+  elemSelectId.value = selectedId;
+  //console.log("SelectedId: " + selectedId);
+  const isFinalCB = document.getElementById('IsFinalCheckbox');
+  isFinalCB.checked = (Number(inputs.PPInputManuell_IsFinal) === 1);
+  const elems = document.querySelectorAll('[name^="man["]');
+  elems.forEach((elem) => {
+    const att = elem.name.replace('man[', '').replace(']', '');
+    const val = inputs[att];
+    if (val === undefined) return;
+    if (decFields.includes(att)) {
+      elem.value = mySql2num(val, 4);
+    } else if (intFields.includes(att)) {
+      elem.value = toInt(val);
+    } else {
+      elem.value = val;
+    }
                 elem.style.color = 'dodgerblue';
-                if (decFields.indexOf(att) > 0) {
-                    elem.value = mySql2num(inputs[att], 4);
-                }
-                if (intFields.indexOf(att) > 0) {
-                    elem.value = inputs[att];
-                }
-                //console.log (elem.name.replace('man[','').replace(']',''));
-            }
+  });
             clearContainerVerschiffung();
-            for (i=0;i<containerVer.length;i++){
-                cElemId = i + '_Hafen';
-                cElem = document.getElementById(cElemId);
-                cElem.value = containerVer[i].PPContainerVerschiffungen_Hafen;
+  for (let i = 0; i < containerVer.length; i++) {
+    let cElemId = i + '_Hafen';
+    let cElem = document.getElementById(cElemId);
+    if (cElem) cElem.value = containerVer[i].PPContainerVerschiffungen_Hafen ?? '';
                 cElemId = i + '_Menge';
                 cElem = document.getElementById(cElemId);
-                cElem.value =  mySql2num(containerVer[i].PPContainerVerschiffungen_Menge,0);
+    if (cElem) cElem.value = mySql2num(containerVer[i].PPContainerVerschiffungen_Menge ?? 0, 0);
                 cElemId = i + '_C40';
                 cElem = document.getElementById(cElemId);
-                cElem.value =  mySql2num(containerVer[i].PPContainerVerschiffungen_40,4);
+    if (cElem) cElem.value = mySql2num(containerVer[i].PPContainerVerschiffungen_40 ?? 0, 4);
                 cElemId = i + '_C20';
                 cElem = document.getElementById(cElemId);
-                cElem.value =  mySql2num(containerVer[i].PPContainerVerschiffungen_20,4);
+    if (cElem) cElem.value = mySql2num(containerVer[i].PPContainerVerschiffungen_20 ?? 0, 4);
             }
-            document.getElementById('contHCTotal').innerHTML =  summeTotalHC();            
-            document.getElementById('cont40Total').innerHTML =  summeTotal40();            
-            document.getElementById('cont20Total').innerHTML =  summeTotal20();            
-            verDate = new Intl.DateTimeFormat("de-DE", {
-                year: 'numeric',
-                month: '2-digit',
+  const elHC = document.getElementById('contHCTotal');
+  if (elHC) elHC.innerHTML = summeTotalHC();
+  const el40 = document.getElementById('cont40Total');
+  if (el40) el40.innerHTML = summeTotal40();
+  const el20 = document.getElementById('cont20Total');
+  if (el20) el20.innerHTML = summeTotal20();
+  // Datum formatieren
+  if (inputs.PPInputManuell_Date) {
+    const verDate = new Intl.DateTimeFormat("de-DE", {
+      year: 'numeric', month: '2-digit', day: '2-digit',
                 day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
             }).format(new Date(inputs.PPInputManuell_Date));
-            document.getElementById('versionDate').value = verDate;
-            if (inputs.PPInputManuell_IsLatest < 0 ) {
-                $bt1 = document.getElementById('san_generieren').style.display = "inline";
-                $bt2 = document.getElementById('san_speichern').style.display = "inline";
-                $bt2 = document.getElementById('san_speichern2').style.display = "inline";
-                $bt3 = document.getElementById('san_neu').style.display = "inline";
-                $bt4 = document.getElementById('san_fertig').style.display = "inline";
+    const vd = document.getElementById('versionDate');
+    if (vd) vd.value = verDate;
+  }
+  console.log("IsLatest: " + inputs.PPInputManuell_IsLatest);
+  if (Number(inputs.PPInputManuell_IsLatest) === 1 ) {
+    showBtn('san_generieren'); showBtn('san_speichern'); showBtn('san_speichern2');
+    showBtn('san_neu'); showBtn('san_fertig');
             } else {
-                hideBtn('san_generieren');
-                hideBtn('san_speichern');
-                hideBtn('san_speichern2');
-                hideBtn('san_neu');
-                hideBtn('san_fertig');
+    hideBtn('san_generieren'); hideBtn('san_speichern'); hideBtn('san_speichern2');
+    hideBtn('san_neu'); hideBtn('san_fertig');
             }
             //elem[0].value =  i.PPInputManuell_GeplanterEKUSD;
         }
         function hideBtn(id){
-                b = document.getElementById(id);
-                if (b){
-                    b.style.visibility = 'hidden';
-                }
+  const b = document.getElementById(id);
+  if (b){ b.style.visibility = 'hidden'; }
         }  
         function showBtn(id){
-                b = document.getElementById(id);
+  const b = document.getElementById(id);
                 if (b){
+    console.log('Show Button ' + id);
                     b.style.visibility = 'visible';
+    b.style.display = 'inline';
+  } else {
+    console.log('Button ' + id + ' nicht gefunden');
                 }
         }
         $(document).ready(function() {
             setMailElements();
         });
         function setMailElements() {
-            mailto = window.sessionStorage.getItem('MailTo');
-            mailcc_mawi = window.sessionStorage.getItem('MailCCMaWi');
-            if (mailcc_mawi) {
+  const mailto = window.sessionStorage.getItem('MailTo');
+  const mailcc_mawi = window.sessionStorage.getItem('MailCCMaWi');
+  if (mailcc_mawi && document.getElementById('mailcc_mawi')) {
                 document.getElementById('mailcc_mawi').value = mailcc_mawi;
             }
-            if (!mailto) {
-                return;
-            }
-            mailcc = window.sessionStorage.getItem('MailCC');
-            mailbody = window.sessionStorage.getItem('MailBody');
-            document.getElementById('mailto').value = mailto;
-            document.getElementById('mailcc').value = mailcc;
-            document.getElementById('mailbody').value = mailbody;
+  if (!mailto) return;
+  const mailcc  = window.sessionStorage.getItem('MailCC')  ?? '';
+  const mailbody= window.sessionStorage.getItem('MailBody')?? '';
+  const toEl = document.getElementById('mailto');
+  const ccEl = document.getElementById('mailcc');
+  const bodyEl = document.getElementById('mailbody');
+  if (toEl) toEl.value = mailto;
+  if (ccEl) ccEl.value = mailcc;
+  if (bodyEl) bodyEl.value = mailbody;
         }
         function valFormPM() {
             alert(BitteAb);
             return true;
         }
         function savePM() {
-            chn = document.getElementById('FormHasChanged');
-            if (chn.value == 1) {
+  const chn = document.getElementById('FormHasChanged');
+  if (chn && Number(chn.value) === 1) {
                 alert(BitteAen);
                 return false;
             } 
-            window.sessionStorage.clear()
+  window.sessionStorage.clear();
             return true;
         }
         $('#FormPM').change(function() {
-            chn = document.getElementById('FormHasChanged');
-            /*frm = document.getElementById('FormSend');
-            frm.style.display = 'none';*/
-            chn.value = 1;
+  const chn = document.getElementById('FormHasChanged');
+  if (chn) chn.value = 1;
         });
         $(".datepickerZukunftInput").datepicker({
             locale: 'de',
-            minDate: '0d',
+  minDate: 0,
             numberOfMonths: 1,
             showButtonPanel: true,
             showWeek: true,
@@ -1117,22 +1167,92 @@
             monthNamesShort: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
             dayNames: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
             dayNamesShort: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-            dayNamesMin: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+  dayNamesMin: ['So','Mo','Di','Mi','Do','Fr','Sa']
         });
           function clearContainerVerschiffung(){
-            for (i=0;i<15;i++){
-                cElemId = i + '_Hafen';
-                cElem = document.getElementById(cElemId);
-                cElem.value = '';
-                cElemId = i + '_Menge';
-                cElem = document.getElementById(cElemId);
-                cElem.value =  '';
-                cElemId = i + '_C40';
-                cElem = document.getElementById(cElemId);
-                cElem.value =  '';
-                cElemId = i + '_C20';
-                cElem = document.getElementById(cElemId);
-                cElem.value =  '';
+  for (let i = 0; i < 15; i++){
+    let cElem = document.getElementById(i + '_Hafen');
+    if (cElem) cElem.value = '';
+    cElem = document.getElementById(i + '_Menge');
+    if (cElem) cElem.value = '';
+    cElem = document.getElementById(i + '_C40');
+    if (cElem) cElem.value = '';
+    cElem = document.getElementById(i + '_C20');
+    if (cElem) cElem.value = '';
             }
         }
+function saveIsFinal() {
+    const isFinal = document.getElementById('IsFinalCheckbox');
+    const isFinalVal = isFinal.checked ? 1 : 0 ;
+    const id = document.getElementById('SelectedId').value;
+    const formData =
+        'isFinal=' + encodeURIComponent(isFinalVal) +
+        '&id=' + encodeURIComponent(id);
+    fetch('/saveIsFinal', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Server-Antwort:', data);
+        // ---- Erfolgs-Markierung ----
+        isFinal.style.accentColor = '#b2f2bb'; // pastellgrün
+        setTimeout(() => {
+            isFinal.style.accentColor = 'dodgerblue'; // hellgrau
+        }, 2000);
+    })
+    .catch(error => console.error('Fehler:', error));
+}
+function saveRemarkVersion() {
+    const remarkEl = document.getElementById('VersionRemark');
+    const remarkVersion = remarkEl.value;
+    const id = document.getElementById('SelectedId').value;
+    const formData =
+        'VersionRemark=' + encodeURIComponent(remarkVersion) +
+        '&id=' + encodeURIComponent(id);
+    fetch('/saveRemarkVersion', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Server-Antwort:', data);
+        // ---- Erfolgs-Markierung ----
+        remarkEl.style.backgroundColor = '#b2f2bb'; // pastellgrün
+        setTimeout(() => {
+            remarkEl.style.backgroundColor = '#e9ecef'; // hellgrau
+        }, 2000);
+    })
+    .catch(error => console.error('Fehler:', error));
+}
+function chgSelectVersion() {
+    //const wert = document.getElementById('selectVersion').value;
+    //console.log("Ausgewählter Wert:", wert);
+    getVersion();
+}
+function handleChangeRemark(){
+    //alert('Change Remark: ');
+    saveRemarkVersion();
+}
+function handleChangeIsFinal(){
+    //alert('Change Is Final:  ');
+    saveIsFinal();
+    setSelectedColor();
+}
+function setSelectedColor() {
+    const sel = document.getElementById("selectVersion");
+    // Alle Optionen zurücksetzen
+    for (const opt of sel.options) {
+      opt.style.color = "";
+    }
+    // Ausgewählte Option schwarz setzen
+    const selected = sel.options[sel.selectedIndex];
+    selected.style.color = "red";
+}
     </script>

@@ -1,7 +1,7 @@
 <?php
     define ('XXX', 'DEMO-Daten');
 ?>
-<h5 class='header1'>{{ ServiceProvider::tl($data['lang'], 'Artikel Stammdaten')}}</h5>
+<h5 class='header1' style='margin-top:50px;'>{{ ServiceProvider::tl($data['lang'], 'Artikel Stammdaten')}}</h5>
 <div id='IANContainer'>
     <div class='label'>{{ ServiceProvider::tl($data['lang'], 'Ausm-Nr.') }}</div>
     <div class='value'>{{ substr($data['pp']->PPProduktpass_Ausmusterungnummer,0,4) }}</div>
@@ -275,8 +275,12 @@
     <div class='label' >{{ ServiceProvider::tl($data['lang'], 'Ablaufdatum Vertrag') }}</div>
     <?php
                             try{
+                                if (strlen(trim($katalog_data['catalogue_contractRenewalConfirmation'])) > 3){
                                 $d = new DateTime($katalog_data['catalogue_contractRenewalConfirmation']);
                                 $datum = $d->format('d.m.Y');
+                                } else {
+                                    $datum = '';
+                                }
                             }
                             catch(Exception $e){
                                 $datum = '';
@@ -319,11 +323,15 @@
 </div>
 <h5 class="header1">{{ ServiceProvider::tl($data['lang'], 'Dateien und Anhänge') }}</h5>
 <div id='IANContainer'>
-    <div class='value' style='grid-column: 1 / 9;'>
-        <ul class="tgAttachmentList">
+    <div class='label' >{{ ServiceProvider::tl($data['lang'], 'Anhänge') }}</div>
+    <div class='label' style='padding:0px;grid-column: 2 /10;' >
+        <table style='width:100%;border-collapse:collapse;font-size:1em;'>
             @foreach ($data['Attachments'] as $att)
-            <li><a href="{{ url($att['Link']) }}" target="_blank" name=""  class="tgAttachment">{{ $att['FilenameLidl'] }}</a></li>
+            <tr>
+                <td style='padding:6px;padding-bottom:10px;'><a href="{{ url($att['Link']) }}" style='border-bottom:1px solid  rgb(43, 89, 169,0.9);color:#003D7C;text-decoration:none;font-weight:500;' target="_blank" name=""  class="tgAttachment">{{ $att['FilenameLidl'] }}</a></td>
+            </tr>
             @endforeach
-        </ul>
+        </table>
     </div>
+    <div></div>
 </div>
