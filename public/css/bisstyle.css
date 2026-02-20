@@ -1,0 +1,33 @@
+body{
+    font-family: 'Open Sans', Tahoma, Arial, sans-serif;
+}
+div {
+    background-color:#FFF;
+    font-family: 'Open Sans', Tahoma,  Arial,  sans-serif;
+    border-radius: 5px;
+}
+.sort_icon_up {
+    background-image: url(css/images/icons.png);
+    background-position: 0px 0;
+    width: 16px;
+    height:16px;
+}
+.sort_icon_undef {
+    background-image: url(css/images/icons.png);
+    background-position: -176px -112;
+    width: 16px;
+    height:16px;
+}
+.sort_icon_down {
+    background-image: url(css/images/icons.png);
+    background-position: -64px 0;
+    width: 16px;
+    height:16px;
+}
+:root {
+    --tgRed: #ff0000;
+    --tgBlue: #1C73C5;
+    --tgDarkBlue: #103F6B;
+    --tgLightBlue: #5ec3f1;
+    --cpcTextColor:#08549c;
+}

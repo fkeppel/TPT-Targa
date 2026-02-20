@@ -1,0 +1,12 @@
+#!/bin/bash
+FILE=/home/fkeppel/scripts/UploadInProgress_do_NOT_DELETE_DEV
+if test -f "$FILE"; then
+	echo "Upload in Progress" >> /home/fkeppel/logs/bg-ls2spo_dev.log
+	exit 0
+fi
+touch "$FILE"
+echo "Upload gestartet" >> /home/fkeppel/logs/bg-ls2spo.log
+curl -x 10.254.0.1:8080 --insecure  http://dev.ad.targa.de/bg-l2spo >> /home/fkeppel/logs/bg-ls2spo_dev.log
+echo "-------------------------------------------" >> /home/fkeppel/logs/bg-ls2spo_dev.log
+rm "$FILE"
+echo "Upload freigegeben" >> /home/fkeppel/logs/bg-ls2spo_dev.log

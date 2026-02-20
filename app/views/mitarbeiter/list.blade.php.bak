@@ -1,0 +1,91 @@
+<style>
+	td{
+		border:1px solid gray;
+		padding:4px;
+	}
+	#mitarbeiter div {
+		border-radius: 0px;
+		text-align: left;
+	}
+	#mitarbeiter .header {
+		background-color: lightgray;
+		border:1px solid gray;
+		
+		padding:8px;
+		height:20px;
+	}
+	#mitarbeiter .row {
+		
+		border:1px solid gray;
+		padding:8px;
+		height:20px;
+	}
+	#mitarbeiter {
+		background: #FFF;
+		margin:20px;
+		border:none;
+		padding-left: 80px;
+		font-size: 0.9rem;
+
+	}
+	.cpcMitarbeiter {
+		width:120px;
+		height:28px; 
+		border:none;
+		text-align:left;
+		border-radius: 0px;
+		background-color: transparent;
+		font-weight: bold;
+		color: darkblue;
+	}
+	.cpcbtn {
+        width: 752px !important;
+        font-weight: bold;
+        height: 40px;
+    }
+</style>
+<div style="text-align: left;margin:0 auto;padding-top:10px; padding-left: 100px;border: none;">
+	{{ Form::open(array('url'=>'mitarbeiter/create')) }}
+		{{ Form::submit('Neuer Mitarbeiter', array('class' => 'cpcbtn'))}}
+	{{ Form::close() }}
+
+</div>
+<div id="mitarbeiter" style="height:80%;overflow:auto;width: 1200px; border: 1px solid  #003D7C;">
+	<div style="display:grid;grid-template-columns: 150px 100px 150px 150px 250px 100px 100px;">
+		
+		
+			<div class="header">Name</div>
+			
+			<div class="header">Vorname</div>
+			<div class="header">Kürzel</div>
+			<div class="header">Anmeldename</div>
+			<div class="header">E-Mail</div>
+			<div class="header">Gruppe</div>
+			<div class="header">Tätigkeit</div>
+			
+		
+		
+		
+		@foreach ($mas as $ma)
+	    
+		<div class="row" >
+			{{ Form::open(array('url'=>'mitarbeiter/show/'.$ma->PPMitarbeiter_Id, 'class'=>'form-signin')) }}
+				{{ Form::submit( $ma->PPMitarbeiter_Name, array('class'=>'cpcMitarbeiter'))}}
+			{{ Form::close() }}
+		</div>
+			
+			<div class="row"> {{ $ma->PPMitarbeiter_Vorname }}</div>
+			<div class="row"> {{ $ma->PPMitarbeiter_Kuerzel }}</div>
+			<div class="row"> {{ $ma->username }}</div>
+			<div class="row"> {{ $ma->PPMitarbeiter_email }}</div>
+			<div class="row"> {{ $ma->PPMitarbeiter_Gruppe }}</div>
+			<div class="row"> {{ $ma->PPMitarbeiter_Taetigkeit }}</div>
+			
+	    
+		@endforeach
+		
+		
+	</div>
+	
+
+</div>

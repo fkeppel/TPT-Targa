@@ -1,0 +1,65 @@
+<?php
+
+class PPPurchase extends Eloquent {
+
+    protected $table      = 'PPPurchase';
+    public $timestamps    = false;
+    protected $primaryKey = 'PPPurchase_Id';
+    protected $fillable   = array(
+        'PPPurchase_Id',
+        'PPPurchase_PPProduktpass_Id',
+        'PPPurchase_LcNumber',
+        'PPPurchase_ScNumber',
+        'PPPurchase_Inquiry',
+        'PPPurchase_Supplier',
+        'PPPurchase_Currency',
+        'PPPurchase_ExcR_Save',
+        'PPPurchase_ExcR_Calc',
+        'PPPurchase_ExcR_Remark',
+        'PPPurchase_CustomsCode',
+        'PPPurchase_DutyPercentage',
+        'PPPurchase_DeliveryDate',
+        'PPPurchase_ResOffice',
+        'PPPurchase_Description',
+        'PPPurchase_Material',
+        'PPPurchase_Remark',
+        'PPPurchase_TermsOfDelivery',
+        'PPPurchase_TermsOfPayment',
+        'PPPurchase_Status',
+        'PPPurchase_PortOfDischarge',
+        'PPPurchase_Country',
+        'PPPurchase_OrderDate',
+        'PPPurchase_SupplierDelDate',
+        'PPPurchase_Factory',
+        'PPPurchase_EK',
+        'PPPurchase_EK_Calc',
+        'PPPurchase_Fracht',
+        'PPPurchase_Zoll',
+        'PPPurchase_EKProvision',
+        'PPPurchase_Ausgangsfrachten',
+        'PPPurchase_Finanzierungskosten',
+        'PPPurchase_Lizenzgebuehren',
+        'PPPurchase_Kosten',
+        'PPPurchase_Translate_Quality',
+        'PPPurchase_Translate_Projectdescription',
+        'PPPurchase_Translate_ManufacturingPlant',
+        'PPPurchase_Translate_Packaging',
+        'PPPurchase_SonstKostenProz',
+        'PPPurchase_BemerkungAenderungen',
+        'PPPurchase_ManufacturingPlant',
+        'PPPurchase_LC_TOP',
+        'PPPurchase_Pruefinstitut',
+        'PPPurchase_Transportdokumente',
+        'PPPurchase_Transportdokumente2',
+        'PPPurchase_BWGroesse',
+        'PPPurchase_FOBWeek',
+        'PPPurchase_FOBYear',
+        'PPPurchase_FOBSpecial',
+        'PPPurchase_ExcR',
+        'PPPurchase_ExcR_Date',
+        'PPPurchase_UploadDate',
+        'PPPurchase_InspectionCenter',
+        'PPPurchase_ManCheckOK'
+    );
+
+}

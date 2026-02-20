@@ -1,0 +1,11 @@
+/*
+ * 
+ * 
+ * 
+ * 
+ * 			$table->dateTime('created_at'); DATETIME equivalent to the table 
+			$table->decimal('amount', 5, 2); 
+			$table->integer('votes');
+			$table->string('name', 100);
+ */
+ 
