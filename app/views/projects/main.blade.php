@@ -48,7 +48,7 @@
             @if (Auth::User()->PPMitarbeiter_Gruppe == 'admin' )
                 <li><a href="#tabs-89">Notizen</a></li>
             @endif
-            @if (Auth::User()->PPMitarbeiter_Gruppe == 'xadmin')
+            @if (false)
                 <li><a href="#tabs-50">Artikelverwaltung</a></li>
                 <li><a href="#tabs-7">EK (PP)</a></li>
                 <li><a href="#tabs-8">AB</a></li>
@@ -58,7 +58,9 @@
                 <li><a href="#tabs-60">Shipping Avis</a></li>
             @endif
             <li><a href="#tabs-99">Service Anfrage</a></li>
-            <li><a href="#tabs-100">RFQ</a></li>
+             @if (ServiceProvider::AuthUserHasRole('RFQ'))
+            <li><a href="#tabs-100">RFQa</a></li>
+            @endif
         </ul>
         <div id="tabs-0" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_targaview')</div>
         <div id="tabs-6" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_files')</div>
@@ -69,7 +71,7 @@
         @if (Auth::User()->PPMitarbeiter_Gruppe == 'admin' )
             <div id="tabs-89" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_adminremark')</div>
         @endif
-        @if (Auth::User()->PPMitarbeiter_Gruppe == 'xadmin')
+        @if (false)
             <div id="tabs-50" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_artikelverwaltung')</div>
             <div id="tabs-7" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_purchase')</div>
             <div id="tabs-8" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_ab')</div>
@@ -79,7 +81,9 @@
             <div id="tabs-60" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_Avis')</div>
         @endif
         <div id="tabs-99" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_input')</div>
-        <div id="tabs-100" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_RFQ')</div>
+        @if (ServiceProvider::AuthUserHasRole('RFQ'))
+            <div id="tabs-100" style="height:905px;overflow:auto;text-align: left;">@include('projects.pp_RFQ')</div>
+        @endif
     </div>
 </div>
 <script>

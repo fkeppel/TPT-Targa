@@ -378,7 +378,9 @@
         <li><a class='cref'  href="#Notizen">{{ ServiceProvider::tl($data['lang'], 'Notizen') }}</a></li>
         <li><a class='cref'  href="#ServiceAnfrage">{{ ServiceProvider::tl($data['lang'], 'Service Anfrage') }}</a></li>
         @endif
+         @if (ServiceProvider::AuthUserHasRole('RFQ'))
         <li><a class='cref'  href="#RFQ">{{ ServiceProvider::tl($data['lang'], 'RFQ') }}</a></li>
+        @endif
     </ul>
     <div class='divContainer' id="InfoLidl">
             @include ('ian.infoLidl')
@@ -396,7 +398,9 @@
     <div class='divContainer' id="Notizen"></div>
     <div class='divContainer' id="ServiceAnfrage"></div>
     @endif
+    @if (ServiceProvider::AuthUserHasRole('RFQ'))
     <div class='divContainer' id="RFQ"></div>
+    @endif
 </div>
 <script>
     function clickLink (){

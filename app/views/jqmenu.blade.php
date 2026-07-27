@@ -11,36 +11,36 @@
     }  
 ?>
 <style>
-#dirac {
-    vertical-align: middle;
-}
-#dirAc input:focus {
-    background-color: lightskyblue;
-    color:darkblue;
-    border-radius:0px;
-    font-weight: bold;
-    outline:none;
-}
-#dirAc input {
-    padding:5px;
-    border:1px solid darkblue;
-    border-radius:0px;
-    font-size:0.7rem;
-}
-#dirAc button {
-    padding:5px;
-    border:1px solid darkblue;
-    background-color: lightgray;
-    border-radius:0px;
-    font-size:0.7rem;
-    color:darkblue;
-}
-#dirAc button:focus {
-    border:2px solid darkgreen;
-    font-weight:bold;
-    color:white;
-    background-color: green;
-}
+    #dirac {
+        vertical-align: middle;
+    }
+    #dirAc input:focus {
+        background-color: lightskyblue;
+        color:darkblue;
+        border-radius:0px;
+        font-weight: bold;
+        outline:none;
+    }
+    #dirAc input {
+        padding:5px;
+        border:1px solid darkblue;
+        border-radius:0px;
+        font-size:0.7rem;
+    }
+    #dirAc button {
+        padding:5px;
+        border:1px solid darkblue;
+        background-color: lightgray;
+        border-radius:0px;
+        font-size:0.7rem;
+        color:darkblue;
+    }
+    #dirAc button:focus {
+        border:2px solid darkgreen;
+        font-weight:bold;
+        color:white;
+        background-color: green;
+    }
 </style>
 <div id='cssmenu' style="border-radius:0px;position:absolute;width:100%;{{$style}}">
     <ul>
@@ -54,10 +54,13 @@
                 <li  style="text-align: left;">
                     <a href='/frmSystem'>{{ ServiceProvider::tl($lang, 'System') }}</a>
                 </li>
+                <li  style="text-align: left;">
+                    <a href='/spo/check'>{{ ServiceProvider::tl($lang, 'SPO Rev. Fehler') }}</a>
+                </li>
             </ul>
         </li>
         @endif
-        @if (Auth::user()->PPMitarbeiter_Gruppe == 'XXXadmin')
+        @if (false)
          <li  style="text-align: left;">
             <a href='#'><span style='font-size:1.2em;color: red;'><b>SPO Upload</b></span></a>
             <ul>
@@ -98,7 +101,7 @@
                     <a href='/mitarbeiter'>{{ ServiceProvider::tl($lang, 'Mitarbeitende') }}</a>
                 </li>
                 @endif
-                @if (Auth::user()->PPMitarbeiter_Gruppe == 'Xadmin')
+                @if (false)
                 <li  style="text-align: left;">
                     <a href='/textbausteine'>{{ ServiceProvider::tl($lang, 'Textbausteine') }}</a>
                 </li>
@@ -141,11 +144,6 @@
                     </li>
                     @endif
                 @endif
-                <!--
-                <li  style="text-align: left;">
-                    <a href='/uploadAvisForm'>Import Avis</a>
-                </li>
-                -->
                 <li  style="text-align: left;">
                     <a href='/showImportThemenplanung'>{{ ServiceProvider::tl($lang, 'Import Themenplanung') }}</a>
                 </li>
@@ -169,17 +167,9 @@
             <a href='#'>{{ ServiceProvider::tl($lang, 'Übersichten') }}</a>
             <ul>
                 @foreach ($SALs as $sal)
-                    @if (strpos($sal->PPBoard_Bezeichnung, '(P)') !== false )
-                        @if (Auth::User()->PPMitarbeiter_Kuerzel  == 'FKE' )
                         <li style="text-align: left;">
                             <a href='/termine/projekt/U/{{ $sal->PPBoard_Id }}/1'>{{ ServiceProvider::tl($lang,$sal->PPBoard_Bezeichnung) }}</a>
                         </li>
-                        @endif
-                    @else 
-                        <li style="text-align: left;">
-                            <a href='/termine/projekt/U/{{ $sal->PPBoard_Id }}/1'>{{ ServiceProvider::tl($lang,$sal->PPBoard_Bezeichnung) }}</a>
-                        </li>
-                    @endif
                 @endforeach
                 @if (ServiceProvider::AuthUserHasRole('INTERN') or ServiceProvider::AuthUserHasRole('EXTERN') )
                 <li style="text-align: left;">
@@ -193,6 +183,9 @@
                 @endif
                 <li  style="text-align: left;">
                     <a href='/terminliste/X'>{{ ServiceProvider::tl($lang, 'Termine Projekte') }}</a>
+                </li>
+                 <li  style="text-align: left;">
+                    <a href='/terminlisteNeu/X'>{{ ServiceProvider::tl($lang, 'Termine Projekte Neu') }}</a>
                 </li>
                 <li  style="text-align: left;">
                     <a href='/terminlisteM/X'>{{ ServiceProvider::tl($lang, 'Termine  Musterung') }}</a>
@@ -223,6 +216,19 @@
             </ul>
             @endif
         </li>
+         @if (ServiceProvider::AuthUserHasRole('TESTER')  )
+        <li class='has-sub' style="width:150px;">
+            <a href='#'>Shipment</a>
+            <ul>
+                <li  style="text-align: left;">
+                    <a href='/ship'>{{ ServiceProvider::tl($lang, 'Shipmentübersicht [Edit]') }}</a>
+                </li>
+                <li  style="text-align: left;">
+                    <a href='/shipFlat'>{{ ServiceProvider::tl($lang, 'Shipmentübersicht [Flat]') }}</a>
+                </li>
+            </ul>
+        </li>
+        @endif
         @if ( false )
         <li class='has-sub' style="width:150px;">
             <a href='#'>Finanzen</a>

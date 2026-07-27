@@ -1,4 +1,4 @@
-<h5 class='header1'>{{ ServiceProvider::tl($data['lang'], 'Mengen')}}</h5>
+<h5 class='header1'><span>{{ ServiceProvider::tl($data['lang'], 'Mengen')}}</span><span style='margin-left:330px;'> {{ ServiceProvider::tl($data['lang'], 'Gesamtmengen')}}: {{ number_format($data['Laendermenge'], 0, ',', '.') }} </span> <span style='margin-left:50px;'> {{ ServiceProvider::tl($data['lang'], 'Planmenge LIDL') }}: {{ number_format($data['pp']->PPProduktpass_Planmenge, 0, ',', '.') }}</span></h5>
  <div id='IANTableContainerMenge' style='padding:20px;'>
    <div style='padding-bottom:20px;'>
             <table style='font-size:0.7em;border-collapse:collapse;table-layout:fixed;'> 

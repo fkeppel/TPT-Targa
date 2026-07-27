@@ -79,8 +79,8 @@ class SPOLoginController extends BaseController
             CURLOPT_POSTFIELDS     => http_build_query($params, '', '&'),
             CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded','Accept: application/json'],
             CURLOPT_TIMEOUT        => 10,
-            CURLOPT_PROXY          => 'http://10.254.0.1',
-            CURLOPT_PROXYPORT      => '8080',
+            //CURLOPT_PROXY          => 'http://10.254.0.1',
+            //CURLOPT_PROXYPORT      => '8080',
         ]);
         $res = curl_exec($ch);
         if ($res === false) throw new \RuntimeException('cURL: '.curl_error($ch));

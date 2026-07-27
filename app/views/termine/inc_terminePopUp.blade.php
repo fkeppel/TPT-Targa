@@ -564,10 +564,12 @@
         $_st='Border:4px solid red;';
     }
     $lang = isset($_COOKIE['TPTLanguage'])?$_COOKIE['TPTLanguage']:Auth::user()->PPMitarbeiter_Language;
-    //$MplanColor = 'border:4px solid #ff1a1a;'; 
-    $MplanColor = 'border:1px solid lightgray;'; 
-    if ($t['PPTermine_IsMPlan'] == 1){
+    $MplanColor = 'border:4px solid #ff1a1a;'; 
+    //if ($t['PPTermine_IsMPlan'] == 1){
         //$MplanColor = 'border:4px solid #009900;'; // light red
+    //}
+    if (MasterplanController::testDateBefore($t['start'], $t['ManSollDate'])){
+        $MplanColor = 'border:4px solid #009900;'; // light red
     } 
 ?>
 <div style="text-align:left;border:1px solid gray; width:1877px;height:98%;text-align: center; {{ $_st }}">
@@ -603,14 +605,26 @@
         $i++;
         ?>
         @endforeach
-        @if ($board == 1000)
+        @if ($board == 1000 or $board == 1011)
         <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1001, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
             {{ ServiceProvider::tl($lang, 'Termine Musterung') }}
         </div>
+            @if ($board == 1000 )
+                <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1011, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
+                    {{ ServiceProvider::tl($lang, 'Termine Projekte QS 3.0') }} 
+                </div>
         @else
         <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1000, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
              {{ ServiceProvider::tl($lang, 'Termine Projekte') }}
         </div>
+        @endif
+        @else
+            <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1000, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
+                {{ ServiceProvider::tl($lang, 'Termine Projekte') }} 
+            </div>
+            <div class="tabSim" onclick="ajax_getTerminTab({{$pp['id']}}, 0, 1011, 'All', 1)" style="background-color:rgb(98, 210, 210);color:rgb(16, 104, 48);">
+                {{ ServiceProvider::tl($lang, 'Termine Projekte QS 3.0') }} 
+            </div>
         @endif
         <div style="clear:both;"></div>
     </div>
@@ -927,6 +941,7 @@
             } catch (e) {
                 console.log(e.message);
             }
+            console.log('cpc_newTheme id:' + id + ' ' + jsonString);
             cpc_SendAjaxJsonRequestM("/newTheme", jsonString, fFile);
         }
         function parseDate(input,fmt='') {
@@ -964,7 +979,10 @@
                         //alert("Erledigen bis kann nicht später als CRD liegen!");
                         //return;
              }
+            console.log('Test');
+            console.log(readValue($("#Termine_Mitarbeiter" + id)));
             if (readValue($("#Termine_Mitarbeiter" + id)[0]) == 0) {
+                console.log("Mitarbeiter leer");
                 alert("Bitte zuständigen Mitarbeiter angeben!");
                 return;
             }
@@ -1164,7 +1182,8 @@
             window.location.reload();
         }
         function cpc_SendAjaxJsonRequestM(url, jsonObject, file) {
-            console.log("Start: " + url);
+            console.log("Start Ajax: " + url);
+            //alert("Start Ajax: " + url);
             var frmData = new FormData();
             frmData.append("jsonObject", jsonObject);
             if (file) {
@@ -1236,7 +1255,7 @@
             document.getElementById("messagebox" + id).innerHTML = jsonResult.cont;
         }
         function cpc_SendAjaxJsonRequestPopUp(url, jsonObject) {
-            console.log("Start");
+            console.log("Start Ajax: " + url);
             var frmData = new FormData();
             frmData.append("jsonObject", jsonObject);
             $.ajax({

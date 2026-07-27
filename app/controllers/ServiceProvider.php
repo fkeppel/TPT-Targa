@@ -79,8 +79,8 @@ class ServiceProvider extends \BaseController {
             CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_SSL_VERIFYPEER => 1,
             CURLOPT_VERBOSE        => true,
-            CURLOPT_PROXY          => 'http://10.254.0.1',
-            CURLOPT_PROXYPORT      => 8080,
+            //CURLOPT_PROXY          => 'http://10.254.0.1',
+            //CURLOPT_PROXYPORT      => 8080,
             CURLOPT_HTTPPROXYTUNNEL=> true, // HTTPS durch HTTP-Proxy sauber tunneln
         ]);
         $translation = curl_exec($ch);
@@ -89,6 +89,7 @@ class ServiceProvider extends \BaseController {
         }
         curl_close($ch);
         $data = json_decode($translation, true);
+        cpcDebug::cpc_debug($data, '-SetMA');
         return $data['translations'][0]['text'] ?? "Not Translated: " . $text;
     }
     private  function _translateLabel_Fehler($text = null, $lang = 'EN'){
@@ -568,14 +569,14 @@ class ServiceProvider extends \BaseController {
         return false;
     }
     public static function AuthUserHasTaetigkeit($taetigkeit){
-        $taetigkeit = Auth::user()->PPMitarbeiter_Taetigkeit;
-        if (strpos($taetigkeit, $taetigkeit) !== false){
+        $userTaetigkeit = Auth::user()->PPMitarbeiter_Taetigkeit;
+        if (strpos($userTaetigkeit, $taetigkeit) !== false){
             return true;
         }
         return false;
     } 
     public static function AuthUserIsAdmin(){
-        if (Auth::user()->PPMitarbeiter_isAdmin){
+        if (Auth::user()->PPMitarbeiter_Gruppe === 'admin'){
             return true;
         }
         return false;

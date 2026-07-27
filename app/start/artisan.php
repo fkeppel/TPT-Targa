@@ -1,5 +1,4 @@
 <?php
-
 /*
 |--------------------------------------------------------------------------
 | Register The Artisan Commands
@@ -10,4 +9,4 @@
 | the console gets access to each of the command object instances.
 |
 */
-
+Artisan::add(new CheckSPORevErrorCommand);

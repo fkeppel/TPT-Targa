@@ -10,6 +10,7 @@
   |
  */
 //Route::get('/', 'ProjectController@index');
+use PhpOffice\PhpSpreadsheet\Reader\Xls\RC4;
 ini_set('default_charset', 'utf-8');
 ini_set('memory_limit', '2000M');
 set_time_limit(360);
@@ -104,6 +105,7 @@ Route::group(array('before' => 'auth'), function () {
     Route::get('termineReset', 'TermineController@showlist_ohneSession');
     Route::get('terminEdit/{id}', 'TermineController@editTermin');
     Route::get('terminliste/{sort?}', 'TermineController@postTerminlisteFilter');
+    Route::get('terminlisteNeu/{sort?}', 'TermineController@postTerminlisteFilterNeu');
     Route::get('terminlisteM/{sort?}', 'TermineController@postTerminlisteFilterM');
     Route::get('terminlisteI/{sort?}', 'TermineController@postTerminlisteFilterI');
     Route::post('terminlisteFilter', 'TermineController@postTerminlisteFilter');
@@ -226,7 +228,8 @@ Route::group(array('before' => 'auth'), function () {
     Route::get('compareXMLExt/{ppid}/{fileId}', 'XMLController@compareXMLExt');
     Route::get('compareXMLFiles/{fileId1}/{FileId2}', 'XMLController@compareXMLFiles');
     Route::any('ajax_getTermin', 'TermineController@ajax_getTermin');
-    Route::get('getTerminFromId/{ppid}/{tid}/{board?}/{select?}/{onlyOpen?}', 'TermineController@getTerminFromId');
+    Route::get('getTerminFromId/{ppid}/{tid}/{board}/{onlyOpen?}/{X?}', 'TermineController@getTerminFromId');
+    //Route::get('getTerminFromId/{ppid}/{tid}/{board?}/{select?}/{onlyOpen?}', 'TermineController@getTerminFromId');
     Route::get('DEVgetTerminFromId/{ppid}/{tid}/{board?}/{select?}/{onlyOpen?}', 'TermineController@DEVgetTerminFromId');
     Route::get('getTerminFromIAN/{ian_ausm}/{tid?}/{board?}/{select?}/{onlyOpen?}', 'TermineController@getTerminFromIAN_AUSM');
     Route::get('testConfig', 'TermineController@testConfig');
@@ -342,19 +345,53 @@ Route::group(array('before' => 'auth'), function () {
     Route::post('createZoll', 'StammdatenController@createZoll');
     Route::post('deleteZoll/{id}', 'StammdatenController@deleteZoll');
     Route::get('massTranslate', 'TermineController@massTranslateMilesones');
+    Route::post('calcMS','MasterplanController@calcMS');
+    Route::post('kmssave','MasterplanController@kmssave');
+    Route::get('testMP/{id}','MasterplanController@debugTestAllDates');
     Route::post('translateLive', 'IANController@translateLive');
     Route::post('saveRemarkVersion', 'IANController@saveRemarkVersion');
     Route::post('saveIsFinal', 'IANController@saveIsFinal');
     Route::post('moveFileFrom',  'Office365Controller@moveFilesSPO' );
-    Route::get('so/{filter?}', 'ShipmentOverviewController@showSO');
-    Route::get('ship/{filter?}', 'ShipmentOverviewController@showShip');
-    Route::post('cellupdate','ShipmentOverviewController@cellUpdate'); 
     Route::get('fileCHN', 'Office365Controller@fileExistCheck' );
     Route::post('projektbildCheck', 'Office365Controller@projektbildCheck' );    
     Route::post('projektbildRepair', 'Office365Controller@projektbildRepair');
     Route::get('dlSPO', 'Office365Controller@dlSPO' );
     Route::get('frmSystem', 'SystemController@getFormSystem' );
     Route::get('testMove', 'Office365Controller@testMove' );
+    // ShipmentOverview
     Route::post('saveLot','ShipmentOverviewController@saveLot'); 
     Route::post('deleteLot','ShipmentOverviewController@deleteLot'); 
-    });
+    //Route::get('so/{filter?}', 'ShipmentOverviewController@showSO');
+    //Route::get('ship/{filter?}', 'ShipmentOverviewController@showShip');
+    Route::post('cellupdate','ShipmentOverviewController@cellUpdate'); 
+    Route::get('createLabel/{ian_ausm?}', 'AzureController@createLabels');
+    //Route::get('QtyArt/{ppid}', 'ExcelController@getMengenUebersichtNachLT');
+    Route::get('testQty', 'ExcelController@testQty');
+    Route::get('uploadMassenImportStatusNeu/{jobId}', array(
+        'as'   => 'uploadMassenImportStatusNeu',
+        'uses' => 'ProduktpassController@uploadMassenImportStatusNeu'
+    ));
+    Route::get('/spo/check', 'Office365Controller@showCheckPage');
+    Route::get('/spo/check/start-test', 'Office365Controller@startCheckSPORevError');
+    Route::post('/spo/check/start', 'Office365Controller@startCheckSPORevError');
+    Route::get('/spo/check/progress', 'Office365Controller@getCheckSPORevErrorProgress');
+    Route::get('/spo/check/reset', 'Office365Controller@resetCheckSPORevError');
+    Route::get('checkSPO_Rev_Error', 'Office365Controller@checkSPO_Rev_Error');
+    //Route::get('tl', 'Termine2Controller@Terminliste');
+    //Route::POST('tl', 'Termine2Controller@postTerminUebersicht');
+    Route::get('testDates/{ppid}', 'MasterplanController@debugTestAllDates');
+    Route::get('shipFlat/{filter?}', 'ShipmentOverviewController@showShipFlat');
+    Route::get('ship/{filter?}', 'ShipmentOverviewController@showShip');
+    Route::get('shipArchive/{filter?}', 'ShipmentOverviewController@showShipArchive');
+    //Route::get('getBoard/{bsid}/{ppid}', 'Termine2Controller@getBoard');
+    //Route::get('testBoards', 'Termine2Controller@testBoards');
+    Route::get('tl', 'Termine2Controller@getTerminUebersicht');
+    Route::get('testTermine/{maid}/{status}', 'TermineController@buildManQuery');
+    Route::get('change2QS3', 'TermineController@change2QS3');
+    Route::get('filesExist', 'Office365Controller@fileExistCheck' );
+    Route::get('importShipment', 'ShipmentOverviewController@importShipment' );
+    Route::get('Absagegrund', 'TermineController@getAbsageGruende' );
+    Route::post('saveLogAdmin', 'ProjectsController@saveLogAdmin');
+    Route::post('shipmentArchive', 'ShipmentOverviewController@shipmentArchive' );
+    Route::post('shipmentRestore', 'ShipmentOverviewController@shipmentRestore' );
+});

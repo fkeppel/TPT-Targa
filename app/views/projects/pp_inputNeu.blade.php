@@ -172,7 +172,7 @@
     ?>
         <div style='border:1px solid var(--tgDarkBlue);background-color:var(--tgBlue);border-radius:0px;color:white;'>
             <h3>PM Eingabefelder</h3>
-            <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;"><b>xBitte Zahlen in der Form 1.2345,789 eingeben</b> </div>
+            <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;"><b>itte Zahlen in der Form 1.2345,789 eingeben?!</b> </div>
         </div>
         <div style="padding:20px;border:1px solid var(--tgBlue);border-radius:0px;">
             <div style="margin-bottom:30px;">
@@ -330,7 +330,12 @@
                             <th>Höhe (mm)</th>
                         </tr>
                         <tr>
-                            <td style="padding:8px;">{{ ServiceProvider::tl($lang, 'Giftbox') }}</td>
+                            <td style="padding:8px;">{{ ServiceProvider::tl($lang, 'Giftbox') }}XXXX
+                                <div class="tooltip"><img src="https://tpt-dev.ad.targa.de/data/Icons/Info.jpg" style="width:12px;float:right;"> 
+                                                    <span class="tooltiptext">Maße nur einmal
+                                                    </span>
+                                                    </div>
+                            </td>
                             <td style="padding:8px;text-align:right;">1</td>
                             <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Masse']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Masse']['OldValue'] }}" type="text" name='man[PPInputManuell_Masse]' value="{{number_format($data['InpMan']->PPInputManuell_Masse,0,',','.')}}" /></td>
                             <td><input {{$disabled}} style="{{ $data['InpManCompare']['PPInputManuell_Laenge']['Style'] }}" title="{{ $data['InpManCompare']['PPInputManuell_Laenge']['OldValue'] }}" type="text" name='man[PPInputManuell_Laenge]' value="{{number_format($data['InpMan']->PPInputManuell_Laenge,0,',','.')}}" /></td>

@@ -171,8 +171,8 @@
     }
     ?>
         <div style='border:1px solid var(--tgDarkBlue);background-color:var(--tgBlue);border-radius:0px;color:white;'>
-            <h3>PM Eingabefelder!!!</h3>
-            <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;"><b>Bitte Zahlen in der Form 1.2345,789 eingeben!</b> </div>
+            <h3>PM Eingabefelder</h3>
+            <div style="padding: 25px;color: darkblue; border: none; border-radius:0px;"><b>Zahlen in der Form 1.2345,789 eingeben!!!</b> </div>
         </div>
         <div style="padding:20px;border:1px solid var(--tgBlue);border-radius:0px;">
             <div style="margin-bottom:30px;">

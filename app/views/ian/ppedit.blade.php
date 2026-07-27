@@ -164,6 +164,9 @@
         <div style="margin:0 auto;text-align:left;width:110px; z-index: 100;padding-top:8px;border:none;height:80px;margin-left:0px;">
             <button onclick='savePP();'  style="width:200px;padding:10px;margin-top:10px;margin-left:30px;font-weight:bold;">{{ ServiceProvider::tl($lang,'speichern')}}</button>
         </div>
+         <div style="margin:0 auto;text-align:left;width:330px; z-index: 100;padding-top:8px;border:none;height:80px;margin-left:0px;">
+            <a href = '/createLabel/{{ $data['pp']['PPProduktpass_IAN'] }}_{{ substr($data['pp']['PPProduktpass_Ausmusterungnummer'], 0, 4) }}'   style="width:200px;padding:10px;margin-top:10px;margin-left:30px;font-weight:bold;">{{ ServiceProvider::tl($lang,'Label erstellen')}}</a>
+        </div>
     @endif
 </div>
 <script>

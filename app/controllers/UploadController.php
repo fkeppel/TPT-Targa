@@ -2783,6 +2783,7 @@ class UploadController extends BaseController {
         $files = PPPPFiles::where('PPPPFiles_LocalUpload',1)->where('PPPPFiles_Status',1)->orderBy('PPPPFiles_Date')->get();
         //$srcdir = public_path('data/uploads/');
         foreach($files as $file){
+            cpcDebug::cpc_debug("MoveLocal2SPO: ".$file->PPPPFiles_Id." ".$file->PPPPFiles_Name." PPId: ".$file->PPPPFiles_PPProduktpass_Id, '-uploadFile');
             $devSrc =  public_path('data/');
             //$prodSrc =  '/var/www/targa/public/data';
             $srcdir=$devSrc.$file->PPPPFiles_Pfad.'/';

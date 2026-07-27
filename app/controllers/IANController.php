@@ -1,4 +1,5 @@
 <?php
+use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Support\Facades\View;
 class IANController extends \BaseController {
     var $init = 0;
@@ -146,7 +147,7 @@ class IANController extends \BaseController {
         $ec = new EmbargoController();
         $embargo = $ec->getEmbargo($ppid);
         //$order = $this->pc->getOrder_Targaview($ppid);
-        cpcDebug::cpc_debug($embargo, '@Embargo');
+       //cpcDebug::cpc_debug($embargo, '@Embargo');
         return  View::make('ian.auftragsinfo')->with('data', array('pp' => $pp, 'lang' => $this->lang, 'embargo' => $embargo));
     }
     private function getDataInfoLidl($ppid){
@@ -169,8 +170,8 @@ class IANController extends \BaseController {
         $files['TRANSFERD'] = $_files['TRANSFERD'];
         $files['typesLB'] = $this->getUploadTypes($role, True);
         $files['subtypesLB'] = $this->getUploadSubTypes($role, True);
-        $files['types'] = $this->getUploadTypes($role, );
-        $files['subtypes'] = $this->getUploadSubTypes($role, );
+        $files['types'] = $this->getUploadTypes($role, false);
+        $files['subtypes'] = $this->getUploadSubTypes($role, false);
         $filesLastChange = $this->getSPOFilesLastChange($ppid);
         $FileProtokoll = $this->pc->getFileProtokoll($ppid);
         $Kategorien = $this->pc->getKategorien();
@@ -327,8 +328,7 @@ class IANController extends \BaseController {
         $pp    = $this->getPP($ppid);
         $style = $this->getStyle($ppid);
         $m = $this->pc->getMenge($ppid);
-        $menge = $m['Menge'];
-        return  View::make('ian.menge')->with('data', array('mengeAlt' => $m['MengeAlt'], 'importDatum' => $m['Import'], 'menge' =>  $m['Menge'],'mengeAlt' =>  $m['MengeAlt'], 'style' => $style, 'pp' => $pp, 'lang' => $this->lang));
+        return  View::make('ian.menge')->with('data', array('mengeAlt' => $m['MengeAlt'], 'importDatum' => $m['Import'], 'menge' =>  $m['Menge'],'mengeAlt' =>  $m['MengeAlt'], 'style' => $style, 'pp' => $pp, 'lang' => $this->lang, 'Laendermenge' => $m['Laendermenge']));
     }
     private function getDataSortierung($ppid){
         $pp = $this->getPP($ppid);
@@ -398,7 +398,7 @@ class IANController extends \BaseController {
     }
     public function updatePPAjax()
     {
-        cpcDebug::cpc_debug('updatePPAjax', '@T18A');
+        //cpcDebug::cpc_debug('updatePPAjax', '@T18A');
         $input = Input::all();
         $id = $input['PPProduktpass_Id']; 
         $pp = tPPProduktpass::find($id);
@@ -520,6 +520,10 @@ class IANController extends \BaseController {
     }
     private function getSPOFilesLastChange( $ppid ) {
         $pp = $this->getPP($ppid);
+        if ($pp == null) {#
+            cpcDebug::cpc_debug('getSPOFilesLastChange: PP nicht gefunden '.$ppid, '-ERROR');
+            return 'X';
+        }
         $oc = new Office365Controller ();
         $filesLastChange = $oc->getLastChanged($pp->PPProduktpass_IAN, substr($pp->PPProduktpass_Ausmusterungnummer,0,4));
         return $filesLastChange;
@@ -607,36 +611,28 @@ class IANController extends \BaseController {
             }
         }
     }
-    private function getUploadTypes($role, $lb = false)
+    private function getUploadTypes(string $role, $lb = false)
     {
+        cpcDebug::cpc_debug("getUploadTypes Rolle: $role", '-T14');
         $fts = PPFileTypes::where('PPFileTypes_Type', 'like', '%')->where('PPFileTypes_ParentId', '=', 0)->orderBy('PPFileTypes_sort')->get();
         $ret = array();
-        //$ret[''] = 'Bitte auswählen...';
         foreach ($fts as $ft) {
-            if ($lb) {
-                $ret[$ft->PPFileTypes_Type] = $ft->PPFileTypes_Type;
-            } else {
-                $ret[$ft->PPFileTypes_Type] = array("Id" => $ft->PPFileTypes_Id, "Type" => $ft->PPFileTypes_Type, 'Safety' => $ft->PPFileTypes_Safety);
+            $roleFiles = $ft->PPFileTypes_Role;
+            $type = $ft->PPFileTypes_Type;
+            cpcDebug::cpc_debug("getUploadTypes Prüfe Rolle: $role gegen $roleFiles für Typ $type", '-T14');    
+            if($this->rolesHaveMatch($role, $roleFiles)){
+            //if($this->rolesHaveMatch($userRole->PPMitarbeiter_Role, $ft->PPFileTypes_Roles)){}
+                if ($lb) {
+                    $ret[$ft->PPFileTypes_Type] = $ft->PPFileTypes_Type;
+                } else {
+                    $ret[$ft->PPFileTypes_Type] = array("Id" => $ft->PPFileTypes_Id, "Type" => $ft->PPFileTypes_Type, 'Safety' => $ft->PPFileTypes_Safety);
+                }
             }
         }
-        /* $ret['AB'] = 'AB';
-          $ret['Artwork'] = 'Artwork';
-          $ret['Designs'] = 'Designs';
-          $ret['Agentur'] = 'Agentur';
-          $ret['PO'] = 'PO';
-          //$ret['PP']='PP';
-          $ret['QS'] = 'QS';
-          $ret['Labor'] = 'Labor';
-          $ret['Kalkulation'] = 'Kalkulation';
-          $ret['Diverse'] = 'Diverse';
-          $ret['Disposition'] = 'Disposition';
-          $ret['Buchhaltung'] = 'Buchhaltung';
-          $ret['Bilder Textbausteine'] = 'Bilder Textbausteine';
-        */
-        //   ksort($ret);
+        cpcDebug::cpc_debug($ret, '-T14');
         return $ret;
     }
-    private function getUploadSubTypes($role, $lb = false)
+    private function getUploadSubTypes(string $role, $lb = false)
     {
         $fts = PPFileTypes::where('PPFileTypes_Type', 'like', '%')->where('PPFileTypes_ParentId', '!=', 0)->orderBy('PPFileTypes_sort')->get();
         $ret = array();
@@ -680,5 +676,17 @@ class IANController extends \BaseController {
             $man->save();
         }
         return json_encode( array('Result' => 'OK') );
+    }
+    private function stringToArray(string $input): array
+    {
+        return array_filter(
+            array_map('trim', explode('@', $input))
+        );
+    }
+    private function rolesHaveMatch(string $role1, string $role2): bool
+    {
+        $array1 = $this->stringToArray($role1);
+        $array2 = $this->stringToArray($role2);
+        return count(array_intersect($array1, $array2)) > 0;
     }
 }    

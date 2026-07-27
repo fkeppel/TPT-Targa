@@ -61,8 +61,8 @@
                 <div style="float: left;width:1200px;">
                     <button  class='tgButton' type="submit" name="submitType" value="save" style="width:200px;margin-top:10px;margin-left:30px;"><b>{{ ServiceProvider::tl($lang,'Speichern')}}</b></button>
                     <button  class='tgButton' type="submit" name="submitType" value="reset" style="width:250px;margin-top:10px;margin-left:30px;"><b>{{ ServiceProvider::tl($lang,'Alles neu übersetzen')}}</b></button>
-                    <a href="/downloadRFQ/{{$data['pp']->PPProduktpass_Id}}/E"><button  class='tgButton' type="button" style="width:200px;margin-top:10px;margin-left:30px;">{{ ServiceProvider::tl($lang,'Entwurf RFQ-Excel')}}</button></a>
-                    <a href="/downloadRFQ/{{$data['pp']->PPProduktpass_Id}}/R"><button  class='tgButton' type="button" style="width:200px;margin-top:10px;margin-left:30px;">{{ ServiceProvider::tl($lang,'Release RFQ-Excel')}}</button></a>
+                    <a href="/downloadRFQ/{{$data['pp']->PPProduktpass_Id}}/E"><button  class='tgButton' type="button" style="width:200px;margin-top:10px;margin-left:30px;">{{ ServiceProvider::tl($lang,'Download RFQ')}}</button></a>
+                    <a href="/downloadRFQ/{{$data['pp']->PPProduktpass_Id}}/R"><button  class='tgButton' type="button" style="width:200px;margin-top:10px;margin-left:30px;">{{ ServiceProvider::tl($lang,'Ablage RFQ')}}</button></a>
                 </div>
             <div style="clear: both;"></div>
             </div>

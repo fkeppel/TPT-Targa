@@ -9,7 +9,9 @@
     <li><a href="#MengeLidl">{{ ServiceProvider::tl($data['lang'], 'Menge') }}</a></li>
     <li><a href="#BestelluebersichtLidl">{{ ServiceProvider::tl($data['lang'], 'Bestellübersicht') }}</a></li>
     <li><a href="#AuftragsabwicklungLidl">{{ ServiceProvider::tl($data['lang'], 'Auftragsabwicklung') }}</a></li>
-    <li><a href="#Themenplanung">{{ ServiceProvider::tl($data['lang'], 'Themenplanung') }}</a></li>
+     @if (ServiceProvider::AuthUserHasRole('INTERN'))
+     <li><a href="#Themenplanung">{{ ServiceProvider::tl($data['lang'], 'Themenplanung') }}</a></li>
+     @endif
   </ul>
   <div class='divContainer'  id="StammdatenLidl">
      @include('ian.artikelstamm')
@@ -29,9 +31,11 @@
   <div class='divContainer'  id="AuftragsabwicklungLidl">
     Auftragsabwicklung
   </div>
+  @if (!ServiceProvider::AuthUserHasRole('XTC'))
   <div class='divContainer'  id="Themenplanung">
     Themenplanung
   </div>
+  @endif
 </div>
 <script>
     $(function() {

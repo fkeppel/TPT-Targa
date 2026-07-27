@@ -6,7 +6,8 @@ if test -f "$FILE"; then
 fi
 touch "$FILE"
 echo "Upload gestartet" >> /home/fkeppel/logs/bg-ls2spo1.log
-curl -x 10.254.0.1:8080 --insecure  https://tpt-dev.ad.targa.de/bg-l2spo >> /home/fkeppel/logs/bg-ls2spo1.log
+#curl -x 10.254.0.1:8080 --insecure  https://tpt-dev.ad.targa.de/bg-l2spo >> /home/fkeppel/logs/bg-ls2spo1.log
+curl --noproxy "*" --insecure https://tpt-dev.ad.targa.de/bg-l2spo
 echo "-------------------------------------------" >> /home/fkeppel/logs/bg-ls2spo1.log
 rm "$FILE"
 echo "Upload freigegeben" >> /home/fkeppel/logs/bg-ls2spo1.log

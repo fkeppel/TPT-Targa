@@ -1331,6 +1331,15 @@ private function copyFileWithVersions(
             $srcRelUrl .=  $encodedFileName;
             cpcDebug::cpc_debug("Start Copy: $fromSPO, $ian, $ausm, $db_Filename" , '-NWE1');
             //$this->copyFileWithVersions($srcCtx, $dstCtx, $srcRelUrl, $dstFolderRelUrl);
+            if (is_null($db_Filename) || strlen($db_Filename) < 3 ){
+                cpcDebug::cpc_debug("WARN: Dateiname kleiner als 128 Zeichen, könnte in SPO Probleme machen: $db_Filename", '-NWE1');
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => "Datei wurde NICHT verschoben $db_Filename, da der Name zu kurz ist und in SPO Probleme machen könnte.",
+                    ]);
+                exit;
+            }
             $result = $this->move2($fromSPO, $ian, $ausm, $db_Filename);
             cpcDebug::cpc_debug("Ready Copy", '-NWE1');
             cpcDebug::cpc_debug($result, '-NWE1');
@@ -1358,6 +1367,44 @@ private function copyFileWithVersions(
     public function moveFileFromTPTCina2TPT(){
         if (Auth::user()->PPMitarbeiter_Id != 1){
             return;
+        }
+    }
+    private function FolderExists(ClientContext $ctx, string $folderRelUrl): bool
+    {
+        try {
+            cpcDebug::cpc_debug("AXY2 enter FolderExists: $folderRelUrl", '-NWE1');
+            // WebRel laden
+            $web = $ctx->getWeb();
+            //cpcDebug::cpc_debug("A2 before load(web)", '-NWE1');
+            $ctx->load($web);
+            //cpcDebug::cpc_debug("A3 before executeQuery(web)", '-NWE1');
+            $ctx->executeQuery();
+            //cpcDebug::cpc_debug("A4 after executeQuery(web)", '-NWE1');
+            $webRel = rtrim((string)$web->getServerRelativeUrl(), '/'); // "" oder "/subsite"
+            $folderRelUrl = '/' . ltrim($folderRelUrl, '/');
+            $folderRelUrl = rtrim($folderRelUrl, '/');
+            if ($webRel !== '' && strpos($folderRelUrl, $webRel . '/') !== 0 && $folderRelUrl !== $webRel) {
+                $folderRelUrl = $webRel . $folderRelUrl;
+            }
+            //cpcDebug::cpc_debug("A5 lookup folder: $folderRelUrl", '-NWE1');
+            try {
+                $folder = $ctx->getWeb()->getFolderByServerRelativeUrl($folderRelUrl);
+                //cpcDebug::cpc_debug("A6 before load(folder)", '-NWE1');
+                $ctx->load($folder);
+                //cpcDebug::cpc_debug("A7 before executeQuery(folder)", '-NWE1');
+                $ctx->executeQuery();
+                cpcDebug::cpc_debug("FolderExists: True", '-NWE1');
+                return true;
+            } catch (\Throwable $e) {
+                  cpcDebug::cpc_debug("FolderExists: False", '-NWE1');
+                return false;
+            }
+        } catch (\Throwable $t) {
+            cpcDebug::cpc_debug(
+                "Z1 FolderExists crashed: " . get_class($t) . " code=" . $t->getCode() . " msg=" . $t->getMessage(),
+                '-NWE1'
+            );
+            return false;
         }
     }
     private function ensureFolderExists(ClientContext $ctx, string $folderRelUrl): bool
@@ -1417,11 +1464,41 @@ private function copyFileWithVersions(
             return false;
         }
     }
+    public function checkSPO_Rev_Error (){
+        $pps = tPPProduktpass::where('PPProduktpass_IAN', 'like', '536163%ev%')->where('PPProduktpass_Ausmusterungnummer', 'like', '2604%')->where('InternerStatus', 'FIX' )->get();
+        foreach ($pps as $pp){
+            echo('aDir: '.$pp->PPProduktpass_IAN.'_'.substr($pp->PPProduktpass_Ausmusterungnummer,0,4).'<br>');
+            $ausm = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
+        }
+        exit;
+        /*    $spoDir = "/Freigegebene Dokumente/IANs/$pp->PPProduktpass_IAN".'_'."$ausm/";
+            if(!$this->FolderExists($this->getContext(0), $spoDir)){
+                    echo(" existiert nicht! => OK<br>");
+                    continue;
+            } else {
+                    echo(" existiert! => FEHLER<br>");
+                echo("      Prüfe SPO-Dir: $spoDir ");
+                if(!$this->FolderExists($this->getContext(0), $spoDir)){
+                    echo(" existiert nicht Fehler!<br>");
+                    continue;
+                } else {
+                    echo(" existiert!<br>");
+                }
+                $files = PPPPFiles::where('PPPPFiles_PPProduktpass_Id', $orgPP->PPProduktpass_Id)->get();
+                foreach ($files as $file){
+                    echo("Prüfe Datei: ".$file->PPPPFiles_Name." in $spoDir <br>");
+                    $filename = $file->PPPPFiles_Name;
+                    //$this->_fileExistCheck($spoDir, $filename, 0);
+                }   
+            }
+        }*/
+    }
     public function fileExistCheck(){
-        $files = PPPPFiles::where('PPPPFiles_IsExtern', 1)->orderBy('PPPPFiles_Id')->get();
+        //$files = PPPPFiles::where('PPPPFiles_IsExtern', 1)->orderBy('PPPPFiles_Id')->get();
+        $files = PPPPFiles::where('PPPPFiles_IsExtern', 0)->where('PPPPFiles_Status', 1)->where('PPPPFiles_PPProduktpass_Id', 15858)->orderBy('PPPPFiles_Id')->get();
         $count = count($files);
         if ($count == 0){
-            echo('Keine externen Dateien gefunden!<br>');
+            echo('Keine  Dateien gefunden!<br>');
             return;
         }
         $i = 1;
@@ -1457,6 +1534,7 @@ private function copyFileWithVersions(
         echo '
 <tr>
     <th>#</th>
+    <th>PPFid</th>
     <th>IAN-Verzeichnis</th>
     <th>Dateiname</th>
     <th>Status</th>
@@ -1474,20 +1552,21 @@ private function copyFileWithVersions(
                 $ianDir = $ian.'_'.$ausm;
                 //echo("$i.) Prüfe Datei: <b>$ianDir</b>   [$filename] ");
                 $i++;
-                echo("<td>$i</td><td>$ianDir</td><td>$filename</td>"); 
+                echo("<td>$i</td><td>".$file->PPPPFiles_Id."</td><td>".$file->PPPPFiles_Type.' - '.$file->PPPPFiles_SubKat.' - '.$file->PPPPFiles_Ordnung."</td><td>$ianDir</td><td>$filename</td><td>"); 
                 $this->_fileExistCheck($ianDir,$filename);
+                echo("</td>");
             } else {
-                //echo("<td>$i</td><td></td><td>$filename</td><td>✅ Revisions PP</td>"); 
-                //$i++;
+                echo("<td>$i</td><td></td><td>$filename</td><td>✅</td><td>❌ Kein PP mit gültiger IAN gefunden</td>"); 
+                $i++;
             }
             //echo("<br>---------------------- ENDE ------------------------<br>");
             echo("</tr>");
         }
         echo('</table>');
     }
-    private function _fileExistCheck($ian, $filename )
+    private function _fileExistCheck($ian, $filename, $context = 1 )
     {
-        $ctx = $this->getContext(1);
+        $ctx = $this->getContext($context);
         //echo("  => Ergbnis: ");
         $web = $ctx->getWeb();
         $ctx->load($web, ['ServerRelativeUrl']);
@@ -1512,20 +1591,20 @@ private function copyFileWithVersions(
                                     $ian,
                                     $filename
                                     ]);
-        //echo($serverRelativeUrl . "<br>");
         $exists = false;
         try {
             $f = $ctx->getWeb()->getFileByServerRelativeUrl($serverRelativeUrl);
             $ctx->load($f, ['Length']);   // kleines Feld, genügt zum Testen
             $ctx->executeQuery();
             $exists = true;
+             echo(" $ian $filename ✅ Datei gefunden") ; 
         } catch (\Throwable $e) {
             // 404 -> existiert nicht, andere Fehler -> Auth/Path prüfen
             //echo "Fehler beim Laden der Datei: " . $e->getMessage() . "\n";
             $exists = false;
             //exit;
+            echo(" $ian $filename ❌ Datei nicht gefunden") ; 
         }
-        echo $exists ? "<td>✅ Datei existiert</td>" : "<td>❌ Datei nicht gefunden</td>"; 
     }
    // Laravel 4: AJAX/JSON-Version von projektbildCheck (keine echo/exit, gleiche Struktur wie Repair)
     public function projektbildCheck($ausmusterung = '2404')
@@ -1677,7 +1756,7 @@ private function getGraphAppToken(string $tenantId, string $clientId, string $cl
         CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
         CURLOPT_TIMEOUT        => 60,
     ]);
-    $this->applyProxyOptions($ch);
+    //$this->applyProxyOptions($ch);
     $resp = curl_exec($ch);
     $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $errno = curl_errno($ch);
@@ -1884,12 +1963,69 @@ private function downloadSharepointFileToServer(
         ), 200);
     }
     public function testMove(){
-        $result = $this->move2('CHN', '99PJM1', '2410', 'Versionen_Test.txt');
+        return;
+        //$result = $this->move2('CHN', '99PJM1', '2410', 'Versionen_Test.txt');
+        $result = $this->moveBackError2();
+        echo('<pre>');
+        print_r($result);
+        echo('</pre>');
+    }
+    private function moveBackError2(){
+        $fromSPO = 'CHN'; 
+        $ian = '560005' ; 
+        $ausm  ='2601'; 
+        $filename = '';
+        //echo('HALLO');
+        //exit;
+        cpcDebug::cpc_debug("Start move2: $fromSPO, $ian, $ausm, $filename" , '-NWE1');
+        $src  = 'IANs/' . $ian.'_'.$ausm.'/' .  $ian.'_'.$ausm;
+        $destFolder = 'IANs/';// . $ian.'_'.$ausm.'/';
+        $cmd = sprintf(
+            'php %s %s %s %s 2>&1',
+            escapeshellarg('/var/www/spo_graph/cli.php'),
+            escapeshellarg($fromSPO),
+            escapeshellarg($src),
+            escapeshellarg($destFolder)
+        );
+        $output = shell_exec($cmd);
+        if ($output === null) {
+            return [
+            'mode' => 'ERROR',
+            'status' => 'E1',
+            'name' => '',
+            'async' => '',
+        ];
+            //print_r("CLI Aufruf fehlgeschlagen");
+            //exit;
+            //throw new RuntimeException('CLI Aufruf fehlgeschlagen');
+        }
+        $result = json_decode($output, true);
+        if (!is_array($result) || ($result['status'] ?? '') !== 'ok') {
+            return [
+               'mode' => 'ERROR',
+                'status' => 'E2',
+                'name' => '',
+                'async' => $result,
+            ];
+            //print_r("Move fehlgeschlagen: " . $output);
+            //exit;   
+            //throw new RuntimeException('Move fehlgeschlagen: ' . $output);
+        }
+       return($result);
+       //exit;
     }
     private function move2($fromSPO = 'DE', $ian, $ausm, $filename){
         //echo('HALLO');
         //exit;
         cpcDebug::cpc_debug("Start move2: $fromSPO, $ian, $ausm, $filename" , '-NWE1');
+        if (is_null($filename) || strlen($filename) < 3){
+            return [
+                'mode' => 'ERROR',
+                'status' => 'E0',
+                'name' => '',
+                'async' => '',
+            ];
+        }
         $src  = 'IANs/' . $ian.'_'.$ausm.'/' . $filename;
         $destFolder = 'IANs/' . $ian.'_'.$ausm.'/';
         $cmd = sprintf(
@@ -1925,5 +2061,288 @@ private function downloadSharepointFileToServer(
         }
        return($result);
        //exit;
+    }
+    private function FolderExists_(ClientContext $ctx, string $folderRelUrl): bool
+    {
+        try {
+            cpcDebug::cpc_debug("AXY2 enter FolderExists: $folderRelUrl", '-NWE1');
+            // WebRel laden
+            $web = $ctx->getWeb();
+            //cpcDebug::cpc_debug("A2 before load(web)", '-NWE1');
+            $ctx->load($web);
+            //cpcDebug::cpc_debug("A3 before executeQuery(web)", '-NWE1');
+            $ctx->executeQuery();
+            //cpcDebug::cpc_debug("A4 after executeQuery(web)", '-NWE1');
+            $webRel = rtrim((string)$web->getServerRelativeUrl(), '/'); // "" oder "/subsite"
+            $folderRelUrl = '/' . ltrim($folderRelUrl, '/');
+            $folderRelUrl = rtrim($folderRelUrl, '/');
+            if ($webRel !== '' && strpos($folderRelUrl, $webRel . '/') !== 0 && $folderRelUrl !== $webRel) {
+                $folderRelUrl = $webRel . $folderRelUrl;
+            }
+            //cpcDebug::cpc_debug("A5 lookup folder: $folderRelUrl", '-NWE1');
+            try {
+                $folder = $ctx->getWeb()->getFolderByServerRelativeUrl($folderRelUrl);
+                //cpcDebug::cpc_debug("A6 before load(folder)", '-NWE1');
+                $ctx->load($folder);
+                //cpcDebug::cpc_debug("A7 before executeQuery(folder)", '-NWE1');
+                $ctx->executeQuery();
+                cpcDebug::cpc_debug("FolderExists: True", '-NWE1');
+                return true;
+            } catch (\Throwable $e) {
+                  cpcDebug::cpc_debug("FolderExists: False", '-NWE1');
+                return false;
+            }
+        } catch (\Throwable $t) {
+            cpcDebug::cpc_debug(
+                "Z1 FolderExists crashed: " . get_class($t) . " code=" . $t->getCode() . " msg=" . $t->getMessage(),
+                '-NWE1'
+            );
+            return false;
+        }
+    }
+    public function _checkSPO_Rev_Error_ALT (){
+        echo('Starte Prüfung auf SPO-Rev-Fehler...AM26% [PLAN]<br>');
+        //phpinfo();
+        //exit;
+        $pps = tPPProduktpass::where('PPProduktpass_Status', 'like', 'Neu')->where('PPProduktpass_IAN', 'like', '%ev%')->where('PPProduktpass_Ausmusterungnummer', 'like', '26%')->whereIn('InternerStatus', ['PLAN'])->get();
+        foreach ($pps as $pp){
+            //echo('Dir: '.$pp->PPProduktpass_IAN.'_'.substr($pp->PPProduktpass_Ausmusterungnummer,0,4));
+            $ausm = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
+           $spoDir = "/Freigegebene Dokumente/IANs/$pp->PPProduktpass_IAN".'_'."$ausm/";
+            if(!$this->FolderExists($this->getContext(0), $spoDir)){
+                    //echo("  ✅ existiert nicht! => OK<br>");
+                    $pp->PPProduktpass_Status = 'OK';
+                    $pp->save();
+                    continue;
+            } else {
+                    //pcDebug::cpc_debug($pp->PPProduktpass_IAN.'_'.substr($pp->PPProduktpass_Ausmusterungnummer,0,4)."  ❌ existiert! => FEHLER", '-REVTEST');
+            }
+            $ian = substr($pp->PPProduktpass_IAN, 0, 6);
+            $orgPP = tPPProduktpass::where('PPProduktpass_IAN', $ian)->where('PPProduktpass_Ausmusterungnummer', $pp->PPProduktpass_Ausmusterungnummer)->get()->first();
+            if ($orgPP){
+                $spoDir = "/Freigegebene Dokumente/IANs/$ian".'_'."$ausm/";
+                //echo("      Prüfe SPO-Dir: $spoDir ");
+                if(!$this->FolderExists($this->getContext(0), $spoDir)){
+                    echo(" ❌ existiert nicht Fehler!<br>");
+                    continue;
+                } else {
+                    //echo(" ✅ existiert!<br>");
+                }
+                $files = PPPPFiles::where('PPPPFiles_PPProduktpass_Id', $orgPP->PPProduktpass_Id)->get(); 
+                foreach ($files as $file){
+                    //echo("Prüfe Datei: ".$file->PPPPFiles_Name." in $spoDir ");
+                    if ($file->PPPPFiles_IsExtern == 1){
+                        echo("Prüfe Datei: ".$file->PPPPFiles_Name." Id: ".$file->PPPPFiles_Id." in $spoDir ");
+                        echo("  ✅ Extern <br>");
+                        continue;
+                    } 
+                    $filename = $file->PPPPFiles_Name;
+                    if (! $this->_fileExistCheck($ian."_".$ausm, $filename, 0)){
+                        $pp->PPProduktpass_Status = 'ERROR';
+                        $pp->save();  
+                    } 
+            }
+        }
+        echo('<br> Fertig! <br>');
+        }
+    }
+    //progress
+    public function showCheckPage()
+    {
+        return View::make('spo.check_progress');
+    }
+    public function getCheckSPORevErrorProgress()
+    {
+        $jobKey = 'spo_rev_error_check';
+        $progress = JobProgress::where('job_key', $jobKey)->first();
+        if (!$progress) {
+            return Response::json(array(
+                'status' => 'idle',
+                'current_step' => 0,
+                'total_steps' => 0,
+                'percent' => 0,
+                'message' => 'Kein Lauf vorhanden'
+            ));
+        }
+        return Response::json(array(
+            'status' => $progress->status,
+            'current_step' => (int) $progress->current_step,
+            'total_steps' => (int) $progress->total_steps,
+            'percent' => (float) $progress->percent,
+            'message' => $progress->message
+        ));
+    }
+    protected function updateProgress($jobKey, $current, $total, $message, $status = 'running')
+    {
+        $percent = $total > 0 ? round(($current / $total) * 100, 2) : 0;
+        JobProgress::where('job_key', $jobKey)->update(array(
+            'status' => $status,
+            'current_step' => $current,
+            'total_steps' => $total,
+            'message' => $message,
+            'percent' => $percent,
+            'updated_at' => date('Y-m-d H:i:s')
+        ));
+    }
+    protected function finishProgress($jobKey, $message)
+    {
+        JobProgress::where('job_key', $jobKey)->update(array(
+            'status' => 'finished',
+            'message' => $message,
+            'percent' => 100,
+            'updated_at' => date('Y-m-d H:i:s')
+        ));
+    }
+    protected function failProgress($jobKey, $message)
+    {
+        JobProgress::where('job_key', $jobKey)->update(array(
+            'status' => 'failed',
+            'message' => $message,
+            'updated_at' => date('Y-m-d H:i:s')
+        ));
+    }
+  public function runCheckSPORevErrorFromCommand($jobKey, $status, $ausmFilter)
+    {
+        $statusArray = array_values(array_filter(array_map('trim', explode('@', $status))));
+        try {
+            $pps = tPPProduktpass::where('PPProduktpass_Status', 'like', 'Neu')
+                ->where('PPProduktpass_IAN', 'like', '%ev%')
+                ->where('PPProduktpass_Ausmusterungnummer', 'like', $ausmFilter . "%")
+                ->whereIn('InternerStatus', $statusArray)
+                ->get();
+            $gesamt = $pps->count();
+            if ($gesamt === 0) {
+                $this->finishProgress(
+                    $jobKey,
+                    'Keine passenden Datensätze gefunden für Status: ' . $status . ' Ausm: ' . $ausmFilter
+                );
+                return;
+            }
+            $this->updateProgress(
+                $jobKey,
+                0,
+                $gesamt,
+                'Datensätze geladen. Status: ' . $status . ' Ausm: ' . $ausmFilter,
+                'running'
+            );
+            $aktuell = 0;
+            $msg = '';
+            $error = false;
+            foreach ($pps as $pp) {
+                $pp->PPProduktpass_Status = 'TESTING';
+                $pp->save();
+                $aktuell++;
+                $ausm = substr($pp->PPProduktpass_Ausmusterungnummer, 0, 4);
+                $spoDir = "/Freigegebene Dokumente/IANs/" . $pp->PPProduktpass_IAN . "_" . $ausm . "/";
+                $this->updateProgress(
+                    $jobKey,
+                    $aktuell,
+                    $gesamt,
+                    'Prüfe ' . $pp->PPProduktpass_IAN . ' / ' . $pp->PPProduktpass_Ausmusterungnummer,
+                    'running'
+                );
+                if (!$this->FolderExists($this->getContext(0), $spoDir)) {
+                    $pp->PPProduktpass_Status = 'OK';
+                    $pp->save();
+                    continue;
+                }
+                $ian = substr($pp->PPProduktpass_IAN, 0, 6);
+                $orgPP = tPPProduktpass::where('PPProduktpass_IAN', $ian)
+                    ->where('PPProduktpass_Ausmusterungnummer', $pp->PPProduktpass_Ausmusterungnummer)
+                    ->first();
+                if (!$orgPP) {
+                    $pp->PPProduktpass_Status = 'No Org';
+                    $pp->save();
+                    continue;
+                }
+                $spoDir = "/Freigegebene Dokumente/IANs/" . $ian . "_" . $ausm . "/";
+                if (!$this->FolderExists($this->getContext(0), $spoDir)) {
+                    $pp->PPProduktpass_Status = 'No Org Dir';
+                    $pp->save();
+                    continue;
+                }
+                $files = PPPPFiles::where('PPPPFiles_PPProduktpass_Id', $orgPP->PPProduktpass_Id)->get();
+                if ($files->count() === 0) {
+                    $pp->PPProduktpass_Status = 'No Files';
+                    $pp->save();
+                    continue;
+                }
+                foreach ($files as $file) {
+                    if ($file->PPPPFiles_IsExtern == 1) {
+                        $pp->PPProduktpass_Status = 'Extern Files';
+                        $pp->save();
+                        continue;
+                    }
+                    $filename = $file->PPPPFiles_Name;
+                    if (!$this->_fileExistCheck($ian . "_" . $ausm, $filename, 0)) {
+                        $error = true;
+                        $msg .= "Fehlende Datei: " . $filename . " im SPO-Verzeichnis " . $spoDir . '<br>';
+                        $pp->PPProduktpass_Status = 'ERROR';
+                        $pp->save();
+                    }
+                }
+            }
+            if ($error) {
+                $msg = 'Prüfung abgeschlossen mit Fehlern:<br>' . $msg;
+            } else {
+                $msg = 'Prüfung erfolgreich abgeschlossen. Alle Dateien vorhanden.';
+            }
+            $this->finishProgress($jobKey, $msg);
+        } catch (\Throwable $e) {
+            $this->failProgress($jobKey, 'Fehler: ' . $e->getMessage());
+            Log::error('runCheckSPORevErrorFromCommand Fehler: ' . $e->getMessage());
+        }
+    }
+    public function startCheckSPORevError()
+    {
+        $jobKey = 'spo_rev_error_check';
+        $status = trim(Input::get('status', 'PLAN'));
+        $ausm = trim(Input::get('ausm', '26'));
+        Log::info('Start mit Parametern', array(
+            'status' => $status,
+            'ausm' => $ausm
+        ));
+        $existing = JobProgress::where('job_key', $jobKey)->first();
+        if ($existing && in_array($existing->status, array('starting', 'running'))) {
+            return Response::json(array(
+                'success' => false,
+                'message' => 'Prüfung läuft bereits'
+            ));
+        }
+        $progress = JobProgress::firstOrNew(array('job_key' => $jobKey));
+        $progress->status = 'starting';
+        $progress->current_step = 0;
+        $progress->total_steps = 0;
+        $progress->message = 'Start mit Status=' . $status . ', Ausm=' . $ausm;
+        $progress->percent = 0;
+        $progress->save();
+        $php = '/usr/bin/php';
+        $artisan = base_path() . '/artisan';
+        $command = $php . ' ' . escapeshellarg($artisan)
+            . ' spo:check-rev-error'
+            . ' --status=' . escapeshellarg($status)
+            . ' --ausm=' . escapeshellarg($ausm)
+            . ' > /dev/null 2>&1 &';
+        exec($command);
+        return Response::json(array(
+            'success' => true,
+            'message' => 'Prüfung wurde gestartet'
+        ));
+    }
+    public function resetCheckSPORevError()
+    {
+        $jobKey = 'spo_rev_error_check';
+        JobProgress::where('job_key', $jobKey)->update(array(
+            'status' => 'idle',
+            'current_step' => 0,
+            'total_steps' => 0,
+            'percent' => 0,
+            'message' => 'Zurückgesetzt',
+            'updated_at' => date('Y-m-d H:i:s')
+        ));
+        return Response::json(array(
+            'success' => true,
+            'message' => 'Job zurückgesetzt'
+        ));
     }
 }

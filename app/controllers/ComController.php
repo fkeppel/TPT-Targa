@@ -6,8 +6,8 @@ private    function curl($url, $cookie = false, $post = false, $header = false, 
         $proxy = 'http://10.254.0.1';
         $proxy_port = 8080;
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_PROXY, $proxy);
-        curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
+        //curl_setopt($ch, CURLOPT_PROXY, $proxy);
+        //curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch,CURLOPT_CONNECTTIMEOUT ,3);
         curl_setopt($ch,CURLOPT_TIMEOUT, 20);
@@ -31,7 +31,7 @@ private    function curl($url, $cookie = false, $post = false, $header = false, 
         return $response;
     }
     public function sendData(){
-        $pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%rev%')->where('InternerStatus', 'FIX')->get();#
+        $pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%rev%')->where('InternerStatus', 'FIX')->get();
         foreach($pps as $pp){
             $order = $pp->PPProduktpass_IAN.'_'.substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
             $partnerId = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);

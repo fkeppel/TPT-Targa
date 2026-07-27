@@ -547,7 +547,7 @@
             <th class="table-cell-header-rotate" style="background-clip: padding-box;border-bottom:none; width:80px;"></th>
             @endif
             <!-- Spalte 9-->
-            <th class="table-cell-header-rotate cpccol7" style="background-clip: padding-box;border-bottom:none; width:70px;">Y</th>
+            <th class="table-cell-header-rotate cpccol7" style="background-clip: padding-box;border-bottom:none; width:70px;"></th>
             @if(Auth::User()->PPMitarbeiter_Gruppe == 'admin')
             <!-- Spalte 11-->
             <th class="table-cell-header-rotate cpccol8" style="background-clip: padding-box;border-bottom:none; width:100px;"></th>

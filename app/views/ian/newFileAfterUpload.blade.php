@@ -1,3 +1,19 @@
+ <style>
+    .icon-button {
+        background: none;
+        border: none;
+        padding: 0;
+        margin-right: 40px;
+        margin-left: -40px;
+        cursor: pointer;
+        color: #666;
+        width: 24px;
+        height: 24px;
+    }
+    .icon-button:hover {
+        color: #0067b8; /* SharePoint-Blau */
+    }
+</style>
  @foreach ( $data['files']['types'] as $type) 
         @foreach($data['files']['subtypes'] as $kat)
             @if ($kat['ParentId'] == $type['Id'])
@@ -154,23 +170,74 @@
                                             @else 
                                             <div style="overflow:hidden;position:relative;">
                                                 <div style='border:none;float:left;padding:0px;position:relative;overflow:hidden;width:calc(100% - 68px);'>
+                                                    <?php
+                                                        // 1. Öffnen im Browser -->
+                                                        $browser= '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin-left:10px;">
+                                                        <rect x="3" y="4" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M3 8h18" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="6" cy="6" r="0.8" fill="currentColor"/>
+                                                        <circle cx="8.5" cy="6" r="0.8" fill="currentColor"/>
+                                                        <circle cx="11" cy="6" r="0.8" fill="currentColor"/>
+                                                        <path d="M11 15l6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M13.5 9H17v3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M7 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        </svg>';
+                                                        // 2. Öffnen in APP -->
+                                                        $app = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin-left:10px;">
+                                                        <rect x="6.5" y="2.5" width="11" height="19" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M10 5h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                                                        <circle cx="12" cy="18" r="1" fill="currentColor"/>
+                                                        <path d="M10 14l5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M12.5 9H15v2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M8.5 8.5h7" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+                                                        <path d="M8.5 11h3" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+                                                        </svg>';
+                                                        // 3. Download -->
+                                                        $download = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin-left:10px;">
+                                                        <path d="M12 3v11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M7.5 10.5L12 15l4.5-4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <rect x="4" y="17" width="16" height="3" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M8 17v-2" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
+                                                        <path d="M16 17v-2" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
+                                                        </svg>';
+                                                        // 4. Löschen -->
+                                                        $delete = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin-left:50px;">
+                                                        <path d="M4 7h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M9 4h6l1 3H8l1-3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                                                        <path d="M7 7l1 12h8l1-12" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                                                        <path d="M10 11v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M14 11v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M9 7h6" stroke="currentColor" stroke-width="1" opacity="0.4"/>
+                                                        </svg>';
+                                                        $copyLink = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin-left:50px;">
+                                                                        <path d="M10 13a4 4 0 0 1 0-6l2-2a4 4 0 0 1 6 6l-1 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                                        <path d="M14 11a4 4 0 0 1 0 6l-2 2a4 4 0 0 1-6-6l1-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                                        <path d="M9 15l6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/>
+                                                                    </svg>';
+                                                    ?>
                                                     @if(strlen($file['PPPPFiles_SharePointLink'])>0)
                                                     <div style="border:none;padding:0px;padding-left:10px;margin-left:10px;font-size:0.9em;display:block;height:65px;width:calc(100% - 25px);">
                                                             <div id='fnBox_{{$file['PPPPFiles_Id']}}' style='font-size:0.5vw;border:none;font-weight:bold;height:auto;overflow: auto;overflow-wrap: anywhere;min-width:calc(100% - 25px);color:{{$externColor}};' title='{{ $file['PPPPFiles_Name'] }}'>
                                                                {{ $file['PPPPFiles_Name'] }}</div>
                                                             <br><br>
-                                                            <a id="Link2_{{ $file['PPPPFiles_Id'] }}" href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 2) }}" target="_blank"><img src="{{url('/data/Icons/Download.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'DOWNLOAD')}}" ></a>
-                                                            <a id="Link3_{{ $file['PPPPFiles_Id'] }}" href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 1) }}" target="_blank"><img src="{{url('/data/Icons/OpenInBrowser.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}" ></a>
+                                                            <a id="Link3_{{ $file['PPPPFiles_Id'] }}" href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 1) }}" target="_blank" title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}" >{{ $browser }}</a>
+                                                            <button
+                                                                type="button"
+                                                                class="icon-button"
+                                                                onclick="copyToClipboard('{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 5) }}')" title="Kopie in Zwischenablage">
+                                                                <?= $copyLink ?>
+                                                            </button>
                                                             @if ($showEdit2)
-                                                            <a id="Link4_{{ $file['PPPPFiles_Id'] }}"  href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 3) }}" target="_blank"><img src="{{url('/data/Icons/OpenInApp.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Oeffnen in App (wenn hinterlegt)')}}"></a>
+                                                            <a id="Link4_{{ $file['PPPPFiles_Id'] }}"  href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 3) }}" target="_blank" title="{{ ServiceProvider::tl($lang,'Oeffnen in App (wenn hinterlegt)')}}">{{ $app }}</a>
                                                             @endif
+                                                            <a id="Link2_{{ $file['PPPPFiles_Id'] }}" href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 2) }}" target="_blank" title="{{ ServiceProvider::tl($lang,'DOWNLOAD')}}">{{ $download }}</a>
                                                             @if ($ext == 'xml')
                                                             <a href='{{url("/diffXML/".$data['pp']['PPProduktpass_Id']."/".$file['PPPPFiles_Id'])}}' target='_blank' style='color:gray;text-decoration:none;font-size:0.8em;'><img src="{{url('/data/Icons/Compare.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Vergleichen')}}"></a>
                                                              @if (Auth::user()->PPMitarbeiter_Kuerzel == 'MM_admin' or Auth::user()->PPMitarbeiter_Kuerzel == 'FKE' )
                                                                 <a href='{{url("/mailCompare/".$data['pp']['PPProduktpass_Id']."/".$file['PPPPFiles_Id'])}}' target='_blank' style='color:gray;text-decoration:none;font-size:0.8em;'>[MAIL]</a>
                                                             @endif
                                                             @endif
-                                                            <a href="#"><img src="{{url('/data/Icons/delete.png')}}" class='fileIcons' title="{{ ServiceProvider::tl($lang,'Datei loeschen!')}}"  onclick="deleteFile('{{$file['PPPPFiles_Id']}}');"  style='margin-left:28px;'></a>
+                                                            <a href="#" title="{{ ServiceProvider::tl($lang,'Datei loeschen!')}}" onclick="deleteFile('{{$file['PPPPFiles_Id']}}');">{{$delete}}</a>
                                                             @if (strpos(Auth::user()->PPMitarbeiter_Role,'TESXXXTER') !== false)
                                                                     <a class='{{$classINT}}' id="LinkMoveCHN_{{ $file['PPPPFiles_Id'] }}"  href="#"><img src="{{url('/data/Icons/MakeAvailExternal_blue.png')}}" class='fileIcons'  onclick="moveFileSPO('{{$file['PPPPFiles_Id']}}', 'CHN');" title="{{ ServiceProvider::tl($lang,'Nach intern verschieben')}}"></a>
                                                                     <a class='{{$classCHN}}' id="LinkMoveDE_{{ $file['PPPPFiles_Id'] }}" href="#"><img src="{{url('/data/Icons/MakeAvailExternal_red.png')}}" class='fileIcons'  onclick="moveFileSPO('{{$file['PPPPFiles_Id']}}', 'DE');" title="{{ ServiceProvider::tl($lang,'Extern verfügbar machen')}}"></a>
@@ -183,10 +250,10 @@
                                                             <div style="border:none;padding:0px;padding-left:10px;margin-left:10px;font-size:0.9em;display:block;height:65px;width:calc(100% - 25px);">
                                                             <div style='font-size:0.5vw;border:none;font-weight:bold;height:auto;overflow: auto;overflow-wrap: anywhere;min-width:calc(100% - 25px);' title='{{ $file['PPPPFiles_Name'] }}'>{{ substr($file['PPPPFiles_Name'],7) }}</div>
                                                             <br><br>
-                                                            <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');"><img src="{{url('/data/Icons/Download.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'DOWNLOAD')}}"></a>
-                                                            <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');"><img src="{{url('/data/Icons/OpenInBrowser.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}"></a>
+                                                            <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');" title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}">{{ $browser }}</a>
                                                             @if ($showEdit2)
-                                                            <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');"><img src="{{url('/data/Icons/OpenInApp.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Oeffnen in App (wenn hinterlegt)')}}"></a>
+                                                            <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');" title="{{ ServiceProvider::tl($lang,'Oeffnen in App (wenn hinterlegt)')}}">{{ $app }}</a>
+                                                            <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');" title="{{ ServiceProvider::tl($lang,'DOWNLOAD')}}">{{$download}}</a>
                                                             @endif
                                                             @if ($ext == 'xml')
                                                             <a href='{{url("/diffXML/".$data['pp']['PPProduktpass_Id']."/".$file['PPPPFiles_Id'])}}' target='_blank' style='color:gray;text-decoration:none;font-size:0.8em;'><img src="{{url('/data/Icons/Compare.jpg')}}" class='fileIcons'  title="{{ ServiceProvider::tl($lang,'Vergleichen')}}"></a>
@@ -276,3 +343,28 @@
             @endif
         @endforeach
     @endforeach
+<script>
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        alert('Link wurde in die Zwischenablage kopiert.');
+    } catch (err) {
+        console.error('Fehler beim Kopieren:', err);
+        // Fallback für ältere Browser
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            alert('Link wurde in die Zwischenablage kopiert.');
+        } catch (fallbackErr) {
+            alert('Kopieren nicht möglich.');
+        }
+        document.body.removeChild(textarea);
+    }
+}
+</script>

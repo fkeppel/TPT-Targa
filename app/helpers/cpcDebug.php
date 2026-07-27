@@ -1,6 +1,6 @@
 <?php
 class cpcDebug {
-    static function cpc_debug($str, $ext = "Commen") {
+    static function cpc_debug( $str, $ext = "Commen") {
         if (!isset(Auth::user()->PPMitarbeiter_Kuerzel) or Auth::user()->PPMitarbeiter_Kuerzel != 'FKE') {
             return;
         }

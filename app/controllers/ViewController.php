@@ -168,7 +168,7 @@ class ViewController extends BaseController {
         if (!is_null($spLink) and strlen($spLink) > 3 and strpos($spLink,'d=w') !== false){
             $fileAndId = explode('?d=w', $file->PPPPFiles_SharePointLink);
             $spId = $fileAndId[1];
-            $spFile = $fileAndId[0];
+            $spFile = rawurlencode($fileAndId[0]);
             $prefix = self::getPrefix($file->PPPPFiles_Name);
             //$prefix = "AABBBbvvvvFFgHiiii";
             switch ($type) {
@@ -178,11 +178,15 @@ class ViewController extends BaseController {
                 case 2:
                     //$link = "https://targagmbh.sharepoint.com/sites/TPTStorage".$extern."/_layouts/15/download.aspx?UniqueId=$spId";
                     //$link = "https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage".$extern."/Freigegebene%20Dokumente/IANs/$ian/".$spFile."?csf=1&download=1";
-                    $link = "https://targagmbh.sharepoint.com/sites/TPTStorage".$extern."/_layouts/15/download.aspx?SourceUrl=".rawurlencode("Freigegebene Dokumente/IANs/$ian/$spFile");
+                    $link = "https://targagmbh.sharepoint.com/sites/TPTStorage".$extern."/_layouts/15/download.aspx?SourceUrl="."Freigegebene Dokumente/IANs/$ian/$spFile";
                     break;
                 case 3:
                     //$link = "https://targagmbh.sharepoint.com/sites/TPTStorage/Freigegebene%20Dokumente/IANs/$ian/$spLink";
                     $link = $prefix."https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage".$extern."/Freigegebene%20Dokumente/IANs/$ian/".$spFile."?csf=1&web=1";
+                    break;
+                case 5:
+                    $uniqId = rawurlencode('{'.$spId.'}');
+                    $link = "https://targagmbh.sharepoint.com/sites/TPTStorage/_layouts/15/download.aspx?UniqueId=$uniqId";
                     break;
                 default:
                     # code...

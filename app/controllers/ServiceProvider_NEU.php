@@ -32,8 +32,8 @@ class ServiceProviderAAA extends \BaseController {
         $ch = curl_init();
         $proxy = 'http://10.254.0.1';
         $proxy_port = 8080;
-        curl_setopt($ch, CURLOPT_PROXY, $proxy);
-        curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
+        //curl_setopt($ch, CURLOPT_PROXY, $proxy);
+        //curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
         curl_setopt($ch, CURLOPT_URL, $deeplURL);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);

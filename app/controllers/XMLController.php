@@ -2864,6 +2864,41 @@ class XMLController extends BaseController
         }
         echo ("</div>");
     }
+    public function uploadMassenImportNeu()
+{
+    $internerStatus = Input::get('InternerStatus');
+    $this->LTWoche = Input::get('LTWoche');
+    $this->LTJahr = Input::get('LTJahr');
+    $mailto = Input::get('mailto');
+    $importToken = Input::get('import_token');
+    $existing = MassImportJob::where('import_token', $importToken)->first();
+    if ($existing) {
+        return Response::json(array(
+            'success' => false,
+            'message' => 'Import wurde bereits gestartet.'
+        ));
+    }
+    if (!Input::hasFile('MultiZip')) {
+        return Response::json(array(
+            'success' => false,
+            'message' => 'Keine Datei hochgeladen.'
+        ));
+    }
+    $job = new MassImportJob();
+    $job->id = uniqid('import_', true);
+    $job->user_id = Auth::id();
+    $job->import_token = $importToken;
+    $job->filename = Input::file('MultiZip')->getClientOriginalName();
+    $job->status = 'running';
+    $job->messages = json_encode(array());
+    $job->save();
+    $zip = Input::file('MultiZip');
+    $this->massenImport($zip, $internerStatus, $mailto, $job->id);
+    return Response::json(array(
+        'success' => true,
+        'job_id' => $job->id
+    ));
+}
     public function uploadMassenImport(){
         $internerStatus = Input::get('InternerStatus');
         $this->LTWoche = Input::get('LTWoche');

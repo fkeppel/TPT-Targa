@@ -1,4 +1,14 @@
 <style>
+    body,
+    .schedule table,
+    .table,
+    .rotate,
+    .table-cell,
+    .table-cell_value {
+        font-family: "Segoe UI", Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
     .schedule {
         border:none;
         overflow: auto;
@@ -31,12 +41,10 @@
     }
     .schedule table {
         margin:0px;
-        font-family: Tahoma;
-        font-size: 11px;
+        font-size: 12px;
         border-collapse: collapse;
         table-layout: fixed;
         border:none;
-        font-family: tahoma;
     }
     .tdHeader {
         height: 80px;
@@ -49,8 +57,7 @@
         width:20px;
     }
     .rotateX {
-        font-family: Tahoma;
-        font-size: 8px;
+        font-size: 10px;
         background-color: lightskyblue;
         border-radius: 0px;
         height:20px;
@@ -73,7 +80,7 @@
         margin-left: 10px;
         display: table;
         text-align: left;
-        font-size: 8px;
+        font-size: 10px;
         padding: 0px;
         border-collapse: separate;
         border-spacing: 0;
@@ -111,8 +118,8 @@
             display: table-cell;
                     vertical-align: top;
                     border:1px solid #003D7C;
-                    min-width: 10px;
-                    max-width: 20px;
+                    min-width: 20px;
+                    max-width: 30px;
                     overflow: hidden;
                     border-radius:0px;
                     padding: 3px;
@@ -120,8 +127,8 @@
         .table-cell_value {
             display: table-cell;
                         border:1px solid lightgray;
-                        min-width: 10px;
-                        max-width: 20px;
+                        min-width: 20px;
+                        max-width: 30px;
                         border-radius:0px;
                         padding: 0px;
         }
@@ -158,20 +165,20 @@
         .table-cell-header {
             display: table-cell;
             border:1px solid lightgray;
-            min-width: 10px;
-            max-width: 10px;
+            min-width: 20px;
+            max-width: 30px;
             min-height: 40px;
             max-height: 40px;
             height: 40px;
             overflow: hidden;
         }
         .termin_cell{
-            width:18px;
+            width:32px;
             height:20px;
             border:none;
             padding:0px;
             overflow:hidden;
-            font-size:8px;
+            font-size:10px;
             border-radius: 0px;
         }
         .rotate {
@@ -181,7 +188,6 @@
             bottom: 0;
             left:5%;
             white-space: nowrap;
-            font-family: Tahoma;
             font-size: 12px;
             margin-left:3px;
         }
@@ -193,7 +199,7 @@
         }
         .termineHeader {
             border-collapse: collapse;
-            font-family: tahoma;font-size: 12px;
+            font-size: 12px;
             display: table
         }
         .termineHeader .row {
@@ -223,7 +229,6 @@
             border-radius: 0px;
             display: table;
             border-collapse: collapse;
-            font-family: tahoma;
             font-size: 12px;
             border: 1px solid #003D7C;
         }
@@ -461,19 +466,18 @@
         $lang = Auth::user()->PPMitarbeiter_Language;
         $_COOKIE['TPTLanguage'] = $lang;
     }
+    $absagegrunde = $kalender['Absagegruende'];
     //$lang = ?$_COOKIE['TPTLanguage']:Auth::user()->PPMitarbeiter_Language;
 ?>
 <div id="overlay">
     <div id="overlayContent">
         <h2>{{ ServiceProvider::tl($lang, 'Absagegrund bitte angeben:') }}</h2>
         <form id="FormAbsagegrund">
-            <select name='inpAbsagegrund' id='inpAbsagegrund' class='selectUebergabe' required style="font-size:0.9em;padding:6px;height:30px;width:300px;">
-                <option value=''>{{ ServiceProvider::tl($lang, 'Bitte wählen...') }}</option>
-                <option value='kein adäquates Angebot möglich'>{{ ServiceProvider::tl($lang, 'kein adäquates Angebot möglich') }}</option>
-                <option value='kein Lieferant'>{{ ServiceProvider::tl($lang, 'kein Lieferant') }}</option>
-                <option value='Storno LIDL'>{{ ServiceProvider::tl($lang, 'Storno LIDL') }}</option>
-                <option value='Aufgrund von Patentrechten nicht möglich'>{{ ServiceProvider::tl($lang, 'Aufgrund von Patentrechten nicht möglich') }}</option>
-                <option value='KAT Nachbestellung - Angebot nicht möglich'>{{ ServiceProvider::tl($lang, 'KAT Nachbestellung - Angebot nicht möglich') }}</option>
+            <select name='inpAbsagegrund' id='inpAbsagegrund' class='selectUebergabe' required style="padding:6px;height:30px;width:300px;">
+                <option value=''>{{ ServiceProvider::tl($lang, 'Bitte wählen sie aus...') }}</option>
+                @foreach ($absagegrunde as $grund)
+                    <option value='{{ $grund }}'>{{ ServiceProvider::tl($lang, $grund) }}</option>
+                @endforeach
             </select>
             <input type="hidden" id="inpPPId" name="inpPPId" value="" />
             <input type="hidden" id="inpState" name="inpState" value="" />
@@ -498,7 +502,7 @@
     {{ Form::open(array('url' => 'termine','style'=>'color:darkblue;margin:5px;', 'id'=>'formgetTermine','onkeypress' => 'submitFormX(event);')) }}
     <input type="hidden" name="inp_board" value="{{$board}}">
     <div id="cFormHeader" style="border:none;" >
-        <div class="searchTab"  style="display:grid;grid-template-columns: repeat(auto-fit, 120px 200px);grid-gap:10px; font-family:tahoma; font-size:14px;border:none;border-radius:0px;overflow:hidden;">
+        <div class="searchTab"  style="display:grid;grid-template-columns: repeat(auto-fit, 120px 200px);grid-gap:10px; font-size:14px;border:none;border-radius:0px;overflow:hidden;">
                 <div class='stLabel'>IAN</div>
                 <div class='stValue'>
                     <input id="inpFormIAN" name="sQry[PPProduktpass_IAN]" placeholder="IAN"  @if (isset($kalender['SP'])) value="{{$kalender['SP']['PPProduktpass_IAN']}}" @endif />
@@ -678,7 +682,7 @@
                 }
             ?>
             @foreach ($a_oberbez as $obez)
-            <th class="table-cell-header-rotate cpccolAll" style="background-clip: padding-box; font-size:10px;padding:0px;background-color:<?php $obez['bg'] ?>;" colspan="{{$obez['colspan']}}"><div style="@if($obez['colspan'] == 1)width:22px;@else width:auto; @endif overflow:hidden;border-radius: 0px;border:none;background-color: transparent;padding-left:8px;"><span><b>{{substr(ServiceProvider::tl($lang,$obez['bez']),0,10)}}</b></span></div></th>
+            <th class="table-cell-header-rotate cpccolAll" style="background-clip: padding-box; padding:0px;background-color:<?php $obez['bg'] ?>;" colspan="{{$obez['colspan']}}"><div style="@if($obez['colspan'] == 1)width:22px;@else width:auto; @endif overflow:hidden;border-radius: 0px;border:none;background-color: transparent;padding-left:8px;"><span><b>{{substr(ServiceProvider::tl($lang,$obez['bez']),0,10)}}</b></span></div></th>
             @endforeach
         </tr>
         <tr class="table-row-header">
@@ -710,7 +714,17 @@
             <td class="table-cell-header-rotate" style="background-clip: padding-box;padding:0px;border-top:none;vertical-align: bottom;"><div style="border-radius:0px;border-top:1px solid #003D7C;background-color:transparent;height:45px;padding:2px;">CRD<br>DDP</div></td>
             @if(Auth::User()->PPMitarbeiter_Gruppe == 'admin' or  Auth::User()->isMaster)
             <!-- Spalte 11 -->
-            <td class="table-cell-header-rotate" style="background-clip: padding-box;padding:0px;border-top:none;vertical-align: bottom;"><div style="border-radius:0px;border-top:1px solid #003D7C;background-color:transparent;height:45px;padding:2px;">{{ServiceProvider::tl($lang,'Übergabe an')}}<br><select style='margin-top:5px;width:90px;padding:3px;border-radius:0px;font-size:1em;' id='selectTaetigkeit' onchange="fillSelect(this);"><option value=''></option><option value='PM'>PM</option><option value='PJM'>PJM</option><option  value='TC'>TC</option></select></div></td>
+            <td class="table-cell-header-rotate" style="background-clip: padding-box;padding:0px;border-top:none;vertical-align: bottom;">
+                <div style="border-radius:0px;border-top:1px solid #003D7C;background-color:transparent;height:45px;padding:2px;">
+                    {{ServiceProvider::tl($lang,'Übergabe an')}}<br>
+                    <select style='margin-top:5px;width:90px;padding:3px;border-radius:0px;font-size:1em;' id='selectTaetigkeit' onchange="fillSelect(this);">
+                        <option value=''></option>
+                        <option value='PM'>PM</option>
+                        <option value='PJM'>PJM</option>
+                        <option  value='TC'>TC</option>
+                    </select>
+                </div>
+            </td>
             @endif
             <!-- Spalte 12 -->
             <td class="table-cell-header-rotate" style="background-clip: padding-box;padding:0px;border-top:none;vertical-align: bottom;"><div style="border-radius:0px;border-top:1px solid #003D7C;background-color:transparent;height:45px;padding:2px;">{{ServiceProvider::tl($lang,'Mitarbeiter')}}</div></td>
@@ -1043,7 +1057,7 @@
             <td class="table-cell" style="background-color: {{$bgProject}};color:{{$colArtikelBez}};" title="{{$value['PP']->PPProduktpass_Artikelbezeichnung}}">{{ $pp['artikel']}}</td>
             <!-- Spalte 2 -->
             <td class="table-cell" style="background-color: {{$bgProject}};word-wrap: break-word;">
-                 @if (ViewController::UserHasRole(Auth::User()->PPMitarbeiter_Id,'STATUS'))
+                 @if (ViewController::UserHasRole(Auth::user()->PPMitarbeiter_Id,'STATUS'))
                  <div style="border-radius:0px; background-color:transparent;padding:0px;">
                     <select id="setzeStatus_{{$pp['id']}}" style="font-size:0.7rem;width:70px;box-sizing: content-box; padding:5px;width:80px;">
                         <option @if($pp['InternerStatus']=='MUSTERUNG') selected @endif value='MUSTERUNG' >{{ strtoupper(ServiceProvider::tl($lang, 'MUSTERUNG' )) }}</option>
@@ -1083,11 +1097,11 @@
                         <td><b>{{$crd->format('W') . '/' . substr($crd->format('o'), 2)}}</b></td>
                     </tr>
                     <tr >
-                        <td @if($pp['ddpltw'] > 54) style="color:red;"" @endif>DDP: </td>
+                        <td @if($pp['ddpltw'] > 54) style="color:red;" @endif>DDP: </td>
                         <td>{{$pp['ddpltw']}}/{{$pp['ddplty']}}</td>
                     </tr>
                     <tr>
-                        <td><span style="font-size:8px;">W2CRD:</span> </td>
+                        <td><span style="font-size:10px;">W2CRD:</span> </td>
                         <td><b>{{$pp['w2crd']}}</b></td>
                     </tr>
                 </table>
@@ -1192,7 +1206,7 @@
                         <td><b>TC</b></td>
                     @endif 
                         <td>{{$pp['TCler']}}</td>
-                        <td><span id="VTRDISTC{{$pp['id']}}">@if($pp['TClerVTR'] != '')<b  style="color:orangered;">{{$pp['TClerVTR']}}</b> @endif</span></td>
+                        <td><span id="VTRDISTC{{$pp['id']}}">@if($pp['TClerVTR'] != '')<b  style="color:orangered;">{{$pp['TClerVTR']}}Z</b> @endif</span></td>
                     </tr>
                 </table>
                 </div>
@@ -1667,7 +1681,7 @@ MA: {{ $t['Mitarbeiter'] }}  Status: {{$t['status']}}
                     <div style='position:absolute; bottom:0px; right:0px; width:100%;height:8px;width:8px;background-color: rgb(119, 119, 119); border:none;border-radius: 0px;margin:0px;' title="{{ $orgRemark1 }} ">&nbsp;</div>
                     @endif
                     {{-- <div style='position:absolute; bottom:0px; left:0px; height:4px;width:4px;background-color: {{ $failType}}; border:none;border-radius: 0px;margin:0px;' title="MPLan Status"></div> --}}
-                    <span style='font-size: 8px;font-family: Arial, Helvetica, sans-serif;color:rgb(9, 41, 146);' title='{{ $translatedLabel1}}'>{{ $orgLabel1 }}</span>
+                    <span style='font-size: 8px;color:rgb(9, 41, 146);' title='{{ $translatedLabel1}}'>{{ $orgLabel1 }}</span>
                 </div>
             </td>
             @endforeach
@@ -1678,7 +1692,7 @@ MA: {{ $t['Mitarbeiter'] }}  Status: {{$t['status']}}
     <?php $_SESSION['TPT_Message']= " $poscount Datensätze in ".number_format((microtime(true) - $kalender['STARTTIME']),'1', ',','.'). " Sekunden."  ?>
 </div>
 @else
-<div style="font-family:'Open Sans', Tahoma,  Arial,  sans-serif;padding:20px;"><h1>Keine Daten gefunden!</h1></div>
+<div style="padding:20px;"><h1>Keine Daten gefunden!</h1></div>
 @endif
 <script>
     $( document ).ready(function() {

@@ -20,7 +20,7 @@ class MailController extends BaseController {
         return $lang;
     }
     public function sendMail ($to, $cc, $subject, $body, $attachment=null, $attachmentname = 'Testfile.xlsx'){
-        //cpcdebug::cpc_debug($this->mailer_config);
+        cpcdebug::cpc_debug($this->mailer_config, '-TESThandleFiles');
         //cpcdebug::cpc_debug($attachment);
         try {
             //Server settings
@@ -28,13 +28,18 @@ class MailController extends BaseController {
             $this->mail->Encoding  = 'base64';
             //$this->mail->SMTPDebug = 0; 
             $this->mail->isSMTP();                                          // Set mailer to use SMTP
-            $this->mail->Host = $this->mailer_config['mailer_Host'];              // Specify main and backup SMTP servers
+            $this->mail->Host = $this->mailer_config['mailer_Host'];
+            // Specify main and backup SMTP servers
             $this->mail->SMTPAuth = $this->mailer_config['mailer_SMTPAuth'];       // Enable SMTP authentication
             $this->mail->Username = $this->mailer_config['mailer_Username'];      // SMTP username
             $this->mail->Password = $this->mailer_config['mailer_Password'];      // SMTP password
             $this->mail->SMTPSecure = $this->mailer_config['mailer_SMTPSecure'];  // Enable SSL encryption, TLS also accepted with port 465
             $this->mail->Port = $this->mailer_config['mailer_Port'];              // TCP port to connect to
-            $this->mail->Port = 465;   
+            $this->mail->SMTPDebug = $this->mailer_config['mailer_SMTPDebug'];
+            $this->mail->Debugoutput = $this->mailer_config['mailer_Debugoutput'];
+            $this->mail->SMTPAuth = $this->mailer_config['mailer_SMTPAuth'];
+            $this->mail->SMTPAutoTLS = $this->mailer_config['mailer_SMTPAutoTLS'];
+            //$this->mail->Port = 465;   
             //Recipients
             //$this->mail->setFrom($this->mailer_config['mailer_FromEMail'], $this->mailer_config['mailer_FromName']); 
             $this->mail->setFrom($this->mailer_config['mailer_FromEMail'], $this->mailer_config['mailer_FromName']); 
@@ -87,9 +92,13 @@ class MailController extends BaseController {
             $this->mail->Subject = $subject;
             $this->mail->Body    = $body;
             //$this->mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
+            //cpcDebug::cpc_debug("Send Mail to: $to, CC: $cc, Subject: $subject, Body: $body",'TESThandleFiles');
+            //cpcDebug::cpc_debug($this->mail,'-TESThandleFiles');
             $this->mail->send();
         } catch (Exception $e) {
-            return true;
+                //cpcDebug::cpc_debug($this->mail->ErrorInfo, '-TESThandleFiles');
+                //cpcDebug::cpc_debug($e->getMessage(), '-TESThandleFiles');
+                return false;
         }
         return true;
     }

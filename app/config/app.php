@@ -189,7 +189,7 @@ return array(
         'View' => 'Illuminate\Support\Facades\View',
         'Fpdf' => 'Anouar\Fpdf\Facades\Fpdf',
     ),
-    'mailer' => array (
+    'mailer_OLD' => array (
       'mailer_Host'          => 'vex2016.ad.targa.de',               
       'mailer_SMTPAuth'      => false,                  
       'mailer_Username'      => 'tpt-admin@targa.de',     
@@ -198,5 +198,18 @@ return array(
       'mailer_Port'          => 465,                       
       'mailer_FromName'  => 'Targa Projekt Tool',
       'mailer_FromEMail'  => 'tpt-admin@targa.de', 
+    ),
+    'mailer' => array (
+      'mailer_Host'          => 'targagmbh.mail.protection.outlook.com',               
+      'mailer_SMTPAuth'      => false,                  
+      'mailer_Username'      => 'tpt-admin@targa.de',     
+      'mailer_Password'      => '',         
+      'mailer_SMTPSecure'    => '',               
+      'mailer_Port'          => 25,                       
+      'mailer_FromName'  => 'Targa Projekt Tool',
+      'mailer_FromEMail'  => 'tpt-admin@targa.de', 
+      'mailer_SMTPDebug' => 0,
+      'mailer_Debugoutput' => 'html',
+      'mailer_SMTPAutoTLS' => false
     ),
 );

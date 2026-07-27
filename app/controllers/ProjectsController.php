@@ -2796,7 +2796,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $intFields .= "PPInputManuell_ContHCRot, PPInputManuell_ContHCBar, PPInputManuell_ContHCKop, PPInputManuell_ContHCUSA, PPInputManuell_ContHCStk, ";
         $intFields .= "PPInputManuell_Cont40Rot, PPInputManuell_Cont40Bar, PPInputManuell_Cont40Kop, PPInputManuell_Cont40USA, PPInputManuell_Cont40Stk, ";
         $intFields .= "PPInputManuell_Cont20Rot, PPInputManuell_Cont20Bar, PPInputManuell_Cont20Kop, PPInputManuell_Cont20USA, PPInputManuell_Cont20Stk,  ";
-        $intFields .= "PPInputManuell_KLContPlan20, PPInputManuell_KLContPlan40, PPInputManuell_KLContPlan40HC, PPInputManuell_StkProPalette";
+        $intFields .= "PPInputManuell_KLContPlan20, PPInputManuell_KLContPlan40, PPInputManuell_KLContPlan40HC, PPInputManuell_StkProPalette, PPInputManuell_MengeDE, PPInputManuell_MengeEU, PPInputManuell_MengePM";
         return array('DEC' => $decFields, 'INT' => $intFields);
     }
     public function updateInputManuellNeu()
@@ -3764,6 +3764,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
     private function _deleteIANSave($ian)
     {
         echo ("Lösche <b>$ian</b> <br>");
+        exit;
         $pps = tPPProduktpass::where('PPProduktpass_IAN', 'like', $ian . "%")->get();
         foreach ($pps as $pp) {
             echo ($pp->PPProduktpass_IAN . " ");
@@ -3830,7 +3831,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             $noGo = true;
         }   
         if (strlen($ian)!= 6){
-            $noGo = true;
+            //$noGo = true;
         }   
         if (!$noGo){
             $pp = tPPProduktpass::where('PPProduktpass_IAN', '=', $ian)->where('PPProduktpass_Ausmusterungnummer', 'like', $ausm.'%')->get()->first();
@@ -5912,6 +5913,42 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
     }
     public function translateDeepl($text = null)
     {
+        if ($text === null || trim($text) === '') {
+            $text = '-';
+        }
+        $api_Key = '10ee3599-028f-961f-ca7e-8c941bfaac5a';
+        $deeplURL = "https://api.deepl.com/v2/translate";
+        $lang = 'EN-US';
+        $vars = http_build_query([
+            'text'                => $text,
+            'target_lang'         => $lang,
+            'preserve_formatting' => 1,
+            'tag_handling'        => 'html',
+            'split_sentences'     => 'nonewlines',
+        ]);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $deeplURL);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $vars);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_VERBOSE, true);
+        $headers = [
+            'Authorization: DeepL-Auth-Key ' . $api_Key,
+            'Content-Type: application/x-www-form-urlencoded',
+        ];
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        $translation = curl_exec($ch);
+        $info = curl_getinfo($ch);
+        cpcDebug::cpc_debug($info, '@translateDeepl');
+        cpcDebug::cpc_debug($translation, '@translateDeepl');
+        curl_close($ch);
+        $data = json_decode($translation, true);
+        return $data['translations'][0]['text'] ?? 'Not Translated [Quota?]';
+    }
+    public function translateDeeplProxy($text = null)
+    {
         if ($text == null or (trim($text) == '')) {
             $text = '-';
         }
@@ -5933,8 +5970,8 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $ch = curl_init();
         $proxy = 'http://10.254.0.1';
         $proxy_port = 8080;
-        curl_setopt($ch, CURLOPT_PROXY, $proxy);
-        curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
+        //curl_setopt($ch, CURLOPT_PROXY, $proxy);
+        //curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_port);
         curl_setopt($ch, CURLOPT_URL, $deeplURL);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
@@ -6045,7 +6082,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             if ($lang == 'EN'){
                 $searchArt = ServiceProvider::tlFromTo('EN','DE', $search);
             }
-            cpcDebug::cpc_debug("Suchbegriff Art (EN->DE): $lang $search => $searchArt", '-showOrderAll1');
+            //cpcDebug::cpc_debug("Suchbegriff Art (EN->DE): $lang $search => $searchArt", '-showOrderAll1');
             $search_ausmusterung = $inp['search_ausmusterung'];
             $subData['liqs'] = DB::table('v_AuftragsUebersicht')->where('PPProduktpass_Ausmusterungnummer', 'like', $search_ausmusterung . '%')
                     ->where('PPProduktpass_IAN', 'not like', "%rev%")
@@ -6068,7 +6105,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                     ->get();
             $search_ausmusterung = "";
         }
-        cpcDebug::cpc_debug(DB::getQueryLog(), '-showOrderAll1');
+        //cpcDebug::cpc_debug(DB::getQueryLog(), '-showOrderAll1');
         $subData['Header'] = "Dashboard übergreifende IAN-Suche";
         $subData['inp']['search_ausmusterung'] = $search_ausmusterung;
         $subData['inp']['search'] = $search;
@@ -6363,6 +6400,270 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
     public function showFilesAll() {
         cpcDebug::cpc_debug('showFilesAll','@DB');
         $role = Auth::user()->PPMitarbeiter_Role;
+        if (!isset($_COOKIE['TPTLanguage'])) {
+            $_COOKIE['TPTLanguage'] = Auth::user()->PPMitarbeiter_Language;
+        }
+        $lang = $_COOKIE['TPTLanguage'];
+        $isExtern = 0;
+        if (strpos($role,'INTERN') === false) {
+            $isExtern = 1;
+        }
+        $inp = Input::all();
+        /*
+        |--------------------------------------------------------------------------
+        | Defaults
+        |--------------------------------------------------------------------------
+        */
+        $subData['inp']['search_ausmusterung'] = '';
+        $subData['inp']['search'] = '';
+        $subData['inp']['search_name'] = '';
+        $subData['inp']['search_date'] = '';
+        $subData['inp']['search_status'] = '';
+        $subData['inp']['search_subkat'] = '';
+        $subData['inp']['search_type'] = '';
+        $subData['inp']['search_ord'] = '';
+        $subData['inp']['search_ian'] = '';
+        $subData['inp']['sort'] = 'ian';
+        $subData['inp']['dir'] = 'asc';
+        $search_ausmusterung = '';
+        $search = '';
+        $search_name = '';
+        $search_date = '';
+        $search_status = '';
+        $search_type = '';
+        $search_subkat = '';
+        $search_ord = '';
+        $search_ian = '';
+        /*
+        |--------------------------------------------------------------------------
+        | Sorting
+        |--------------------------------------------------------------------------
+        */
+        $allowedSorts = array(
+            'ian'            => 'PPProduktpass_IAN',
+            'ausmusterung'   => 'PPProduktpass_Ausmusterungnummer',
+            'status'         => 'InternerStatus',
+            'datum'          => 'FileDate',
+            'artikel'        => 'PPProduktpass_Artikelbezeichnung',
+            'dateiname'      => 'PPPPFiles_Name',
+            'bereich'        => 'PPPPFiles_Type',
+            'unterbereich'   => 'PPPPFiles_SubKat',
+            'kategorie'      => 'PPPPFiles_Ordnung'
+        );
+        $sort = isset($inp['sort'])
+            ? $inp['sort']
+            : 'ian';
+        $dir = isset($inp['dir'])
+            ? strtolower($inp['dir'])
+            : 'asc';
+        if (!array_key_exists($sort, $allowedSorts)) {
+            $sort = 'ian';
+        }
+        if (!in_array($dir, array('asc', 'desc'))) {
+            $dir = 'asc';
+        }
+        $sortColumn = $allowedSorts[$sort];
+        /*
+        |--------------------------------------------------------------------------
+        | Search Handling
+        |--------------------------------------------------------------------------
+        */
+        $sx = array();
+        $sx[] = $search;
+        if (isset($inp['IsPost'])) {
+            $search = isset($inp['search'])
+                ? $inp['search']
+                : '';
+            $search_name = isset($inp['search_name'])
+                ? $inp['search_name']
+                : '';
+            $sx[] = '%' . $search . '%';
+            /*
+            |--------------------------------------------------------------------------
+            | Wildcard permutations
+            |--------------------------------------------------------------------------
+            */
+            if (strpos($search,'%') !== false) {
+                $sx = explode('%',$search);
+                $this->index = 0;
+                $this->sxg = array();
+                $n = count($sx);
+                $this->heapPermutation($sx,$n,$n);
+                foreach($this->sxg as $key => $perm){
+                    $sx[$key] = '%';
+                    foreach($perm as $s1){
+                        $sx[$key] .= $s1 . '%';
+                    }
+                }
+            }
+            for($i = count($sx); $i <= 23; $i++){
+                $sx[$i] = '';
+            }
+            $search_ausmusterung = isset($inp['search_ausmusterung'])
+                ? $inp['search_ausmusterung']
+                : '';
+            $search_date = isset($inp['search_date'])
+                ? $inp['search_date']
+                : '';
+            $search_status = isset($inp['search_status'])
+                ? $inp['search_status']
+                : '';
+            $search_type = isset($inp['search_type'])
+                ? $inp['search_type']
+                : '';
+            $search_subkat = isset($inp['search_subkat'])
+                ? $inp['search_subkat']
+                : '';
+            $search_ord = isset($inp['search_ord'])
+                ? $inp['search_ord']
+                : '';
+            $search_ian = isset($inp['search_ian'])
+                ? $inp['search_ian']
+                : '';
+            DB::enableQueryLog();
+            /*
+            |--------------------------------------------------------------------------
+            | Query
+            |--------------------------------------------------------------------------
+            */
+            $subData['files'] = DB::table('v_FilesAll')
+                ->where(
+                    'PPProduktpass_Ausmusterungnummer',
+                    'like',
+                    $search_ausmusterung . '%'
+                )
+                ->where(
+                    'PPProduktpass_IAN',
+                    'like',
+                    $search_ian . '%'
+                )
+                ->where(
+                    'FileDate',
+                    'like',
+                    $search_date . '%'
+                )
+                ->where(
+                    'InternerStatus',
+                    'like',
+                    $search_status . '%'
+                )
+                ->where(
+                    'PPPPFiles_Type',
+                    'like',
+                    $search_type . '%'
+                )
+                ->where(
+                    'PPPPFiles_SubKat',
+                    'like',
+                    $search_subkat . '%'
+                )
+                ->where(
+                    'PPPPFiles_Ordnung',
+                    'like',
+                    $search_ord . '%'
+                )
+                ->where(
+                    'PPPPFiles_IsExtern',
+                    '>=',
+                    $isExtern
+                )
+                /*
+                |--------------------------------------------------------------------------
+                | NEW: Search by filename
+                |--------------------------------------------------------------------------
+                */
+                ->where(
+                    'PPPPFiles_Name',
+                    'like',
+                    '%' . $search_name . '%'
+                )
+                /*
+                |--------------------------------------------------------------------------
+                | Existing article/file search
+                |--------------------------------------------------------------------------
+                */
+                ->where(function($query) use ($search, $sx) {
+                    $query->where(
+                            'PPProduktpass_Artikelbezeichnung',
+                            'like',
+                            "$search%"
+                        )
+                        ->orWhere(
+                            'PPProduktpass_ArtikelTarga',
+                            'like',
+                            "$search%"
+                        )
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[0])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[1])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[2])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[3])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[4])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[5])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[6])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[7])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[8])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[9])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[10])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[11])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[12])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[13])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[14])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[15])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[16])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[17])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[18])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[19])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[20])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[21])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[22])
+                        ->orWhere('PPPPFiles_Name', 'like', $sx[23]);
+                })
+                /*
+                |--------------------------------------------------------------------------
+                | Sorting
+                |--------------------------------------------------------------------------
+                */
+                ->orderBy($sortColumn, $dir)
+                ->orderBy('PPProduktpass_PPProjekte_Projekt')
+                ->orderBy('PPProduktpass_IAN')
+                ->orderBy('PPProduktpass_Ausmusterungnummer')
+                ->get();
+            cpcDebug::cpc_debug(DB::getQueryLog(),'@DB');
+        } else {
+            $subData['files'] = null;
+        }
+        /*
+        |--------------------------------------------------------------------------
+        | Return input values to blade
+        |--------------------------------------------------------------------------
+        */
+        $subData['Header'] = "Datei Suche";
+        $subData['inp']['search_ausmusterung'] = $search_ausmusterung;
+        $subData['inp']['search'] = $search;
+        $subData['inp']['search_name'] = $search_name;
+        $subData['inp']['search_date'] = $search_date;
+        $subData['inp']['search_status'] = $search_status;
+        $subData['inp']['search_type'] = $search_type;
+        $subData['inp']['search_subkat'] = $search_subkat;
+        $subData['inp']['search_ord'] = $search_ord;
+        $subData['inp']['search_ian'] = $search_ian;
+        $subData['inp']['sort'] = $sort;
+        $subData['inp']['dir'] = $dir;
+        /*
+        |--------------------------------------------------------------------------
+        | View
+        |--------------------------------------------------------------------------
+        */
+        if (ServiceProvider::AuthUserHasRole('TESTER') ){
+                $data['content'] = View::make('projects.DateiUebersichtV2')->with('data', $subData);
+            } else {
+                $data['content'] = View::make('projects.DateiUebersicht')->with('data', $subData);
+            }
+            return View::make('main', $data);
+    }
+    /* public function showFilesAll_() {
+        cpcDebug::cpc_debug('showFilesAll','@DB');
+        $role = Auth::user()->PPMitarbeiter_Role;
         if (! isset($_COOKIE['TPTLanguage'])){
             $_COOKIE['TPTLanguage'] =  Auth::user()->PPMitarbeiter_Language; //'DE';
         } 
@@ -6395,13 +6696,6 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             $sx[] = '%'.$search.'%';
             if (strpos($search,'%')!== false){
                 $sx = explode('%',$search);
-                /*
-                for($i=0; $i<count($sx); $i++){
-                    $sx[$i] = '%'.$sx[$i].'%';
-                }
-                for($i=count($sx); $i<5; $i++){
-                    $sx[$i] = '';
-                }*/
                 $this->index = 0;
                 $this->sxg = array();
                 $n = count($sx);
@@ -6481,9 +6775,13 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $subData['inp']['search_subkat'] = $search_subkat;
         $subData['inp']['search_ord'] = $search_ord;
         $subData['inp']['search_ian'] = $search_ian;
-        $data['content'] = View::make('projects.DateiUebersicht')->with('data', $subData);
+        if (ServiceProvider::AuthUserHasRole('TESTER') ){
+            $data['content'] = View::make('projects.DateiUebersichtV2')->with('data', $subData);
+        } else {
+            $data['content'] = View::make('projects.DateiUebersicht')->with('data', $subData);
+        }
         return View::make('main', $data);
-    }
+    }*/
     private function heapPermutation($sx, $size, $n)
     {
         // if size becomes 1 then prints the obtained
@@ -6557,6 +6855,11 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $cv->save();
     }
     public function getMenge($ppid){
+        $lm = 0;
+        $laendermenge = DB::table('v_Laendergesamtmengen') ->where('PPProduktpass_Id', $ppid) ->first();
+        if ($laendermenge){
+                $lm = $laendermenge->LaenderGesamtmenge;
+        }
         $menge = PPProduktpass_Menge::where("PPProduktpass_Menge_PPProduktpass_Id", "=", $ppid)->orderBy('PPProduktpass_Menge_Id')->orderBy('PPProduktpass_Menge_Country')->get();
         if ($menge){
            // $mneu = array();
@@ -6575,13 +6878,13 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                             $ma[$m->PPProduktpass_Menge_Country] = $m;
                         }
                         $importDatum = new DateTime($ppAlt->PPProduktpass_RevisionDatum);
-                        return array('Menge' => $menge, 'MengeAlt' => $ma, 'Import' => $importDatum->format('d.m.Y'));
+                        return array('Menge' => $menge, 'MengeAlt' => $ma, 'Import' => $importDatum->format('d.m.Y'),'Laendermenge' => $lm);
                     }
                 }
             }
-            return array('Menge' => $menge, 'MengeAlt' => null, 'Import' => '');
-        }        
-        return array('Menge' => null, 'MengeAlt' => null);
+            return array('Menge' => $menge, 'MengeAlt' => null, 'Import' => '', 'Laendermenge' => $lm);
+        }
+        return array('Menge' => null, 'MengeAlt' => null, 'Laendermenge' => $lm);
     }
     private function setDiff ($m, $malt, $att){
         $color = 'black';
@@ -6681,5 +6984,29 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             return "<p>{$p}</p>";
         }, $paragraphs);
         return implode("\n", $paragraphs);
+    }
+    public function saveLogAdmin()
+    {
+        cpcDebug::cpc_debug('saveLogAdmin','-DB');
+        $produktpassId = Input::get('PPProduktpass_Id');
+        $mitarbeiterId = Input::get('PPMitarbeiter_Id');
+        cpcDebug::cpc_debug('saveLogAdmin: produktpassId='.$produktpassId.' mitarbeiterId='.$mitarbeiterId,'-DB');
+        if (empty($produktpassId)) {
+            return Response::json(array(
+                'success' => false,
+                'message' => 'PPProduktpass_Id fehlt.'
+            ), 400);
+        }
+        $updated = DB::table('tPPProduktpass')
+            ->where('PPProduktpass_Id', $produktpassId)
+            ->update(array(
+                'PPProduktpass_LogAdmin' => $mitarbeiterId !== ''
+                    ? $mitarbeiterId
+                    : null
+            ));
+        return Response::json(array(
+            'success' => true,
+            'updated' => $updated
+        ));
     }
 }

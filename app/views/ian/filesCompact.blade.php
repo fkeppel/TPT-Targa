@@ -336,8 +336,11 @@
                 </ul>
             </li>
         @endforeach
+        @if (ServiceProvider::AuthUserHasRole('INTERN') or ServiceProvider::AuthUserHasRole('EXTERN')) 
         <li>
             <div class='child' id='Datei-Protokoll'>{{ ServiceProvider::tl($lang, 'Datei-Protokoll') }}</div>
+        </li>
+        @endif
     </ul>
 </div>
 <div id="FilesParent" style='float:left;border:1px solid lightgray;width:87%;min-height:600px;overflow:auto;height: calc(100% - 50px);'>
