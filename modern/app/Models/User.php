@@ -19,7 +19,10 @@ class User extends Authenticatable
     protected $fillable = [
         'BISUser_Name',
         'BISUser_Vorname',
-        'BISUser_password',
+        'password',
         'BISUser_email',
-        'BISUser_username'];
+        'username',
+    ];
+
+    protected $hidden = ['password', 'remember_token'];
 }

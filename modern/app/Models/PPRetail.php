@@ -20,5 +20,6 @@ class PPRetail extends Model
         'PPRetail_Code',
         'PPRetail_CustMemoText1',
         'PPRetail_CustMemoText3',
-        'PPRetail_Name'];
+        'PPRetail_Name',
+    ];
 }

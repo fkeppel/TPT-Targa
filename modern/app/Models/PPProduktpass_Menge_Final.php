@@ -24,7 +24,6 @@ class PPProduktpass_Menge_Final extends Model
         'PPProduktpass_Menge_Quantity',
         'PPProduktpass_Menge_PackingMethod',
         'PPProduktpass_Menge_DeliveryWeek',
-        'PPProduktpass_Menge_Rotterdamk',
         'PPProduktpass_Menge_Barcelona',
         'PPProduktpass_Menge_Koper',
         'PPProduktpass_Menge_EKUSD',

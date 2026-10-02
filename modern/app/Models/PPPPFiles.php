@@ -22,5 +22,6 @@ class PPPPFiles extends Model
         'PPPPFiles_Date',
         'PPPPFiles_Description',
         'PPPPFiles_SubKat',
-        'PPPPFiles_Pfad'];
+        'PPPPFiles_Pfad',
+    ];
 }

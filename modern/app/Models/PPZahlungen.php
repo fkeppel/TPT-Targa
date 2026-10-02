@@ -25,7 +25,6 @@ class PPZahlungen extends Model
         'PPZahlungen_LCEroeffnung',
         'PPZahlungen_LCEroeffnungAlternativ',
         'PPZahlungen_Andienung',
-        'PPZahlungen_Fälligkeit',
         'PPZahlungen_ZahlungKunde',
         'PPZahlungen_BezahltBemerkung',
         'PPZahlungen_Betrag',

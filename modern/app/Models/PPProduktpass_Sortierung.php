@@ -61,7 +61,6 @@ class PPProduktpass_Sortierung extends Model
         'PPProduktpass_Sortierung_Size08',
         'PPProduktpass_Sortierung_Size09',
         'PPProduktpass_Sortierung_Size10',
-        'PPProduktpass_Sortierung_Version',
         'PPProduktpass_Sortierung_OSMengePL',
         'PPProduktpass_Sortierung_OSMengeSK',
     ];

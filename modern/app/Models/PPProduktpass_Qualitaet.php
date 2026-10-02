@@ -35,6 +35,5 @@ class PPProduktpass_Qualitaet extends Model
         'PPProduktpass_Qualitaet_Value13',
         'PPProduktpass_Qualitaet_Value14',
         'PPProduktpass_Qualitaet_Value15',
-
     ];
 }

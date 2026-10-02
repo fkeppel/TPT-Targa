@@ -47,8 +47,8 @@ class PPAB extends Model
         'PPAB_Aufteilung_Koper_IT',
         'PPAB_Produktionsstaette_LidlId',
         'PPAB_Anmerkung',
-        'PPAB_IsBWAuftrag', 'PPAB_BWGroesse',
+        'PPAB_IsBWAuftrag',
+        'PPAB_BWGroesse',
         'PPAB_UZRS',
-
     ];
 }

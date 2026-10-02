@@ -15,13 +15,4 @@ class PPLieferavis_Container_Content extends Model
     protected $keyType = 'int';
 
     public $timestamps = true;
-
-    protected $fillable = [
-        'PPLieferavis_MARM_SATNR',
-        'PPLieferavis_MARM_Laenge',
-        'PPLieferavis_MARM_Breite',
-        'PPLieferavis_MARM_Hoehe',
-        'PPLieferavis_MARM_Brutto',
-        'PPLieferavis_MARM_Netto',
-    ];
 }

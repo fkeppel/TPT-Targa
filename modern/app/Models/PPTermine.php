@@ -17,7 +17,6 @@ class PPTermine extends Model
     public $timestamps = true;
 
     protected $fillable = [
-
         'PPTermine_PPProduktpass_Id',
         'PPTermine_DatumStart',
         'PPTermine_DatumEnde',
@@ -30,8 +29,7 @@ class PPTermine extends Model
         'PPTermine_Bemerkungen',
         'created_at',
         'updated_at',
-        'PPTermine_PPBoardSpalte_Id',
+        'PPTermine_PPBoardSpalte_id',
         'PPTermine_History',
-
     ];
 }

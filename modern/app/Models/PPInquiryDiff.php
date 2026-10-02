@@ -21,6 +21,15 @@ class PPInquiryDiff extends Model
         'PPInquiryDiff_Header',
         'PPInquiryDiff_Row',
         'PPInquiryDiff_Version',
-        'PPInquiryDiff_Value_1', 'PPInquiryDiff_Value_2', 'PPInquiryDiff_Value_3', 'PPInquiryDiff_Value_4', 'PPInquiryDiff_Value_5', 'PPInquiryDiff_Value_6', 'PPInquiryDiff_Value_7', 'PPInquiryDiff_Value_8', 'PPInquiryDiff_Value_9', 'PPInquiryDiff_Value_10',
+        'PPInquiryDiff_Value_1',
+        'PPInquiryDiff_Value_2',
+        'PPInquiryDiff_Value_3',
+        'PPInquiryDiff_Value_4',
+        'PPInquiryDiff_Value_5',
+        'PPInquiryDiff_Value_6',
+        'PPInquiryDiff_Value_7',
+        'PPInquiryDiff_Value_8',
+        'PPInquiryDiff_Value_9',
+        'PPInquiryDiff_Value_10',
     ];
 }

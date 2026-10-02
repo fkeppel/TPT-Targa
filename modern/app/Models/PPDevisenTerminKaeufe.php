@@ -18,7 +18,6 @@ class PPDevisenTerminKaeufe extends Model
 
     protected $fillable = [
         'PPDevisenTerminKaeufe_Referenz',
-        'PPDevisenTerminKaeufe_AngelegtAm',
         'PPDevisenTerminKaeufe_Termin',
         'PPDevisenTerminKaeufe_Betrag',
         'PPDevisenTerminKaeufe_Kurs',

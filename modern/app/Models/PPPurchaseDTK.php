@@ -18,7 +18,6 @@ class PPPurchaseDTK extends Model
 
     protected $fillable = [
         'PPPurchaseDTK_PPProduktpass_id',
-        'PPPurchaseDTK_PPDevisenTerminKauf_Id',
         'PPPurchaseDTK_Betrag',
     ];
 }

@@ -17,6 +17,8 @@ class PPDictionary extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'PPDictionary_Language', 'PPDictionary_Eintrag', 'PPDictionary_Uebersetzung',
+        'PPDictionary_Language',
+        'PPDictionary_Eintrag',
+        'PPDictionary_Uebersetzung',
     ];
 }

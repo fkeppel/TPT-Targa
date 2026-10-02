@@ -17,7 +17,6 @@ class PPLieferavis extends Model
     public $timestamps = true;
 
     protected $fillable = [
-
         'PPLieferavis_ETD',
         'PPLieferavis_ETA',
         'PPLieferavis_POL',
@@ -26,12 +25,10 @@ class PPLieferavis extends Model
         'PPLieferavis_FrachtfuehrerId',
         'PPLieferavis_SpediteurId',
         'PPLieferavis_SeaAir',
-        'PPLieferavis_Schiffsnummer',
         'PPLieferavis_AvisNr',
         'PPLieferavis_Incoterm',
         'PPLieferavis_Incoterm2',
         'PPLieferavis_Abgangsland',
         'PPLieferavis_Remark',
-
     ];
 }
