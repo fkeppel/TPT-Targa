@@ -7,6 +7,10 @@
         --bg-colorStickyHigh: rgba(235, 244, 255, 1);
         --active-row: rgba(105, 162, 241, 0.35);
         --active-border: #2264af;
+        --flag-color-eu: #f59e0b;
+        --flag-color-os: #22c55e;
+        --flag-color-critical: #ef4444;
+        --color-project-ready: #009747;
     }
     .container{
         padding: 20px;
@@ -46,6 +50,7 @@
     .big-table thead th .th-label{
         display:block;
         margin-bottom:4px;
+        text-align: left;
     }
     .big-table thead th .head-filter{
         width:100%;
@@ -179,6 +184,11 @@
     }
     .inner-table td.col-text-sm,
     .inner-table th.col-text-sm { min-width: 110px; }
+    .inner-table td.col-lot,
+    .inner-table th.col-lot {
+        min-width: 84px;
+        max-width: 84px;
+    }
     .inner-table td.col-text-md,
     .inner-table th.col-text-md { min-width: 140px; }
     .inner-table td.col-text-lg,
@@ -250,47 +260,47 @@
         white-space:nowrap;
     }
     .btn-lot-flag.is-active[data-flag="EU_Serviceware"]{
-        background:#ff9800;
+        background:var(--flag-color-eu);
         color:white;
     }
     .btn-lot-flag.is-active[data-flag="OSProjekt"]{
-        background:#380694;
+        background:var(--flag-color-os);
         color:white;
     }
     .btn-lot-flag.is-active[data-flag="KritischesProjekt"]{
-        background:#f44336;
+        background:var(--flag-color-critical);
         color:white;
     }
     .js-shipment-row.flag-eu td{
-        background:#ff9800;
+        background:var(--flag-color-eu);
     }
-    .js-shipment-row.flag-usa td{
-        background:#380694;
+    .js-shipment-row.flag-os td{
+        background:var(--flag-color-os);
     }
     .js-shipment-row.flag-kritisch td{
-        background:#f44336;
+        background:var(--flag-color-critical);
     }
     .js-shipment-row {
         --marker-eu: transparent;
-        --marker-usa: transparent;
+        --marker-os: transparent;
         --marker-kritisch: transparent;
     }
     .js-shipment-row.flag-eu {
-        --marker-eu: #ff9800;
+        --marker-eu: var(--flag-color-eu);
     }
-    .js-shipment-row.flag-usa {
-        --marker-usa: #380694;
+    .js-shipment-row.flag-os {
+        --marker-os: var(--flag-color-os);
     }
     .js-shipment-row.flag-kritisch {
-        --marker-kritisch: #f44336;
+        --marker-kritisch: var(--flag-color-critical);
     }
     .js-shipment-row.shipment-done td{
-        background:#c8f0c8 !important;
+        background:var(--color-project-ready) !important;
     }
     .js-shipment-row td[data-field="PPShipment_Lot"] {
         box-shadow:
             inset 8px 0 0 var(--marker-eu),
-            inset 16px 0 0 var(--marker-usa),
+            inset 16px 0 0 var(--marker-os),
             inset 24px 0 0 var(--marker-kritisch);
         padding-left: 36px;
     }
@@ -352,6 +362,40 @@
     .btn-danger-icon svg {
         display: block;
     }
+    .btn-complete-icon {
+        margin-top: 4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        background: #28a745;
+        border: 1px solid #1f8a39;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background-color .2s;
+    }
+    .btn-complete-icon:hover {
+        background: #218838;
+    }
+    .btn-complete-icon.is-open {
+        background: #6c757d;
+        border-color: #5a6268;
+    }
+    .btn-complete-icon.is-open:hover {
+        background: #5a6268;
+    }
+    .btn-complete-icon:active {
+        background: #1e7e34;
+    }
+    .btn-complete-icon:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(40,167,69,.3);
+    }
+    .btn-complete-icon svg {
+        display: block;
+    }
     /* Projekt-Accordion */
     .project-accordion{
         width:100%;
@@ -400,6 +444,9 @@
     }
     .accordion-summary{
         cursor:pointer;
+        --summary-marker-eu: transparent;
+        --summary-marker-os: transparent;
+        --summary-marker-critical: transparent;
     }
     .accordion-summary:hover > div{
         filter:brightness(.985);
@@ -412,6 +459,37 @@
     }
     .accordion-summary.has-shipments > div:first-child{
         box-shadow:inset 6px 0 0 #3aa76d;
+        position: relative;
+    }
+    .accordion-summary.has-lot-eu{
+        --summary-marker-eu:var(--flag-color-eu);
+    }
+    .accordion-summary.has-lot-os{
+        --summary-marker-os:var(--flag-color-os);
+    }
+    .accordion-summary.has-lot-critical{
+        --summary-marker-critical:var(--flag-color-critical);
+    }
+    .accordion-summary.has-lot-flags > div:first-child::after{
+        content:'';
+        position:absolute;
+        left:0;
+        top:0;
+        bottom:0;
+        width:6px;
+        pointer-events:none;
+        background:linear-gradient(
+            to bottom,
+            var(--summary-marker-eu) 0%,
+            var(--summary-marker-eu) 33.333%,
+            var(--summary-marker-os) 33.333%,
+            var(--summary-marker-os) 66.666%,
+            var(--summary-marker-critical) 66.666%,
+            var(--summary-marker-critical) 100%
+        );
+    }
+    .accordion-summary.status-zero > div{
+        background:#c8f0c8 !important;
     }
     .accordion-panel[hidden]{
         display:none;
@@ -442,11 +520,26 @@
         padding:20px;
     }
     .page-title{
-        margin:0 0 4px;
+        margin:0 0 15px 0px;
         font-size:22px;
         font-weight:500;
         color:#34495e;
         letter-spacing:.3px;
+        text-align: left;   
+    }
+    #projekts-table *,
+    .filter-bar * {
+        border-radius: 0 !important;
+    }
+    .container {
+        margin-top:30px;
+    }
+    .filter-field label,
+    .accordion-head .th-label {
+        text-align: left;
+    }
+    .accordion-summary:not([aria-expanded="true"]):not(.status-zero) > div {
+        background-color: transparent !important;
     }
 </style>
 <?php
@@ -455,7 +548,7 @@
     $masterKey = 'PPProduktpass_Id';
     $detailKey = 'PPProduktpass_Id';
     $SHIP_FIELDS = array(
-        array('key' => 'PPShipment_Lot',                                'label' => 'Lot',                           'type' => 'text',      'class' => 'col-text-sm'),
+        array('key' => 'PPShipment_Lot',                                'label' => 'Lot',                           'type' => 'text',      'class' => 'col-lot'),
         array('key' => 'PPShipment_Quantity',                           'label' => 'Quantity',                      'type' => 'number',    'class' => 'col-number'),
         array('key' => 'PPShipment_BatteryType',                        'label' => 'BatteryType',                   'type' => 'text',      'class' => 'col-text-md'),
         array('key' => 'PPShipment_MasterCartonContents',               'label' => 'Master Carton Contents',        'type' => 'text',      'class' => 'col-text-lg'),
@@ -540,12 +633,13 @@
     $SHIP_FIELDS_JSON  = htmlspecialchars(json_encode($SHIP_FIELDS), ENT_QUOTES, 'UTF-8');
     $SHIP_OPTIONS_JSON = htmlspecialchars(json_encode($SHIP_OPTIONS), ENT_QUOTES, 'UTF-8');
 ?>
-<h1 class='page-title'>{{ $data['title'] }} </h1>
 <div class="container">
+    <h1 class='page-title'>{{ $data['title'] }}</h1>
      <div class="filter-bar" role="region" aria-label="Filter">
         <div class="filter-actions">
             <button type="button" class="btn" id="filter-reset">Reset</button>
             <a href="{{ URL::to('/shipFlat') }}" class="btn">Flat View</a>
+            <a href="{{ URL::to('/showFrmNewOrder') }}" class="btn" target="_blank">Neues Schwarz Projekt</a>
             <a href="{{ URL::to('/shipArchive') }}" class="btn">Archive</a>
         </div>
         <div class="muted" id="filter-count" aria-live="polite"></div>
@@ -606,7 +700,59 @@
                             return (string)$s->{$detailKey} === (string)$masterVal;
                         });
                         $projektShipments = array_values($projektShipments);
+                        $uniqueShipments = array();
+                        $seenShipmentKeys = array();
+                        foreach ($projektShipments as $shipmentRow) {
+                            $shipmentId = is_array($shipmentRow)
+                                ? (isset($shipmentRow['PPShipment_Id']) ? trim((string)$shipmentRow['PPShipment_Id']) : '')
+                                : (isset($shipmentRow->PPShipment_Id) ? trim((string)$shipmentRow->PPShipment_Id) : '');
+                            if ($shipmentId !== '') {
+                                $shipmentKey = 'id:' . $shipmentId;
+                            } else {
+                                $shipmentKey = 'row:' . md5(json_encode($shipmentRow));
+                            }
+                            if (isset($seenShipmentKeys[$shipmentKey])) {
+                                continue;
+                            }
+                            $seenShipmentKeys[$shipmentKey] = true;
+                            $uniqueShipments[] = $shipmentRow;
+                        }
+                        $projektShipments = $uniqueShipments;
                         $hasShip = count($projektShipments) > 0;
+                        $hasLotEu = false;
+                        $hasLotOs = false;
+                        $hasLotCritical = false;
+                        $hasStatusZero = false;
+                        foreach ($projektShipments as $shipFlag) {
+                            $flagEu = is_array($shipFlag)
+                                ? !empty($shipFlag['PPShipment_Flag_EUService'])
+                                : !empty($shipFlag->PPShipment_Flag_EUService);
+                            $flagOs = is_array($shipFlag)
+                                ? !empty($shipFlag['PPShipment_Flag_OS'])
+                                : !empty($shipFlag->PPShipment_Flag_OS);
+                            $flagCritical = is_array($shipFlag)
+                                ? !empty($shipFlag['PPShipment_Flag_Critical'])
+                                : !empty($shipFlag->PPShipment_Flag_Critical);
+                            $shipmentStatus = is_array($shipFlag)
+                                ? (isset($shipFlag['PPShipment_Status']) ? trim((string)$shipFlag['PPShipment_Status']) : '')
+                                : (isset($shipFlag->PPShipment_Status) ? trim((string)$shipFlag->PPShipment_Status) : '');
+                            if (!$hasLotEu && $flagEu) {
+                                $hasLotEu = true;
+                            }
+                            if (!$hasLotOs && $flagOs) {
+                                $hasLotOs = true;
+                            }
+                            if (!$hasLotCritical && $flagCritical) {
+                                $hasLotCritical = true;
+                            }
+                            if (!$hasStatusZero && $shipmentStatus === '0') {
+                                $hasStatusZero = true;
+                            }
+                            if ($hasLotEu && $hasLotOs && $hasLotCritical && $hasStatusZero) {
+                                break;
+                            }
+                        }
+                        $hasLotFlags = $hasLotEu || $hasLotOs || $hasLotCritical;
                         $curIan = isset($projekt->IAN) ? (string)$projekt->IAN : '';
                         if ($prevIan === null) $prevIan = $curIan;
                         if ($curIan !== $prevIan) {
@@ -623,7 +769,7 @@
                         $logVal = isset($projekt->LogAdmin) ? trim((string)$projekt->LogAdmin) : '';
                     ?>
                     <section class="accordion-item">
-                        <div class="row-toggle accordion-summary {{ $hasShip ? 'has-shipments' : '' }}"
+                        <div class="row-toggle accordion-summary {{ $hasShip ? 'has-shipments' : '' }} {{ $hasLotFlags ? 'has-lot-flags' : '' }} {{ $hasLotEu ? 'has-lot-eu' : '' }} {{ $hasLotOs ? 'has-lot-os' : '' }} {{ $hasLotCritical ? 'has-lot-critical' : '' }} {{ $hasStatusZero ? 'status-zero' : '' }}"
                             data-target="{{ $detailRowId }}"
                             data-ian="{{ e($ianVal) }}"
                             data-artikel="{{ e($artVal) }}"
@@ -638,9 +784,9 @@
                             tabindex="0"
                             style="background-color: var({{ $bgVar }});">
                             <div class="chevron-cell"><span class="chevron">▸</span></div>
-                            <div>{{ $projekt->IAN }}</div>
+                            <div><a href="{{ URL::to('show/' . $projekt->IAN.'_'. $projekt->Ausmusterung) }}" target="_blank" class="btn btn-mini" style="padding-top:8px;font-weight:bold;">{{ substr($projekt->IAN,0,6) }}</a></div>
                             <div>{{ $projekt->Ausmusterung }}</div>
-                            <div>{{ $projekt->Artikelbezeichnung }}</div>
+                            <div style="text-align: left;">{{ $projekt->Artikelbezeichnung }}</div>
                             <div>{{ $projekt->TargaStatus }}</div>
                             <div>{{ $projekt->PMAdmin }}</div>
                             <div>{{ $projekt->TCAdmin }}</div>
@@ -671,6 +817,7 @@
                                     data-master-id="{{ $masterVal }}"
                                     data-save-url="{{ URL::to('/saveLot') }}"
                                     data-delete-url="{{ URL::to('/deleteLot') }}"
+                                    data-complete-url="{{ URL::to('/shipmentComplete') }}"
                                     data-fields="{{ $SHIP_FIELDS_JSON }}"
                                     data-options="{{ $SHIP_OPTIONS_JSON }}">
                                 Add
@@ -686,13 +833,13 @@
                             <table class="inner-table" aria-label="Lot-Daten">
                                 <thead>
                                     <tr>
+                                        <th>Aktionen</th>
                                         @foreach($SHIP_FIELDS as $f)
                                             <th class="{{ e(isset($f['class']) ? $f['class'] : '') }}"
                                                 title="{{ e($f['label']) }}">
                                                 <span>{{ $f['label'] }}</span>
                                             </th>
                                         @endforeach
-                                        <th>Aktionen</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -701,13 +848,84 @@
                                             $shipId = is_array($shipment)
                                                 ? (isset($shipment['PPShipment_Id']) ? $shipment['PPShipment_Id'] : null)
                                                 : (isset($shipment->PPShipment_Id) ? $shipment->PPShipment_Id : null);
+                                            $shipStatusRaw = is_array($shipment)
+                                                ? (isset($shipment['PPShipment_ShipmentStatus']) ? $shipment['PPShipment_ShipmentStatus'] : '')
+                                                : (isset($shipment->PPShipment_ShipmentStatus) ? $shipment->PPShipment_ShipmentStatus : '');
+                                            $shipStatusNorm = strtolower(trim((string)$shipStatusRaw));
+                                            $shipDone = ($shipStatusNorm === 'erledigt' || $shipStatusNorm === '1');
+                                            $completeLabel = $shipDone ? 'Erledigt' : 'Offen';
                                         ?>
-                                        <tr class="js-shipment-row {{ strtolower(trim($shipment->PPShipment_ShipmentStatus ?? '')) == 'erledigt' ? 'shipment-done' : '' }}"
+                                        <tr class="js-shipment-row {{ $shipDone ? 'shipment-done' : '' }}"
                                             data-shipment-id="{{ $shipId }}"
                                             data-master-id="{{ $masterVal }}"
+                                            data-shipment-done="{{ $shipDone ? 1 : 0 }}"
                                             data-eu-serviceware="{{ !empty($shipment->PPShipment_Flag_EUService) ? 1 : 0 }}"
                                             data-os-projekt="{{ !empty($shipment->PPShipment_Flag_OS) ? 1 : 0 }}"
                                             data-kritisches-projekt="{{ !empty($shipment->PPShipment_Flag_Critical) ? 1 : 0 }}">
+                                                <td>
+                                                    <button type="button"
+                                                            class="btn btn-mini btn-lot-flag {{ !empty($shipment->PPShipment_Flag_EUService) ? 'is-active' : '' }}"
+                                                            data-flag="EU_Serviceware">
+                                                        EU
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-mini btn-lot-flag {{ !empty($shipment->PPShipment_Flag_OS) ? 'is-active' : '' }}"
+                                                            data-flag="OSProjekt">
+                                                        OS
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-mini btn-lot-flag {{ !empty($shipment->PPShipment_Flag_Critical) ? 'is-active' : '' }}"
+                                                            data-flag="KritischesProjekt">
+                                                        !
+                                                    </button>
+                                                    <button
+                                                    type="button"
+                                                    class="btn btn-complete-icon js-complete-shipment {{ $shipDone ? 'is-open' : '' }}"
+                                                    data-complete-url="{{ URL::to('/shipmentComplete') }}"
+                                                    aria-label="{{ $completeLabel }}"
+                                                    title="{{ $completeLabel }}"
+                                                >
+                                                    <svg
+                                                        width="12"
+                                                        height="12"
+                                                        viewBox="0 0 24 24"
+                                                        aria-hidden="true"
+                                                        focusable="false"
+                                                    >
+                                                        <path
+                                                            d="M5 13L10 18L19 7"
+                                                            fill="none"
+                                                            stroke="#fff"
+                                                            stroke-width="3"
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                        />
+                                                    </svg>
+                                                </button>
+                                                    <button
+                                                    type="button"
+                                                    class="btn btn-danger-icon js-remove-shipment"
+                                                    data-delete-url="{{ URL::to('/deleteLot') }}"
+                                                    aria-label="Entfernen"
+                                                    title="Entfernen"
+                                                >
+                                                    <svg
+                                                        width="12"
+                                                        height="12"
+                                                        viewBox="0 0 24 24"
+                                                        aria-hidden="true"
+                                                        focusable="false"
+                                                    >
+                                                        <path
+                                                            d="M6 6L18 18M18 6L6 18"
+                                                            fill="none"
+                                                            stroke="#fff"
+                                                            stroke-width="3"
+                                                            stroke-linecap="round"
+                                                        />
+                                                    </svg>
+                                                </button>
+                                                </td>
                                             @foreach($SHIP_FIELDS as $f)
                                                 <?php
                                                     $k = $f['key'];
@@ -804,46 +1022,6 @@
                                                     @endif
                                                 </td>
                                             @endforeach
-                                                <td>
-                                                    <button type="button"
-                                                            class="btn btn-mini btn-lot-flag {{ !empty($shipment->PPShipment_Flag_EUService) ? 'is-active' : '' }}"
-                                                            data-flag="EU_Serviceware">
-                                                        EU
-                                                    </button>
-                                                    <button type="button"
-                                                            class="btn btn-mini btn-lot-flag {{ !empty($shipment->PPShipment_Flag_OS) ? 'is-active' : '' }}"
-                                                            data-flag="OSProjekt">
-                                                        OS
-                                                    </button>
-                                                    <button type="button"
-                                                            class="btn btn-mini btn-lot-flag {{ !empty($shipment->PPShipment_Flag_Critical) ? 'is-active' : '' }}"
-                                                            data-flag="KritischesProjekt">
-                                                        !
-                                                    </button>
-                                                    <button
-                                                    type="button"
-                                                    class="btn btn-danger-icon js-remove-shipment"
-                                                    data-delete-url="{{ URL::to('/deleteLot') }}"
-                                                    aria-label="Entfernen"
-                                                    title="Entfernen"
-                                                >
-                                                    <svg
-                                                        width="12"
-                                                        height="12"
-                                                        viewBox="0 0 24 24"
-                                                        aria-hidden="true"
-                                                        focusable="false"
-                                                    >
-                                                        <path
-                                                            d="M6 6L18 18M18 6L6 18"
-                                                            fill="none"
-                                                            stroke="#fff"
-                                                            stroke-width="3"
-                                                            stroke-linecap="round"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                                </td>
                                         </tr>
                                     @empty
                                         <tr class="no-rows">
@@ -976,17 +1154,56 @@
                 }
                 return v;
             }
+            function isShipmentDoneStatusValue(v){
+                var normalized = (v || '').toString().trim().toLowerCase();
+                return normalized === 'erledigt' || normalized === '1';
+            }
+            function updateCompleteButtonState(tr, forceDone){
+                if (!tr) return;
+                var btn = tr.querySelector('.js-complete-shipment');
+                if (!btn) return;
+                var done;
+                if (typeof forceDone === 'boolean') {
+                    done = forceDone;
+                } else {
+                    var doneAttr = tr.getAttribute('data-shipment-done');
+                    if (doneAttr !== null && doneAttr !== '') {
+                        done = doneAttr === '1';
+                    } else {
+                        var statusCtrl = tr.querySelector('[data-field="PPShipment_ShipmentStatus"]');
+                        done = statusCtrl
+                            ? isShipmentDoneStatusValue(statusCtrl.value || '')
+                            : tr.classList.contains('shipment-done');
+                    }
+                }
+                var label = done ? 'Erledigt' : 'Offen';
+                btn.setAttribute('aria-label', label);
+                btn.setAttribute('title', label);
+                btn.classList.toggle('is-open', done);
+            }
+            function getShipmentDoneState(tr){
+                if (!tr) return false;
+                var doneAttr = tr.getAttribute('data-shipment-done');
+                if (doneAttr !== null && doneAttr !== '') {
+                    return doneAttr === '1';
+                }
+                var statusCtrl = tr.querySelector('[data-field="PPShipment_ShipmentStatus"]');
+                if (statusCtrl) {
+                    return isShipmentDoneStatusValue(statusCtrl.value || '');
+                }
+                return tr.classList.contains('shipment-done');
+            }
             function setRowState(tr, state){
                 tr.classList.remove('is-saving','is-saved','is-error');
                 if (state) tr.classList.add(state);
             }
             function updateLotMarker(tr) {
-                tr.classList.remove('flag-eu', 'flag-usa', 'flag-kritisch');
+                tr.classList.remove('flag-eu', 'flag-os', 'flag-kritisch');
                 if (tr.getAttribute('data-eu-serviceware') === '1') {
                     tr.classList.add('flag-eu');
                 }
                 if (tr.getAttribute('data-os-projekt') === '1') {
-                    tr.classList.add('flag-usa');
+                    tr.classList.add('flag-os');
                 }
                 if (tr.getAttribute('data-kritisches-projekt') === '1') {
                     tr.classList.add('flag-kritisch');
@@ -994,6 +1211,10 @@
             }
             document.querySelectorAll('tr.js-shipment-row').forEach(function(tr){
                 updateLotMarker(tr);
+                updateCompleteButtonState(tr);
+            });
+            document.querySelectorAll('.detail-content').forEach(function(detail){
+                updateMasterShipmentState(detail);
             });
             function getMasterRowFromDetail(detailContent){
                 if (!detailContent) return null;
@@ -1007,11 +1228,29 @@
                 var tbody = detailContent.querySelector('tbody');
                 if (!tbody) return;
                 var rows = tbody.querySelectorAll('tr.js-shipment-row');
+                var hasEu = false;
+                var hasOs = false;
+                var hasCritical = false;
                 if (rows.length > 0) {
                     masterRow.classList.add('has-shipments');
                 } else {
                     masterRow.classList.remove('has-shipments');
                 }
+                rows.forEach(function(row){
+                    if (!hasEu && row.getAttribute('data-eu-serviceware') === '1') {
+                        hasEu = true;
+                    }
+                    if (!hasOs && row.getAttribute('data-os-projekt') === '1') {
+                        hasOs = true;
+                    }
+                    if (!hasCritical && row.getAttribute('data-kritisches-projekt') === '1') {
+                        hasCritical = true;
+                    }
+                });
+                masterRow.classList.toggle('has-lot-eu', hasEu);
+                masterRow.classList.toggle('has-lot-os', hasOs);
+                masterRow.classList.toggle('has-lot-critical', hasCritical);
+                masterRow.classList.toggle('has-lot-flags', hasEu || hasOs || hasCritical);
             }
             function ensureEmptyRow(detailContent){
                 var tbody = detailContent.querySelector('tbody');
@@ -1150,11 +1389,12 @@
                         markRowClean(tr);
                         var status = tr.querySelector('[data-field="PPShipment_ShipmentStatus"]');
                         if (status) {
-                            if ((status.value || '').trim().toLowerCase() === 'erledigt') {
+                            if (isShipmentDoneStatusValue(status.value || '')) {
                                 tr.classList.add('shipment-done');
                             } else {
                                 tr.classList.remove('shipment-done');
                             }
+                            updateCompleteButtonState(tr);
                         }
                         setRowState(tr, 'is-saved');
                         updateMasterShipmentState(detail);
@@ -1326,6 +1566,35 @@
                 tr.setAttribute('data-eu-serviceware', '0');
                 tr.setAttribute('data-os-projekt', '0');
                 tr.setAttribute('data-kritisches-projekt', '0');
+                var act = document.createElement('td');
+                [
+                    ['EU_Serviceware', 'EU'],
+                    ['OSProjekt', 'OS'],
+                    ['KritischesProjekt', '!']
+                ].forEach(function(item){
+                    var b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'btn btn-mini btn-lot-flag';
+                    b.setAttribute('data-flag', item[0]);
+                    b.textContent = item[1];
+                    act.appendChild(b);
+                });
+                var completeBtn = document.createElement('button');
+                completeBtn.type = 'button';
+                completeBtn.className = 'btn btn-complete-icon js-complete-shipment';
+                completeBtn.setAttribute('data-complete-url', btn.getAttribute('data-complete-url') || '/shipmentComplete');
+                completeBtn.setAttribute('aria-label', 'Offen');
+                completeBtn.setAttribute('title', 'Offen');
+                completeBtn.classList.add('is-open');
+                completeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 13L10 18L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                act.appendChild(completeBtn);
+                var rm = document.createElement('button');
+                rm.type = 'button';
+                rm.className = 'btn btn-mini js-remove-shipment';
+                rm.textContent = 'Remove';
+                rm.setAttribute('data-delete-url', btn.getAttribute('data-delete-url') || '/deleteLot');
+                act.appendChild(rm);
+                tr.appendChild(act);
                 fields.forEach(function(f){
                     var td = document.createElement('td');
                     td.setAttribute('data-field', f.key);
@@ -1404,32 +1673,62 @@
                     }
                     tr.appendChild(td);
                 });
-                var act = document.createElement('td');
-                [
-                    ['EU_Serviceware', 'EU'],
-                    ['OSProjekt', 'USA'],
-                    ['KritischesProjekt', '!']
-                ].forEach(function(item){
-                    var b = document.createElement('button');
-                    b.type = 'button';
-                    b.className = 'btn btn-mini btn-lot-flag';
-                    b.setAttribute('data-flag', item[0]);
-                    b.textContent = item[1];
-                    act.appendChild(b);
-                });
-                var rm = document.createElement('button');
-                rm.type = 'button';
-                rm.className = 'btn btn-mini js-remove-shipment';
-                rm.textContent = 'Remove';
-                rm.setAttribute('data-delete-url', btn.getAttribute('data-delete-url') || '/deleteLot');
-                act.appendChild(rm);
-                tr.appendChild(act);
                 tbody.appendChild(tr);
                 ensureEmptyRow(detail);
                 updateMasterShipmentState(detail);
                 updateLotMarker(tr);
                 var first = tr.querySelector('.js-ship-input');
                 if (first) first.focus();
+            });
+            document.addEventListener('click', function(e){
+                var completeBtn = e.target.closest && e.target.closest('.js-complete-shipment');
+                if (!completeBtn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                var tr = completeBtn.closest('tr.js-shipment-row');
+                if (!tr) return;
+                var shipId = (tr.getAttribute('data-shipment-id') || '').trim();
+                if (!shipId) {
+                    alert('Bitte Lot zuerst speichern.');
+                    return;
+                }
+                var currentlyDone = getShipmentDoneState(tr);
+                if (!confirm(currentlyDone ? 'Lot als offen markieren?' : 'Lot als erledigt markieren?')) return;
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', completeBtn.getAttribute('data-complete-url') || '/shipmentComplete', true);
+                xhr.setRequestHeader('Content-Type','application/json');
+                xhr.setRequestHeader('X-CSRF-TOKEN', CSRF);
+                xhr.onreadystatechange = function(){
+                    if (xhr.readyState !== 4) return;
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        var nextStatus = currentlyDone ? '0' : '1';
+                        try {
+                            var res = JSON.parse(xhr.responseText || '{}');
+                            if (res && Object.prototype.hasOwnProperty.call(res, 'PPShipment_ShipmentStatus')) {
+                                nextStatus = String(res.PPShipment_ShipmentStatus).trim();
+                            }
+                        } catch (e) {}
+                        var isDoneNow = isShipmentDoneStatusValue(nextStatus);
+                        if (isDoneNow) {
+                            tr.classList.add('shipment-done');
+                        } else {
+                            tr.classList.remove('shipment-done');
+                        }
+                        tr.setAttribute('data-shipment-done', isDoneNow ? '1' : '0');
+                        var statusCtrl = tr.querySelector('[data-field="PPShipment_ShipmentStatus"]');
+                        if (statusCtrl) {
+                            statusCtrl.value = nextStatus;
+                            statusCtrl.setAttribute('data-original', nextStatus);
+                            statusCtrl.classList.remove('is-dirty');
+                        }
+                        updateCompleteButtonState(tr, isDoneNow);
+                    } else {
+                        console.error('shipmentComplete failed', xhr.status, xhr.responseText);
+                    }
+                };
+                xhr.send(JSON.stringify({
+                    PPShipment_Id: shipId
+                }));
             });
             document.addEventListener('click', function(e){
                 var btn = e.target.closest && e.target.closest('.js-remove-shipment');

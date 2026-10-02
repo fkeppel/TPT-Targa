@@ -1,17 +1,43 @@
  <style>
     .icon-button {
-        background: none;
-        border: none;
-        padding: 0;
-        margin-right: 40px;
-        margin-left: -40px;
-        cursor: pointer;
-        color: #666;
         width: 24px;
         height: 24px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #000; /* übernimmt currentColor */
     }
-    .icon-button:hover {
-        color: #0067b8; /* SharePoint-Blau */
+    .icon-button svg {
+        width: 24px;
+        height: 24px;
+        display: block;
+    }
+    .file-entry {
+    border: none;
+    padding: 0 0 0 10px;
+    margin-left: 10px;
+    font-size: 0.9em;
+    display: block;
+    width: calc(100% - 25px);
+    }
+    .file-entry-name {
+        font-size: 0.5vw;
+        border: none;
+        font-weight: bold;
+        height: auto;
+        overflow: auto;
+        overflow-wrap: anywhere;
+        min-width: calc(100% - 25px);
+    }
+    .file-entry-status {
+        display: inline-block;
+        margin-top: 8px;
+        color: green;
+        font-size: 0.5vw;
     }
 </style>
  @foreach ( $data['files']['types'] as $type) 
@@ -145,7 +171,7 @@
                                 if (!file_exists(public_path().$dllogo)){
                                     $dllogo    = "/images/default.png";
                                 }
-                                $lc = '#';
+                                $lc = isset($data['FilesLastChange']['Status']) ? $data['FilesLastChange']['Status'] : '#';
                                 if (isset($data['FilesLastChange'][$file['PPPPFiles_Name']])){
                                     $lc = 'SPO: ' .  $data['FilesLastChange'][$file['PPPPFiles_Name']];
                                 }
@@ -209,19 +235,20 @@
                                                         <path d="M14 11v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                         <path d="M9 7h6" stroke="currentColor" stroke-width="1" opacity="0.4"/>
                                                         </svg>';
-                                                        $copyLink = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="margin-left:50px;">
+                                                        $copyLink = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="">
                                                                         <path d="M10 13a4 4 0 0 1 0-6l2-2a4 4 0 0 1 6 6l-1 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                                         <path d="M14 11a4 4 0 0 1 0 6l-2 2a4 4 0 0 1-6-6l1-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                                         <path d="M9 15l6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.4"/>
                                                                     </svg>';
                                                     ?>
                                                     @if(strlen($file['PPPPFiles_SharePointLink'])>0)
-                                                    <div style="border:none;padding:0px;padding-left:10px;margin-left:10px;font-size:0.9em;display:block;height:65px;width:calc(100% - 25px);">
+                                                    <div style="border:none;padding:0px;padding-left:10px;margin-left:10px;font-size:0.9em;display:block;width:calc(100% - 25px);">
                                                             <div id='fnBox_{{$file['PPPPFiles_Id']}}' style='font-size:0.5vw;border:none;font-weight:bold;height:auto;overflow: auto;overflow-wrap: anywhere;min-width:calc(100% - 25px);color:{{$externColor}};' title='{{ $file['PPPPFiles_Name'] }}'>
                                                                {{ $file['PPPPFiles_Name'] }}</div>
                                                             <br><br>
                                                             <a id="Link3_{{ $file['PPPPFiles_Id'] }}" href="{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 1) }}" target="_blank" title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}" >{{ $browser }}</a>
                                                             <button
+                                                                style='width:30px;border:none;margin-left:10px;'
                                                                 type="button"
                                                                 class="icon-button"
                                                                 onclick="copyToClipboard('{{ ViewController::getSpoLink($file['PPPPFiles_Id'], 5) }}')" title="Kopie in Zwischenablage">
@@ -247,10 +274,16 @@
                                                         @if ($type['Type'] == 'PPUpload')
                                                             {{ $file['PPPPFiles_Name'] }}
                                                         @else
-                                                            <div style="border:none;padding:0px;padding-left:10px;margin-left:10px;font-size:0.9em;display:block;height:65px;width:calc(100% - 25px);">
-                                                            <div style='font-size:0.5vw;border:none;font-weight:bold;height:auto;overflow: auto;overflow-wrap: anywhere;min-width:calc(100% - 25px);' title='{{ $file['PPPPFiles_Name'] }}'>{{ substr($file['PPPPFiles_Name'],7) }}</div>
-                                                            <br><br>
-                                                            <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');" title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}">{{ $browser }}</a>
+                                                            <div class="file-entry">
+                                                                <div
+                                                                    id="fnBox_{{ $file['PPPPFiles_Id'] }}"
+                                                                    class="file-entry-name"
+                                                                    style="color:{{ $externColor }};"
+                                                                    title="{{ $file['PPPPFiles_Name'] }}"
+                                                                >
+                                                                    {{ substr($file['PPPPFiles_Name'], 7) }}
+                                                                </div>
+                                                                 <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');" title="{{ ServiceProvider::tl($lang,'Oeffnen im Browser')}}">{{ $browser }}</a>
                                                             @if ($showEdit2)
                                                             <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');" title="{{ ServiceProvider::tl($lang,'Oeffnen in App (wenn hinterlegt)')}}">{{ $app }}</a>
                                                             <a href="#" onclick="plsWait('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');" title="{{ ServiceProvider::tl($lang,'DOWNLOAD')}}">{{$download}}</a>
@@ -261,7 +294,7 @@
                                                             <br>
                                                             <span style='color:green;font-size:0.5vw'>{{ServiceProvider::tl($lang,'Datei wurde auf den lokalen Server geladen und wird in den naechsten Minuten zum Sharepoint Server uebertragen')}}</span>
                                                             <button type='button' onclick="refreshFiles('{{$data['pp']['PPProduktpass_Id']}}','{{$kat['Kategorie']}}');">Refresh</button>
-                                                    </div>
+                                                            </div>
                                                         @endif<br>
                                                     @endif
                                                 </div>
@@ -276,16 +309,16 @@
                                                         <div style="border:none;padding:0px;height:calc(100% - 4px); ">
                                                             @if($isSharepoint)
                                                                 <a href="{{  ViewController::getSpoLink($file['PPPPFiles_Id'],1) }}" download="{{ViewController::getSpoDLName($file['PPPPFiles_Id'],1)}}" target="_blank">
-                                                                    <img src="{{url($dllogo)}}" style="height:90%;width:auto;border:none;">
+                                                                    <img src="{{url($dllogo)}}" style="height:85px;width:auto;border:none;">
                                                                 </a>
                                                             @else 
                                                                 @if ($type['Type'] == 'PPUpload')
                                                                     <a href="{{$server.'/data/'.$file['PPPPFiles_Pfad'].'/'.$file['PPPPFiles_TPTFilenameOld']}}" download="{{$file['PPPPFiles_TPTFilenameOld']}}" target="_blank">
-                                                                        <img src="url($spo_file)" style="height:90%;width:auto;border:none;">
+                                                                        <img src="url($spo_file)" style="height:85px;width:auto;border:none;">
                                                                     </a>
                                                                 @else
                                                                     <a href="{{$server.'/data/'.$file['PPPPFiles_Pfad'].'/'.$file['PPPPFiles_TPTFilenameOld']}}" download="{{substr($file['PPPPFiles_TPTFilenameOld'],7)}}" target="_blank">
-                                                                        <img src="{{$server.'/data/'.$file['PPPPFiles_Pfad'].'/'.$file['PPPPFiles_TPTFilenameOld']}}" style="height:90%;width:auto;border:none;">
+                                                                        <img src="{{$server.'/data/'.$file['PPPPFiles_Pfad'].'/'.$file['PPPPFiles_TPTFilenameOld']}}" style="height:75px;width:auto;border:none;margin-top:8px;">
                                                                     </a>
                                                                 @endif
                                                             @endif
@@ -302,7 +335,7 @@
                                                             <a href="{{ViewController::getSpoLink($file['PPPPFiles_Id'],1)}}" target="_blank" download="{{substr($file['PPPPFiles_Name'],7)}}">
                                                         @endif
                                                         @if (strlen($dllogo)> 10)
-                                                            <img src="{{$dllogo}}" alt="Datei" style="height:80%;border:none;">
+                                                            <img src="{{$dllogo}}" alt="Datei" style="height:80px;border:none;">
                                                         @else
                                                             {{substr($file['PPPPFiles_Name'],7)}}
                                                         @endif

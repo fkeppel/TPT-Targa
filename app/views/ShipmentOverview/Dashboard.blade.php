@@ -143,7 +143,7 @@
 <script src="/js/flatpicker.min.js"></script>
 <script src="/js/flatpickr.l10n.de.js"></script>
 <div class="container">
-    <h1 class="page-header">{{ $data['title'] }}</h1>
+    <h1 class="page-header">{{ $data['title'] }}YYY</h1>
     <div class="table-wrap">
         <table class="big-table" id="shipment-flat-table">
            <thead>

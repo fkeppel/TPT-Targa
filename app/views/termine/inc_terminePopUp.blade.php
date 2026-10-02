@@ -538,6 +538,7 @@
     $pp               = $Daten['pp'];
     $iconInfo = "/data/Icons/Info.jpg";
     $ppall            = $Daten['value']['PP'];
+    $ausm4 = strlen($Daten['value']['PP']->PPProduktpass_Ausmusterungnummer) > 4 ? substr($Daten['value']['PP']->PPProduktpass_Ausmusterungnummer, 0, 4) : $Daten['value']['PP']->PPProduktpass_Ausmusterungnummer;
     $mitarbeiterliste = $Daten['mitarbeiterliste'];
     $mitarbeiterNamen = $Daten['mitarbeiterNamen'];
     if (!isset($mitarbeiterliste[$t['ma']])) {
@@ -674,7 +675,7 @@
                                         <table id="data1">
                                             <tr>
                                                 <td class="label">IAN:</td>
-                                                <td class="value"><a href="/show/{{$pp['id']}}" target="_blank">{{$pp['ian']}}</a>  [{{$pp['InternerStatus']}}]</td>
+                                                <td class="value"><a href="/show/{{$pp['id']}}" target="_blank">{{$pp['ian']}}_{{$ausm4}}</a>  [{{$pp['InternerStatus']}}]</td>
                                                 <td class="label">{{ ServiceProvider::tl($lang,'Berechnung Meilenstein') }}:</td>
                                                 <td class="value"> @if ($t['rot'] != '' or $t['rot'] == 0 ) {{ ServiceProvider::tl($lang, 'Soll')}}: CRD {{$t['rot'] +10}} {{ ServiceProvider::tl($lang, 'Wochen') }} @endif
                                                     CW @if ($crd->format('W')+$t['rot']+10 <  0){{$crd->format('W')+$t['rot']+62}}/{{$crd->format('y')-1}} @else @if ($crd->format('W')+$t['rot']+10 > 52 )  {{$crd->format('W')+$t['rot']-42}}/{{$crd->format('y')+1}} @else  {{$crd->format('W')+$t['rot']+10}}/{{$crd->format('y')}}@endif @endif</td>

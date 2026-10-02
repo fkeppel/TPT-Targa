@@ -49,6 +49,14 @@ class BISUserController extends BaseController {
             Session::forget('qart');
             Session::forget('qMA');
             Session::forget('qIAN');
+            if (strpos(Request::getHost(), 'xxxdev') !== false) {
+                if (strpos(strtoupper(Auth::user()->PPMitarbeiter_Role), 'TESTER') === false) {
+                    Auth::logout();
+                    return Redirect::back()
+                        ->withInput()
+                        ->with('message', 'Zugriff auf das DEV-System nicht erlaubt.');
+                }
+            }
             return Redirect::to('home');
             $data['content'] = View::make('layouts.home');
             return View::make('main', $data)->with('SALs', $this->getSALs());

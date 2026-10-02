@@ -13,8 +13,8 @@ class ShipmentOverviewController extends BaseController
         $data = array();
         $data['title'] = 'Shipment Overview Dashboard';
         $data['pageTitle'] = 'Shipment Overview Dashboard';
-        $data['ppData'] = $this->getData($filter);  
-        $data['labels'] = $this->getAttributes();  
+        $data['ppData'] = $this->getData($filter);
+        $data['labels'] = $this->getAttributes();
         return View::make('ShipmentOverview.Dashboard')->with('data', $data);
     }
     public function showShip($filter = null){
@@ -22,11 +22,14 @@ class ShipmentOverviewController extends BaseController
         $data = array();
         $data['title'] = 'Shipment Overview';
         $data['pageTitle'] = 'Shipment Overview';
-        $data['ppData'] = $this->getDataNeu($filter);  
+        $data['ppData'] = $this->getDataNeu($filter);
         $data['logMa'] = $this->service->getAuswahlliste('LOG');
-        //$data['labels'] = $this->getAttributes();  
+        //$data['labels'] = $this->getAttributes();
         $viewName = 'ShipmentOverview.Dashboard_DEV2';
-        return View::make($viewName)->with('data', $data);
+        //return View::make($viewName)->with('data', $data);
+        View::share('SALs', $this->getSALs());
+        $data['content'] =  View::make($viewName)->with('data', $data);
+        return View::make('main', $data);
     }
     private function getAttributesProduktpass  (){
         $attributes = array(
@@ -114,7 +117,7 @@ class ShipmentOverviewController extends BaseController
             'PPShipment_CRDOpeningCalc' => 'CRDOpeningCalc#d',
             'PPShipment_CRDClosingCalc' => 'CRDClosingCalc#d',
             'PPShipment_UnloadingReportDate' => 'UnloadingReportDate#d',
-            'PPShipment_20ftGP' =>'20ftGP#n', 
+            'PPShipment_20ftGP' =>'20ftGP#n',
             'PPShipment_40ftGP' => '40ftGP#n',
             'PPShipment_40ftHQ' => '40ftHQ#n',
             'PPShipment_LCLCBM' => 'LCLCBM#n',
@@ -162,18 +165,19 @@ class ShipmentOverviewController extends BaseController
         return $attributes;
     }
     private function getAllowedUpdates(){
+        $allowed = array();
         foreach ($this->getAttributes() as $att => $label){
             if (substr($label,0,1) === '+'){
                 $allowed[] = $att;
             }
-        }   
+        }
         return $allowed;
     }
     private function getDataProduktpass (){
         $pp = tPPProduktpass::where('PPProduktpass_Ausmusterungnummer', 'like', '25%' )->where('PPProduktpass_IAN', 'like', '%ev%' )->orderBy('PPProduktpass_Ausmusterungnummer')->get();
         if($pp->isEmpty()){
             return false;
-        }   
+        }
         return $pp;
     }
      private function getData ($filter = null){
@@ -192,29 +196,29 @@ class ShipmentOverviewController extends BaseController
         $so = DB::table('v_Shipmentoverview')->where('Ausmusterung', 'like', $whereAusmusterung.'%' )->where('TargaStatus', 'like', $whereStatus )->orderBy('IAN')->get();
         if(empty($so)){
             return false;
-        }   
+        }
         //echo(count($so).' Datensätze in Shipment Overview gefunden');
         //exit;
         return $so;
     }
-    private function getDataNeu($filter = null, $complete = false)
+    private function getDataNeu($filter = null, $archived = false)
     {
         $params = preg_split('/-/', (string)$filter);
-        $whereAusmusterung = (isset($params[0]) && $params[0] != '') ? $params[0] : '25%';
+        $whereAusmusterung = (isset($params[0]) && $params[0] != '') ? $params[0] : '%';
         if (isset($params[1]) && $params[1] == 'Alle') {
             $whereStatus = '%';
         } else {
             $whereStatus = isset($params[1]) ? $params[1] : '%';
         }
-        if ($complete) {
-            $whereComplete = 1;
+        if ($archived) {
+            $whereArchived = 1;
         } else {
-            $whereComplete = 0;
+            $whereArchived = 0;
         }
         $kopf = DB::table('v_ShipmentoverviewKopf')
             ->where('Ausmusterung', 'like', $whereAusmusterung.'%')
             ->where('TargaStatus', 'like', $whereStatus)
-            ->where('Complete', $whereComplete)
+            ->where('Archived', $whereArchived)
             ->orderBy('IAN')
             ->get();
         // Laravel-4-sicher: count() statt isEmpty()
@@ -476,6 +480,14 @@ class ShipmentOverviewController extends BaseController
             * Der Primärschlüssel heißt PPShipment_Id und nicht id.
             * Deshalb muss er insertGetId ausdrücklich angegeben werden.
             */
+            // IAN und Ausmusterung vom Produktpass übernehmen
+            $produktpass = DB::table('tPPProduktpass')
+                ->where('PPProduktpass_Id', $data['PPProduktpass_Id'])
+                ->first();
+            if ($produktpass) {
+                $payload['PPShipment_IAN'] = $produktpass->PPProduktpass_IAN;
+                $payload['PPShipment_Ausmusterungnummer'] = strlen($produktpass->PPProduktpass_Ausmusterungnummer) > 4 ? substr($produktpass->PPProduktpass_Ausmusterungnummer, 0, 4) : $produktpass->PPProduktpass_Ausmusterungnummer;
+            }
             $newId = DB::table($table)->insertGetId(
                 $payload,
                 'PPShipment_Id'
@@ -630,7 +642,7 @@ class ShipmentOverviewController extends BaseController
     }
     public function importShipment()
     {
-        $filename = '/var/www/targa/tmp/ShipOhneFormat.xlsx';
+        $filename = '/var/www/targa/tmp/ImportShipment_2026-09-03.xlsx';
         $spreadsheet = IOFactory::load($filename);
         $sheet = $spreadsheet->getActiveSheet();
         $highestRow = $sheet->getHighestRow();
@@ -638,19 +650,21 @@ class ShipmentOverviewController extends BaseController
         $errors = array();
         for ($row = 2; $row <= $highestRow; $row++) {
             try {
-                if ($this->importRow($sheet, $row)) {
+                if ($ian = $this->importRow($sheet, $row)) {
+                    $errors[] = 'Zeile '.$row.' ['.$ian.']: OK Importiert.';
                     $ok++;
                 }
             } catch (Exception $e) {
                 $errors[] = 'Zeile '.$row.': '.$e->getMessage();
             }
         }
+        $logFile = '/var/www/targa/tmp/ship_import_log_'.date('Ymd_His').'.txt';
+        file_put_contents($logFile, implode(PHP_EOL, $errors));
         echo "Importiert: ".$ok."<br>";
-        if (!empty($errors)) {
-            echo "<pre>";
-            print_r($errors);
-            echo "</pre>";
-        }
+        echo "Log-Datei: ".$logFile."<br>";
+        echo "<pre>";
+        print_r($errors);
+        echo "</pre>";
     }
     private function importRow($sheet, $row)
     {
@@ -701,7 +715,7 @@ class ShipmentOverviewController extends BaseController
             $shipment->$field = $value;
         }
         $shipment->save();
-        return true;
+        return $ian.'_'.$ausmusterung;
     }
     private function normalizeShipmentValue($field, $value)
     {
@@ -742,7 +756,7 @@ class ShipmentOverviewController extends BaseController
             'PPShipment_CRDClosingCalc',
             'PPShipment_UnloadingReportDate',
             'PPShipment_CustomsDeclared',
-            'PPShipment_ATAInlandsterminal',  
+            'PPShipment_ATAInlandsterminal',
         ));
     }
     private function normalizeDate($value)
@@ -812,9 +826,9 @@ class ShipmentOverviewController extends BaseController
         try{
             $pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->first();
             if(!$pp){
-                return false;   
+                return false;
             }
-            $pp->PPProduktpass_ShipmentComplete = 1;
+            $pp->PPProduktpass_ShipmentArchived = 1;
             $pp->save();
         }
         catch(Exception $e){
@@ -822,19 +836,199 @@ class ShipmentOverviewController extends BaseController
         }
         return true;
     }
-    public function shipmentRestore (){
+    public function shipmentComplete (){
+        $shipId = Input::get('PPShipment_Id');
+        if (!$shipId) {
+            return Response::json(array(
+                'ok' => false,
+                'message' => 'PPShipment_Id fehlt'
+            ), 400);
+        }
+        try{
+            $shipment = PPShipment::where('PPShipment_Id', $shipId)->first();
+            if(!$shipment){
+                return Response::json(array(
+                    'ok' => false,
+                    'message' => 'Shipment nicht gefunden'
+                ), 404);
+            }
+            $currentStatus = strtolower(trim((string)$shipment->PPShipment_ShipmentStatus));
+            $isDone = ($currentStatus === '1' || $currentStatus === 'erledigt');
+            $newStatus = $isDone ? 0 : 1;
+            $shipment->PPShipment_ShipmentStatus = $newStatus;
+            $shipment->save();
+            return Response::json(array(
+                'ok' => true,
+                'PPShipment_Id' => $shipId,
+                'PPShipment_ShipmentStatus' => $newStatus
+            ));
+        }
+        catch(Exception $e){
+            return Response::json(array(
+                'ok' => false,
+                'message' => $e->getMessage()
+            ), 500);
+        }
+    }
+        public function shipmentRestore (){
         $ppid = Input::get('PPProduktpass_Id');
         try{
             $pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->first();
             if(!$pp){
-                return false;   
+                return false;
             }
-            $pp->PPProduktpass_ShipmentComplete = 0;
+            $pp->PPProduktpass_ShipmentArchived = 0;
             $pp->save();
         }
         catch(Exception $e){
             return false;
         }
         return true;
+    }
+   public function showFrmNewOrder(){
+        $data = array();
+        $data['title'] = '';
+        return View::make('projects.frmSchwarzOrder')->with('data', $data);
+    }
+    public function newSchwarzOrder(){
+        $projectNumber      = Input::get('project_number');
+        $articleDescription = Input::get('article_description');
+        $ddpJahr            = Input::get('ddp_jahr');
+        $ddpMonat           = Input::get('ddp_monat');
+        // Validierung
+        $validator = Validator::make(
+            Input::all(),
+            array(
+                'project_number'      => 'required',
+                'article_description' => 'required',
+                'ddp_jahr'            => 'required',
+                'ddp_monat'           => 'required'
+            )
+        );
+        if ($validator->fails()) {
+            return Redirect::back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+        $input_file = storage_path() . '/data/templates/Vorlage_SchwarzOrder_PPImport.xml';
+        $xml = new XMLController();
+        $newPPID = $xml->schwarzOrder($input_file);
+        // Speichern
+        $pp = tPPProduktpass::find($newPPID);
+        $pp->PPProduktpass_IAN = $this->getNextIAN();
+        $pp->PPProduktpass_PPProjekte_Projekt      = $projectNumber;
+        $pp->PPProduktpass_Artikelbezeichnung      = $articleDescription;
+        $pp->PPProduktpass_LieferterminJahr        = $ddpJahr;
+        $pp->PPProduktpass_Liefertermin            = $ddpMonat;
+        $pp->InternerStatus = 'INTERN';
+        $pp->save();
+        return Redirect::to('show/' . $pp->PPProduktpass_Id);
+    }
+    private function getNextIAN()
+    {
+        $maxIAN = DB::table('tPPProduktpass')
+            ->where('PPProduktpass_IAN', 'LIKE', 'S%')
+            ->max('PPProduktpass_IAN');
+        if (!$maxIAN) {
+            return 'S00001';
+        }
+        $nummer = (int)substr($maxIAN, 1);
+        $nummer++;
+        return 'S' . str_pad($nummer, 5, '0', STR_PAD_LEFT);
+    }
+    private function getSortableShipments($filter = null)
+    {
+        $params = preg_split('/-/', (string)$filter);
+        $whereAusmusterung =
+            (isset($params[0]) && $params[0] != '')
+            ? $params[0]
+            : '%';
+        $whereStatus =
+            (isset($params[1]) && $params[1] != '' && $params[1] != 'Alle')
+            ? $params[1]
+            : '%';
+        // Resolve the actual product-pass foreign key before loading project metadata.
+        // The independently filtered project list may not contain every sortable shipment.
+        return DB::table('v_ShipmentoverviewShipments as sortable_ship')
+            ->leftJoin('PPShipment as sortable_source', 'sortable_source.PPShipment_Id', '=', 'sortable_ship.PPShipment_Id')
+            ->leftJoin('v_ShipmentoverviewKopf as sortable_project', 'sortable_project.PPProduktpass_Id', '=', 'sortable_source.PPShipment_PPProduktpass_Id')
+            ->select(array(
+                'sortable_ship.*',
+                'sortable_source.PPShipment_PPProduktpass_Id as ShipmentMasterId',
+                'sortable_project.IAN as ProjectIAN',
+                'sortable_project.Ausmusterung as ProjectAusmusterung',
+                'sortable_project.Artikelbezeichnung as ProjectArtikelbezeichnung',
+                'sortable_project.TargaStatus as ProjectTargaStatus',
+                'sortable_project.PMAdmin as ProjectPMAdmin',
+                'sortable_project.TCAdmin as ProjectTCAdmin',
+                'sortable_project.PJMAdmin as ProjectPJMAdmin',
+                'sortable_project.LogAdmin as ProjectLogAdmin'
+            ))
+            ->where('sortable_ship.PPShipment_Status', 1)
+            ->where('sortable_ship.PPProduktpass_Ausmusterungnummer', 'like', $whereAusmusterung.'%')
+            ->orderBy('sortable_ship.PPShipment_Sortierung', 'asc')
+            ->orderBy('sortable_ship.PPShipment_Id', 'asc')
+            ->get();
+    }    public function showShipSortable($filter = null)
+    {
+        $data = array();
+        $data['title']     = 'Shipment Overview - Sortierung';
+        $data['pageTitle'] = 'Shipment Overview - Sortierung';
+        $data['shipments'] = $this->getSortableShipments($filter);
+        // Project metadata is needed for filters, LOG assignment and projects without lots.
+        $projectData = $this->getDataNeu($filter);
+        $data['projekts'] = is_array($projectData) && isset($projectData['kopf'])
+            ? $projectData['kopf'] : array();
+        $data['logMa'] = $this->service->getAuswahlliste('LOG');
+        $viewName = 'ShipmentOverview.Dashboard_Sortable';
+        View::share('SALs', $this->getSALs());
+        $data['content'] = View::make($viewName)
+            ->with('data', $data);
+        return View::make('main', $data);
+    }
+    public function saveShipmentSortierung()
+    {
+        $data = Input::json()
+            ? Input::json()->all()
+            : Input::all();
+        if (
+            !isset($data['order']) ||
+            !is_array($data['order'])
+        ) {
+            return Response::json(array(
+                'ok'    => false,
+                'error' => 'Ungültige Sortierung'
+            ), 400);
+        }
+        try {
+            DB::transaction(function() use ($data) {
+                $position = 1;
+                foreach ($data['order'] as $shipmentId) {
+                    $shipmentId = (int)$shipmentId;
+                    if ($shipmentId <= 0) {
+                        continue;
+                    }
+                    DB::table('PPShipment')
+                        ->where('PPShipment_Id', $shipmentId)
+                        ->update(array(
+                            'PPShipment_Sortierung' => $position,
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ));
+                    $position++;
+                }
+            });
+            return Response::json(array(
+                'ok' => true
+            ));
+        } catch (Exception $e) {
+            cpcDebug::cpc_debug(
+                'saveShipmentSortierung: '.$e->getMessage(),
+                '-SO'
+            );
+            return Response::json(array(
+                'ok'      => false,
+                'message' => $e->getMessage()
+            ), 500);
+        }
     }
 }

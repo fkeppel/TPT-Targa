@@ -2580,11 +2580,19 @@ class UploadController extends BaseController {
         return Redirect::to($this->getActiveTab());
     }
     public function setProjectPic() {
-        $ppid                            = Input::get('ppid');
+        $ppid                          = Input::get('ppid');
         $pic                           = Input::get('pppic');
+        $deleteOldPic                  = Input::get('deleteOldPic');
         $pp                            = tPPProduktpass::find($ppid);
-        $pp->PPProduktpass_ProjektBild = $pic;
+        if ($deleteOldPic) {
+            $pp->PPProduktpass_ProjektBild = null;
+        } else {
+            $pp->PPProduktpass_ProjektBild = $pic;
+        }
         $pp->save();
+        if ($deleteOldPic) {
+            return Response::json([ "success" => true, "message" => "Bild erfolgreich gelöscht!" ]);
+        }
         return Redirect::to($this->getActiveTab());
     }
     public function updateRemarkFiles() {
@@ -2782,7 +2790,9 @@ class UploadController extends BaseController {
         //$this->marcLocal();
         $files = PPPPFiles::where('PPPPFiles_LocalUpload',1)->where('PPPPFiles_Status',1)->orderBy('PPPPFiles_Date')->get();
         //$srcdir = public_path('data/uploads/');
-        foreach($files as $file){
+        foreach($files as $file){   
+            
+            $file->PPPPFiles_StartUpload = date("Y-m-d H:i:s");
             cpcDebug::cpc_debug("MoveLocal2SPO: ".$file->PPPPFiles_Id." ".$file->PPPPFiles_Name." PPId: ".$file->PPPPFiles_PPProduktpass_Id, '-uploadFile');
             $devSrc =  public_path('data/');
             //$prodSrc =  '/var/www/targa/public/data';
@@ -2803,6 +2813,8 @@ class UploadController extends BaseController {
                         $pp->save();
                     }
                 }
+                $file->PPPPFiles_FinishUpload = date("Y-m-d H:i:s");
+                $file->save();
             } else {
                 $file->PPPPFiles_Status = 3;
                 $file->save();

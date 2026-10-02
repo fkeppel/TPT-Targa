@@ -622,17 +622,27 @@ class Office365Controller extends BaseController
     }
     public  function  getLastChanged( $ian, $ausm)
     {
-        //return array();
-        $ctx = $this->getContext();
-        $dir =  'IANs/'.$ian.'_'.$ausm;
-        $rootFolder = $ctx->getWeb()->getFolderByServerRelativeUrl("Freigegebene Dokumente/" . $dir);
-        $files = $rootFolder->getFiles()->get()->executeQuery();
+        cpcDebug::cpc_log("getLastChanged Enter: $ian $ausm",'SPOLastChanged');
+
         $alc = array();
-        foreach ($files as $file) {
-            $fn =  $file->getName();
-            $lc =  $this->_2Date($file->getTimeLastModified());
-            $alc[$fn] = $lc;
+        $msg = 'OK';
+        try{
+            $ctx = $this->getContext();
+            $dir =  'IANs/'.$ian.'_'.$ausm;
+            $rootFolder = $ctx->getWeb()->getFolderByServerRelativeUrl("Freigegebene Dokumente/" . $dir);
+            $files = $rootFolder->getFiles()->get()->executeQuery();
+            foreach ($files as $file) {
+                $fn =  $file->getName();
+                $lc =  $this->_2Date($file->getTimeLastModified());
+                //cpcDebug::cpc_debug("getLastChanged File:".$fn. " LastChanged:".$lc,'-SPOLastChanged');
+                $alc[$fn] = $lc;
+            }
+        } catch (Exception $ex){
+            //echo("getLastChanged: ".$ex->getCode()."  Message:".$ex->getMessage());
+            cpcDebug::cpc_log("getLastChanged File:".$fn." Code:".$ex->getCode()."  Message:".$ex->getMessage(),'-SPOLastChanged');
+            $msg = "Zugriff SPO: ".$ex->getCode()."  Message:".$ex->getMessage();
         }
+        $alc['Status'] = $msg;
         return $alc;
     }
     public function renameSPO(){

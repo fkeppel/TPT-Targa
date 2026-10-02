@@ -153,9 +153,12 @@
             <div></div>
             <div class='label'>Projekt Bild</div>
             <div  class='value'>
-                <a href="/data/uploads/{{ $data['pp']['PPProduktpass_ProjektBild'] }}" target="_blank"><img
-                        src="/data/uploads/{{ $data['pp']['PPProduktpass_ProjektBild'] }}"
-                        style="margin:5px;border: 1px solid gray;width:200px;" /></a>
+                <a href="/data/uploads/{{ $data['pp']['PPProduktpass_ProjektBild'] }}" target="_blank">
+                    <img id="image_img_d0e289" src="/data/uploads/{{ $data['pp']['PPProduktpass_ProjektBild'] }}" style="margin:5px;border: 1px solid gray;width:200px;" />
+                </a>
+                @if (ServiceProvider::AuthUserIsAdmin() )
+                <div id="delPicDiv" style="border:1px solid rgb(146, 146, 146);cursor:pointer;padding: 4px;font-weight:bold;width:210px; color:rgb(146, 146, 146);" onclick="delProjectPic();">Projektbild entfernen</div>
+                @endif
             </div>
             <div></div>
         <!-- /form -->
@@ -236,6 +239,45 @@
                 console.log(data);
                 setClearMarker();
                 alert('Gespeichert!');
+            }
+        });
+    }
+    function delProjectPic() {
+        if (!confirm("Projektbild wirklich entfernen?")) {
+            return;
+        }
+        var url = '/setProjectPic';
+        var PPProduktpass_Id = $('#PPProduktpass_Id').val();
+        $.ajax({
+            url: url,
+            type: "POST",
+            dataType: "json",
+            data: {
+                ppid: PPProduktpass_Id,
+                deleteOldPic:true
+            },
+            success: function (data) {
+                console.log(data);
+                alert(data.message || "Projektbild wurde entfernt.");
+                if (data.success) {
+                    var img = document.getElementById('image_img_d0e289');
+                    if (img) {
+                        img.style.display = 'none';
+                        var link = img.closest('a');
+                        if (link) {
+                            link.style.display = 'none';
+                        }
+                    }
+                    var delPicDiv = document.getElementById('delPicDiv');
+                    if (delPicDiv) {
+                        delPicDiv.style.display = 'none';
+                    }
+                } else {
+                    alert(data.message || "Projektbild konnte nicht entfernt werden.");
+                }
+            },
+            error: function () {
+                alert("Fehler beim Entfernen des Projektbildes.");
             }
         });
     }

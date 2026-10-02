@@ -53,8 +53,16 @@
             </div>
             <hr>
             <div class="tgFullTextContainer" style="overflow:auto;margin-bottom:30px;">
+                <?php $earliestDD = 0; ?>
                 @foreach ($data['tAssortment']['Online']['values'] as $delno =>  $delivery)
-                <h3>{{ ServiceProvider::tl($data['lang'], 'Variantenbestellmengen Onlineshops: frühester Liefertermin') }}</h3>
+                <?php $earliestDD++; ?>
+                
+                @if ($earliestDD == 1)
+                    <h3>{{ ServiceProvider::tl($data['lang'], 'Variantenbestellmengen Onlineshops: frühester Liefertermin') }}</h3>
+
+                @else
+                    <h3>{{ ServiceProvider::tl($data['lang'], "Variantenbestellmengen Onlineshops: frühester ".  $earliestDD . ". Liefertermin") }}</h3>
+                @endif
                 <table  style='border-collapse:collapse; font-size:0.8em;margin-left:30px;'>
                     <tr>
                         <th  class="tgTableHeads">{{ ServiceProvider::tl($data['lang'], 'GTIN') }}</th>

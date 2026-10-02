@@ -1,7 +1,7 @@
 <?php
 /* use DeepL\DeepLClient;
-   use DeepL\Translator; 
-   Bei Nutzung muss 
+   use DeepL\Translator;
+   Bei Nutzung muss
    use GuzzleHttp\Client as GuzzleClient;
    use Nyholm\Psr7\Factory\Psr17Factory;
    use Http\Adapter\Guzzle7\Client as GuzzleAdapter;
@@ -29,7 +29,7 @@ class ProjectsController extends BaseController
         //flush();
         cpcDebug::cpc_debug($line,'!T2SPO2');
         $this->msgFileBody .= $line;
-        fwrite($this->msgFile, $line); 
+        fwrite($this->msgFile, $line);
     }
     private function newMsgFile ( ){
         $this->msgFileError = false;
@@ -67,7 +67,7 @@ class ProjectsController extends BaseController
             }
             //PXML_Mengen_GTIN, PPXML_Mengen_styleNo, PPXML_Mengen_productName, PPXML_Mengen_sizeCode, PPXML_Mengen_country, PPXML_Mengen_lsv, PPXML_Mengen_value
             /*
-            foreach ($overview as $gtin => $style){ 
+            foreach ($overview as $gtin => $style){
                 echo("$gtin -> ");
                 foreach ($style as $style => $colors){
                     echo("$style -> ");
@@ -2088,6 +2088,9 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 $lsvb[$lsv->PPLsv_name] = array('code' => $lsv->PPLsv_code, 'countryCodes' => $lsv->PPLsv_countryCodes, 'countryNames' => $lsv->PPLsv_countryNames);
             }
         }
+        cpcDebug::cpc_debug("LSV Codes: " . count($lsva) . " LSV Names: " . count($lsvb),'-LSV');
+        cpcDebug::cpc_debug($lsva,'-LSV');
+        cpcDebug::cpc_debug($lsvb,'-LSV');
         //$this->prncpc($lsvb);
         return array('names' => $lsva, 'codes' => $lsvb);
     }
@@ -2112,7 +2115,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                     if (is_null($f->PPPPFiles_SharepointLink)){
                         $files[] = array('Link' =>'https://tpt-dev.ad.targa.de/data/'. $f->PPPPFiles_Pfad . '/' . $f->PPPPFiles_Name, 'FilenameLidl' => mb_substr($f->PPPPFiles_Name, 7));
                     } else {
-                        // https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/474733_2407/474733_2407_Pruefplan_9-in-1HeiluftfritteuseSHF1800B1_SLG.pdf?csf=1&web=1 
+                        // https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/474733_2407/474733_2407_Pruefplan_9-in-1HeiluftfritteuseSHF1800B1_SLG.pdf?csf=1&web=1
                         // https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/474733_2407/474733_2407_Pruefplan_9-in-1HeiluftfritteuseSHF1800B1_SLG.pdf?csf=1&web=1
                         // https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/474733_2407/474733_2407_Pruefplan_9-in-1HeiluftfritteuseSHF1800B1_SLG.pdf?csf=1&web=1
                         $files[] = array('Link' =>$f->PPPPFiles_SharepointLink,  'FilenameLidl' => $f->PPPPFiles_Name);
@@ -2151,7 +2154,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                         $ian = $pp->PPProduktpass_IAN;
                         $ausm = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
                         $link = "https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/".$ian.'_'.$ausm.'/'. $f->PPPPFiles_SharePointLink;
-                        // https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/474733_2407/474733_2407_Pruefplan_9-in-1HeiluftfritteuseSHF1800B1_SLG.pdf?csf=1&web=1 
+                        // https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/474733_2407/474733_2407_Pruefplan_9-in-1HeiluftfritteuseSHF1800B1_SLG.pdf?csf=1&web=1
                         // https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/474733_2407/474733_2407_Pruefplan_9-in-1HeiluftfritteuseSHF1800B1_SLG.pdf?csf=1&web=1
                         // https://targagmbh.sharepoint.com/:b:/r/sites/TPTStorage/Freigegebene%20Dokumente/IANs/474733_2407/474733_2407_Pruefplan_9-in-1HeiluftfritteuseSHF1800B1_SLG.pdf?csf=1&web=1
                         $files[$fid] = array('Link' =>$link,  'FilenameLidl' => $f->PPPPFiles_Name);
@@ -2168,7 +2171,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             return 0;
         }
         $ian = substr($param,2,6);
-        $akt_ausm =substr($param,9,4); 
+        $akt_ausm =substr($param,9,4);
         $pp = tPPProduktpass::where('PPProduktpass_IAN', $ian)->where('PPProduktpass_Ausmusterungnummer', '<', $akt_ausm)->orderBy('PPProduktpass_Ausmusterungnummer','DESC')->get()->first();
         if ($pp){
             return $pp->PPProduktpass_Id;
@@ -2267,7 +2270,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $tDauer = date('s');
         cpcDebug::cpc_debug("Show: Start ID =>  $param_ppid");
         $data['pp'] = $this->getPP($param_ppid);
-        if (is_null($data['pp'])){  
+        if (is_null($data['pp'])){
             echo('Ungültiger Link');
             exit;
         }
@@ -2530,7 +2533,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $_ausm =  substr($data['pp']->PPProduktpass_Ausmusterungnummer,0,4);
         $data['FilesLastChange'] = $oc->getLastChanged($_ian, $_ausm);
         $mc = new MeetingController();
-        $data['MeetingProtokoll'] = $mc->getOrNewMeeting($data['pp']->PPProduktpass_Id);        
+        $data['MeetingProtokoll'] = $mc->getOrNewMeeting($data['pp']->PPProduktpass_Id);
         $data['content'] = View::make('projects.main')->with('data', $data);
         $status['anab'] = 'login';
         $status['link'] = 'users/login';
@@ -2625,7 +2628,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 $translation['material'] = $this->getDBTranslation('PPProduktpass_Style', $styleId, 'material', $style->material, $reset);
                 $translation['materialThickness'] = $this->getDBTranslation('PPProduktpass_Style', $styleId, 'materialThickness', $style->materialThickness, $reset);
                 $translation['color'] = $this->getDBTranslation('PPProduktpass_Style', $styleId, 'color', $style->color, $reset);
-                // $translation => $translationStyles 
+                // $translation => $translationStyles
                 $translationStyles[$style->PPProduktpass_Style_Header]['weightWithoutPackaging'] = $translation['weightWithoutPackaging']; //$this->getDBTranslation('PPProduktpass_Style', $styleId, 'weightWithoutPackaging', $style->weightWithoutPackaging, $reset);
                 $translationStyles[$style->PPProduktpass_Style_Header]['sizeWithoutPackaging'] = $translation['sizeWithoutPackaging']; //$this->getDBTranslation('PPProduktpass_Style', $styleId, 'sizeWithoutPackaging', $style->sizeWithoutPackaging, $reset);
                 $translationStyles[$style->PPProduktpass_Style_Header]['qualityTechnicalData'] = $translation['qualityTechnicalData']; //$this->getDBTranslation('PPProduktpass_Style', $styleId, 'qualityTechnicalData', $style->qualityTechnicalData, $reset);
@@ -2645,7 +2648,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 $translationStyles[$style->PPProduktpass_Style_Header]['material'] = $this->getDBTranslation('PPProduktpass_Style', $styleId, 'material', $style->material, $reset);
                 $translationStyles[$style->PPProduktpass_Style_Header]['materialThickness'] = $this->getDBTranslation('PPProduktpass_Style', $styleId, 'materialThickness', $style->materialThickness, $reset);
                 $translationStyles[$style->PPProduktpass_Style_Header]['color'] = $this->getDBTranslation('PPProduktpass_Style', $styleId, 'color', $style->color, $reset);
-            } 
+            }
         }
         //echo('<pre>');
         //print_r($translation);
@@ -2830,7 +2833,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $isFinale = 0;
         if(Input::has('isFinal')){
             $isFinal = 1;
-        } 
+        }
         $ccError = false;
         if (strlen($cc) > 3) {
             //Überprüfe ob gültige e-mail Adresse
@@ -2847,7 +2850,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 $cc2 = "";
                 $ccError = true;
             }
-        } 
+        }
         if (strlen($cc3) > 3) {
             //Überprüfe ob gültige e-mail Adresse
             if (!filter_var($cc3, FILTER_VALIDATE_EMAIL)) {
@@ -3294,7 +3297,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                                 } else {
                                     cpcDebug::cpc_debug($s->PPBoardSpalte_Bezeichnung.' => Not Set' ,'@Child');
                                 }
-                                //} 
+                                //}
                             }
                         }
                         if ($type == 'Nachbestellung') {
@@ -3315,13 +3318,13 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         }
         if (is_null($oldVal)){
             if ($newVal == ''){
-                return; 
+                return;
             }
             return;
         }
         if (is_null($newVal)){
             if ($oldVal == ''){
-                return; 
+                return;
             }
             return;
         }
@@ -3333,10 +3336,10 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $prot->PPProtokoll_TableId = $id;
         $prot->PPProtokoll_PPProduktpass_Id = $ppid;
         $prot->PPProtokoll_Benutzer = Auth::user()->PPMitarbeiter_Id;
-        $prot->PPProtokoll_Feld = $att; 
-        $prot->PPProtokoll_OldContent = $oldVal; 
-        $prot->PPProtokoll_NewContent = $newVal; 
-        $prot->PPProtokoll_DateTime = date('Y-m-d H:i:s'); 
+        $prot->PPProtokoll_Feld = $att;
+        $prot->PPProtokoll_OldContent = $oldVal;
+        $prot->PPProtokoll_NewContent = $newVal;
+        $prot->PPProtokoll_DateTime = date('Y-m-d H:i:s');
         $prot->save();
     }
     public  function removeProtokollAll($ppid, $table, $att){
@@ -3358,7 +3361,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 $ret .= $date->format('d.m.Y H:i:s'). ' '. strtoupper($user->PPMitarbeiter_Kuerzel). '  Alt: '. $p->PPProtokoll_OldContent .'  Neu: '. $p->PPProtokoll_NewContent . '<br>';
             }
             return $ret;
-        } 
+        }
         return null;
     }
     public function update($id)
@@ -3384,7 +3387,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $oldYear = $pp->PPProduktpass_CRDJahr;
         if ($oldWeek !=  $input['PPProduktpass_CRDWoche']   or $oldYear != $input['PPProduktpass_CRDJahr'] ){
             if ($input['PPProduktpass_CRDWoche'] == 0){
-                // Alle Änderungen am CRD rückgängig machen 
+                // Alle Änderungen am CRD rückgängig machen
                 $this->removeProtokollAll($pp->PPProduktpass_Id,'tPPProduktpass','PPProduktpass_CRDWoche');
             } else {
                 $this->protokoll($id, 'tPPProduktpass', $id, 'PPProduktpass_CRDWoche', $oldWeek."/".$oldYear, $input['PPProduktpass_CRDWoche'].'/'.$input['PPProduktpass_CRDJahr'] );
@@ -3829,10 +3832,10 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $ausm = Input::get('delete_ausm');
         if (strlen($ausm)!= 4){
             $noGo = true;
-        }   
+        }
         if (strlen($ian)!= 6){
             //$noGo = true;
-        }   
+        }
         if (!$noGo){
             $pp = tPPProduktpass::where('PPProduktpass_IAN', '=', $ian)->where('PPProduktpass_Ausmusterungnummer', 'like', $ausm.'%')->get()->first();
             if ($pp){
@@ -4110,7 +4113,12 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 if (is_null($sort->PPXML_OSMengen_GTINKL) or strlen($sort->PPXML_OSMengen_GTINKL) <=0){
                     $ndxGTINKL = 'NoGTINKL';//.$ndxNoGtin;
                 }
-                $omsort[$sort->PPXML_OSMengen_DeliveryNo][$ndxGTIN][$ndxGTINKL][$sort->PPXML_OSMengen_styleNo][$sort->PPXML_OSMengen_productName][$sort->PPXML_OSMengen_sizeName][$lsv][substr($sort->PPXML_OSMengen_country, 4, 4)] = $sort->PPXML_OSMengen_value;
+                if(isset($omsort[$sort->PPXML_OSMengen_DeliveryNo][$ndxGTIN][$ndxGTINKL][$sort->PPXML_OSMengen_styleNo][$sort->PPXML_OSMengen_productName][$sort->PPXML_OSMengen_sizeName][$lsv][substr($sort->PPXML_OSMengen_country, 4, 4)])){
+                    $omsort[$sort->PPXML_OSMengen_DeliveryNo][$ndxGTIN][$ndxGTINKL][$sort->PPXML_OSMengen_styleNo][$sort->PPXML_OSMengen_productName][$sort->PPXML_OSMengen_sizeName][$lsv][substr($sort->PPXML_OSMengen_country, 4, 4)] += $sort->PPXML_OSMengen_value;
+                } else {
+                    $omsort[$sort->PPXML_OSMengen_DeliveryNo][$ndxGTIN][$ndxGTINKL][$sort->PPXML_OSMengen_styleNo][$sort->PPXML_OSMengen_productName][$sort->PPXML_OSMengen_sizeName][$lsv][substr($sort->PPXML_OSMengen_country, 4, 4)] = $sort->PPXML_OSMengen_value;
+                }
+                //$omsort[$sort->PPXML_OSMengen_DeliveryNo][$ndxGTIN][$ndxGTINKL][$sort->PPXML_OSMengen_styleNo][$sort->PPXML_OSMengen_productName][$sort->PPXML_OSMengen_sizeName][$lsv][substr($sort->PPXML_OSMengen_country, 4, 4)] = $sort->PPXML_OSMengen_value;
                 if (isset($lcountries[$sort->PPXML_OSMengen_country])) {
                     $lcountries[$sort->PPXML_OSMengen_DeliveryNo][$sort->PPXML_OSMengen_country] += $sort->PPXML_OSMengen_value;
                 } else {
@@ -4128,11 +4136,18 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             }
         }
         $ret = array('Local' => array('values' => $msort, 'countries' => $mcountries), 'Online' => array('values' => $omsort, 'countries' => $lcountries), 'Assortment' => $ass, 'TotalPack' => $totalPackRatio);
+        //cpcDebug::pe($ret, true);
         return $ret;
     }
     public function getOSLaender()
     {
-        return $laender = array('DE', 'BE', 'NL', 'CZ', 'ES', 'GB', 'FR', 'PL', 'SK', 'AT', 'DK', 'HU', 'IT', 'SI', 'KODE');
+        $laender = PPLaenderbloeckeMitVersion::where(function ($query) {
+            $query->where('PPLaenderbloecke_Land', 'like', 'OS%')
+                  ->orWhere('PPLaenderbloecke_Land', 'like', 'KO%');
+        })
+        ->where('PPLaenderbloecke_Version', '=', 2507)
+        ->lists('PPLaenderbloecke_Land');
+        return $laender; //= array('DE', 'BE', 'NL', 'CZ', 'ES', 'GB', 'FR', 'PL', 'SK', 'AT', 'DK', 'HU', 'IT', 'SI', 'KODE');
     }
     private function prncpc($var, $exit = false)
     {
@@ -6065,8 +6080,8 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $role = Auth::user()->PPMitarbeiter_Role;
          if (! isset($_COOKIE['TPTLanguage'])){
             $_COOKIE['TPTLanguage'] =  Auth::user()->PPMitarbeiter_Language; //'DE';
-        } 
-        $lang = $_COOKIE['TPTLanguage'];   
+        }
+        $lang = $_COOKIE['TPTLanguage'];
         $restrictedStatus = array('PLAN','MUSTERUNG','FIX','ABSAGE','GELIEFERT');
         if (strpos($role,'INTERN') === false ){
             //$restrictedStatus = array('FIX');
@@ -6112,7 +6127,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $subData['lang'] = $lang;
         $data['content'] = View::make('projects.AuftragsUebersicht')->with('data', $subData);
         return View::make('main', $data);
-    }  
+    }
     public function upload2Sharepoint (){
         $ppid = Input::get('ppid');
         $this->_upload2Sharepoint($ppid);
@@ -6143,7 +6158,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $ausm = substr($pp->PPProduktpass_Ausmusterungnummer,0,4);
         $files = PPPPFiles::where('PPPPFiles_PPProduktpass_Id', $ppid)->where('PPPPFiles_Status','1')->whereNull('PPPPFiles_SharePointLink')->orderBy('PPPPFiles_Date')->get();
         if (! $files){
-            cpcDebug::cpc_debug('Keine Dateien für Tarnsfer gefunden','SharePoint1'); 
+            cpcDebug::cpc_debug('Keine Dateien für Tarnsfer gefunden','SharePoint1');
             echo('Keine Dateien gefunden');
             exit;
             return false;
@@ -6154,10 +6169,10 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             $path = str_replace('Dev','', $path);
             //echo($path.'<br>');
             $filename = trim($file->PPPPFiles_Name);
-            //cpcDebug::cpc_debug('Start:'.$path.$filename, 'SharePoint1'); 
+            //cpcDebug::cpc_debug('Start:'.$path.$filename, 'SharePoint1');
             $fullFilepath = $path.$filename;
             //echo("$i.) Untersuche: $fullFilepath");
-            //$i++; 
+            //$i++;
             $link = null;
             if (file_exists($fullFilepath)){
                 //echo(' OK <br>');
@@ -6170,7 +6185,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 }
                 if(!is_null($link)){
                     $file->PPPPFiles_SharePointLink = $link;
-                    $newFilename = $filename; 
+                    $newFilename = $filename;
                     if (strlen($filename)> 6){
                         if (substr($filename,6,1) == '_' ){
                             $newFilename = substr($filename,7);
@@ -6181,7 +6196,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                     $file->save();
                 }
             } else {
-                //cpcDebug::cpc_debug('Fehler:'.$file->PPPPFiles_Name.' nicht vorhanden', 'SharePoint1'); 
+                //cpcDebug::cpc_debug('Fehler:'.$file->PPPPFiles_Name.' nicht vorhanden', 'SharePoint1');
             }
         }
         $filesExists = PPPPFiles::where('PPPPFiles_PPProduktpass_Id', $ppid)->where('PPPPFiles_Status','1')->whereNull('PPPPFiles_SharePointLink')->exists();
@@ -6189,14 +6204,14 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             $pp->PPProduktpass_Transferd2Sharepoint = 1;
         }
         $pp->save();
-        return Redirect::to('/showAfterUpload/' . $ppid . "/2");        
+        return Redirect::to('/showAfterUpload/' . $ppid . "/2");
     }
     private function uploadFile2Sharepoint($file, $ian, $ausm){
         //cpcDebug::cpc_debug('Point3: '.$file.'___'.$ian.'_'.$ausm,'log500');
         $ppath = $file->PPPPFiles_Pfad;
         if ($file->PPPPFiles_Type == 'PPUpload' and $file->PPPPFiles_SubKat == 'Produktpass' and strtoupper(substr($file->PPPPFiles_Name,-3) == 'XML')){
             $ppath = 'import/XML';
-        } 
+        }
         //$path = public_path('data/'.$ppath.'/');
         $path = '/var/www/targa/public/data/'.$ppath.'/';
         $filename = trim($file->PPPPFiles_Name);
@@ -6206,9 +6221,9 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             $fullFilepath = $path.$filename;
         }
         //echo($path.'<br>');
-        //cpcDebug::cpc_debug('Start:'.$path.$filename, 'SharePoint1'); 
+        //cpcDebug::cpc_debug('Start:'.$path.$filename, 'SharePoint1');
         //echo("$i.) Untersuche: $fullFilepath");
-        //$i++; 
+        //$i++;
         $link = null;
         $this->writeMsgFile("<div style='padding-left:20px;padding-top:10px;'><b> [".$file->PPPPFiles_Type.'/'.$file->PPPPFiles_SubKat."]</b> Datei: $fullFilepath ");
         if (file_exists($fullFilepath)){
@@ -6222,7 +6237,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             }
             if($link !== false ){
                 $file->PPPPFiles_SharePointLink = $link;
-                $newFilename = $filename; 
+                $newFilename = $filename;
                 $pre = '';
                 if (strlen($filename)> 6){
                     if (substr($filename,6,1) == '_' ){
@@ -6302,7 +6317,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
     public function setFileSizes (){
         $files = PPPPFiles::where('PPPPFiles_Status','1')->whereNull('PPPPFiles_SharePointLink')->orderBy('PPPPFiles_Date')->get();
         if (! $files){
-            //cpcDebug::cpc_debug('Keine Dateien für Tarnsfer gefunden','SharePoint1'); 
+            //cpcDebug::cpc_debug('Keine Dateien für Tarnsfer gefunden','SharePoint1');
              $this->writeMsgFile('Keine Dateien gefunden');
             exit;
             return false;
@@ -6313,7 +6328,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
             $path = str_replace('Dev','', $path);
             //echo($path.'<br>');
             $filename = trim($file->PPPPFiles_Name);
-            //cpcDebug::cpc_debug('Start:'.$path.$filename, 'SharePoint1'); 
+            //cpcDebug::cpc_debug('Start:'.$path.$filename, 'SharePoint1');
             $fullFilepath = $path.$filename;
             if (file_exists($fullFilepath)){
                 $size = filesize($fullFilepath);
@@ -6338,7 +6353,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $ppid = $pp->PPProduktpass_Id;
         $files = PPPPFiles::where('PPPPFiles_PPProduktpass_Id', $ppid)->where('PPPPFiles_Status','1')->whereNull('PPPPFiles_SharePointLink')->orderBy('PPPPFiles_Date')->get();
         if (! $files){
-            //cpcDebug::cpc_debug('Keine Dateien für Tarnsfer gefunden','SharePoint1'); 
+            //cpcDebug::cpc_debug('Keine Dateien für Tarnsfer gefunden','SharePoint1');
              $this->writeMsgFile('Keine Dateien gefunden');
             exit;
             return false;
@@ -6666,8 +6681,8 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         $role = Auth::user()->PPMitarbeiter_Role;
         if (! isset($_COOKIE['TPTLanguage'])){
             $_COOKIE['TPTLanguage'] =  Auth::user()->PPMitarbeiter_Language; //'DE';
-        } 
-        $lang = $_COOKIE['TPTLanguage'];   
+        }
+        $lang = $_COOKIE['TPTLanguage'];
         $isExtern = 0;
         if (strpos($role,'INTERN') === false ){
             $isExtern = 1;
@@ -6706,10 +6721,10 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                         $sx[$key] .= $s1.'%';
                     }
                 }
-            }  
+            }
             for($i=count($sx); $i<=23;$i++){
                 $sx[$i] = '';
-            }              
+            }
             $search_ausmusterung = $inp['search_ausmusterung'];
             $search_date = $inp['search_date'];
             $search_status = $inp['search_status'];
@@ -6793,7 +6808,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
         }
         for ($i = 0; $i < $size; $i++) {
             $this->heapPermutation($sx, $size - 1, $n);
-            // if size is odd, swap 0th i.e (first) and 
+            // if size is odd, swap 0th i.e (first) and
             // (size-1)th i.e (last) element
             if ($size % 2 == 1){
                 $a = $sx[0];
@@ -6801,7 +6816,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 $sx[0] = $b;
                 $sx[$size -1] = $a;
             }
-            // If size is even, swap ith and 
+            // If size is even, swap ith and
             // (size-1)th i.e (last) element
             else {
                 $a = $sx[$i];
@@ -6915,7 +6930,7 @@ Total:    " . $purchase->PPPurchase_Currency . " " . number_format($amount, 2, '
                 echo ("IAN nicht vorhanden!");
                 exit;
             }
-        } 
+        }
         $data['tabs'] = array('mainTab' => '0', 'mainTabIndex' => 0, 'subTabName' => '', 'subTabIndex' => 0, 'subsubTabIndex' => 0, 'compactView' => 0);
         $data['files'] = $this->getFiles($ppid);
         $data['files']['typesLB'] = $this->getUploadTypes(True);

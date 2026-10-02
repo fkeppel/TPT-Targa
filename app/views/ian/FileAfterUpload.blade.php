@@ -73,7 +73,7 @@
                                 if (!file_exists(public_path().$dllogo)){
                                     $dllogo    = "/images/default.png";
                                 }
-                                $lc = '#';
+                                $lc = $data['FilesLastChange']['Status'];
                                 if (isset($data['FilesLastChange'][$file['PPPPFiles_Name']])){
                                     $lc = $data['FilesLastChange'][$file['PPPPFiles_Name']];
                                 }
