@@ -36,23 +36,22 @@
     }
 </style>
 <div id="terminliste" style="padding-left:90px;text-align: left;height:calc(100% - 30px);overflow: auto;border:none; border-radius:0px; max-width:1500px;min-width:820px;margin-top:24px;">
-    <form action="/terminliste{{ Session::get('art','PPNeu') }}" method="POST" id="Terminliste">
+    {{ Form::open(array('url'=>'/terminlisteFilter','id'=>'Terminliste')) }}
     <input type="hidden" name="art" value="{{ Session::get('art') }}" />
-    <input type="hidden" name="header" value="{{ Session::get('header') }}" />
-    <?php
+    <?php 
         $lang = 'DE';
         if ( isset($_COOKIE['TPTLanguage']) ){
             $lang = $_COOKIE['TPTLanguage'];
         } else {
             $lang = Auth::user()->PPMitarbeiter_Language;
         }
-        $_art = ServiceProvider::tl($lang,'Terminliste - ');
-        if (Session::get('art') == 'PPNeu'){
+        $_art = ServiceProvider::tl($lang,'Terminliste - '); 
+        if (Session::get('art') == 'PP'){
             $_art .= ServiceProvider::tl($lang,'Projekte');
-        }
+        } 
         if (Session::get('art') == 'MU'){
             $_art .= ServiceProvider::tl($lang,'Musterung');
-        }
+        } 
         $komms = $data['searchValues']['tas'];
         $tas = array();
         if ($lang != 'DE'){
@@ -65,19 +64,21 @@
                 $tas[$v->PPBoardSpalte_Bezeichnung] = $v->PPBoardSpalte_Bezeichnung;
             }
         }
-        $spalten = $data['searchValues']['spalten'];
+        //$spalten = $data['searchValues']['spalten'];
+        //cpcDebug::cpc_debug("Spalten Oben", '-terminliste2');
+        //cpcDebug::cpc_debug($spalten, '-terminliste2');
     ?>
     <div style="display: grid; grid-template-columns: 7% 28% 7% 7% 7% 8% 14% 14% 6%;    font-size:11px; ">
             <div style="grid-column: 1/ span 9;"><p style="font-size:1.5rem;color:#1c94c4;padding:0px;"><b>{{ $_art }}</b></p></div>
-            <div class="header1">{{ ServiceProvider::tl($lang,'Verantwortlich') }}<br><a href="/terminliste{{Session::get('art','')}}/1U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste{{Session::get('art','')}}/1D" style="text-decoration: none;">&#9660;</a></div>
-            <div class="header1">{{ ServiceProvider::tl($lang,'Projekt') }}/{{ ServiceProvider::tl($lang,'IAN') }}<br><a href="/terminliste{{Session::get('art','')}}/2U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste{{Session::get('art','')}}/2D" style="text-decoration: none;">&#9660;</a></div>
-            <div class="header1">{{ ServiceProvider::tl($lang,'Musterung') }}<br><a href="/terminliste{{Session::get('art','')}}/8U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste{{Session::get('art','')}}/8D" style="text-decoration: none;">&#9660;</a></div>
+            <div class="header1">{{ ServiceProvider::tl($lang,'Verantwortlich') }}X<br><a href="/terminliste/1U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste/1D" style="text-decoration: none;">&#9660;</a></div>
+            <div class="header1">{{ ServiceProvider::tl($lang,'Projekt') }}/{{ ServiceProvider::tl($lang,'IAN') }}<br><a href="/terminliste/2U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste/2D" style="text-decoration: none;">&#9660;</a></div>
+            <div class="header1">{{ ServiceProvider::tl($lang,'Musterung') }}<br><a href="/terminliste/8U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste/8D" style="text-decoration: none;">&#9660;</a></div>
             <div class="header1">{{ ServiceProvider::tl($lang,'Anzeigetext') }}</div>
             <div class="header1">{{ ServiceProvider::tl($lang,'Bemerkung') }}</div>
-            <!-- div class="header1" style="text-align: rigth;">Ist-Termin<br><a href="/terminliste{{Session::get('art','')}}/3U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste{{Session::get('art','')}}/3D" style="text-decoration: none;">&#9660;</a></div -->
-            <div class="header1" style="text-align: rigth;">{{ ServiceProvider::tl($lang,'Soll-Termin') }}<br><a href="/terminliste{{Session::get('art','')}}/6U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste{{Session::get('art','')}}/6D" style="text-decoration: none;">&#9660;</a></div>
-            <div class="header1" style="text-align: rigth;">{{ ServiceProvider::tl($lang,'Terminart') }}<br><a href="/terminliste{{Session::get('art','')}}/4U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste{{Session::get('art','')}}/4D" style="text-decoration: none;">&#9660;</a></div>
-            <div class="header1">{{ ServiceProvider::tl($lang,'Status Milestone') }}<br><a href="/terminliste{{Session::get('art','')}}/5U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste{{Session::get('art','')}}/5D" style="text-decoration: none;">&#9660;</a></div>
+            <!-- div class="header1" style="text-align: rigth;">Ist-Termin<br><a href="/terminliste/3U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste/3D" style="text-decoration: none;">&#9660;</a></div -->
+            <div class="header1" style="text-align: rigth;">{{ ServiceProvider::tl($lang,'Soll-Termin') }}<br><a href="/terminliste/6U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste/6D" style="text-decoration: none;">&#9660;</a></div>
+            <div class="header1" style="text-align: rigth;">{{ ServiceProvider::tl($lang,'Terminart') }}<br><a href="/terminliste/4U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste/4D" style="text-decoration: none;">&#9660;</a></div>
+            <div class="header1">{{ ServiceProvider::tl($lang,'Status Milestone') }}<br><a href="/terminliste/5U" style="text-decoration: none;">&#9650;</a> <a href="/terminliste/5D" style="text-decoration: none;">&#9660;</a></div>
             <div class="header1">{{ ServiceProvider::tl($lang,'Aktion')}}   <br></div>
             <!--   Start -->
             <!--   COL 1 -->
@@ -120,7 +121,7 @@
                     <option value="ABSAGE" @if (Session::get('qintStatus') == 'ABSAGE') selected="selected" @endif >ABSAGE</option>
                     <-- option value="FIX,GELIEFERT,ABSAGE" @if (Session::get('qintStatus') == 'FIX,ABSAGE') selected="selected" @endif >FIX + GELIEFERT + ABSAGE</option !-->
                 </select-->
-                @else
+                @else 
                 <!--select  name="qintStatus" id="qintStatus" style="border-radius:0px!important;">
                     <option value="%">Alle</option>
                     <option value="PLAN" @if (Session::get('qintStatus') == 'PLAN') selected="selected" @endif >PLAN</option>
@@ -128,7 +129,7 @@
                 </select-->
                 @endif
                 <!-- <input  style="width:80px;" type="text" name="qStatus" id="qiStatus" value="{{Session::get('qStatus');}}" style="width:75px;"/ -->
-            </div>
+            </div> 
             <!-- COL5 -->
             <div class="searchP">
                 <!-- select  name="qStatus" id="qStatus"style="border-radius:0px!important;">
@@ -141,7 +142,7 @@
                     <option value="Canceld" @if (Session::get('qStatus') == 'Cancelled') selected="selected" @endif >Cancelled</option>
                 </select -->
                 <!-- <input  style="width:80px;" type="text" name="qStatus" id="qiStatus" value="{{Session::get('qStatus');}}" style="width:75px;"/ -->
-            </div>
+            </div> 
             <!-- COL6 -->
             <div class="searchP"><input  style="height:35px;" type="text" name="qSollTermin" id="qiSollTermin" value="{{Session::get('qSollTermin');}}"/></div>
             <div class="searchP">
@@ -186,8 +187,8 @@
         <div id="resultTable"  style="display: grid; grid-template-columns: 7% 28.3% 7% 7% 7.2%  8%  14% 14.5% 6%;    font-size:11px; ">
             @foreach ($data['bg'] as $key => $bgcol)
             <?php   $row  = $data['aTermine'][$key];
-                    cpcDebug::cpc_debug("Spalten", '-terminliste');
-                    cpcDebug::cpc_debug($spalten, '-terminliste');
+                    //cpcDebug::cpc_debug("Spalten", '-terminliste2');
+                    //cpcDebug::cpc_debug($spalten, '-terminliste2');
                     $attLabel = 'PPTermine_Label';
                     $attBemerkungen = 'PPTermine_Bemerkungen';
                     $attLabel_translate = 'PPTermine_LabelEN';
@@ -201,22 +202,24 @@
                     $cpcCol = $row->Background;
                     if ($row->PPTermine_Status == 'offen'){
                         $cpcCol = "189,215,238";
-                    }
+                    } 
                     if ($row->PPTermine_Status == 'erledigt'){
                         $cpcCol = "198,254,206";
-                    }
+                    } 
                     $overdue = false;
                     $_now = date('Y-m-d H:i:s');
                     if ($_now > $row->DateMilestone){
                         $overdue = true;
                     }
-                    //$show = false;
-                    //$ausm = $row['PPProduktpass_Ausmusterungnummer'];
-                    //$qry = 'old';
-                    //if ($ausm >= '2510') {
-                    //    $qry = 'new';
-                    //}
+                    /*$show = false;
+                    $qryausm = $row->PPProduktpass_Ausmusterungnummer;
+                    cpcDebug::cpc_debug($qryausm, '-terminliste2');
+                    $qry = 'old';
+                    if ($qryausm >= '2510') {
+                        $qry = 'new';
+                    }*/
                     //$show = isset($spalten[$qry][$row->PPTermine_PPBoardSpalte_id]);
+                    //cpcDebug::cpc_debug('Spalte: '.$row->PPTermine_PPBoardSpalte_id.' Qry:'.$qry .'  Show:'. ($show ? 'true' : 'false'), '-terminliste2');
             ?>
             <div style="background-color:rgb(235, 238, 240); padding-top:20px;text-align: center;"><span @if(Auth::user()->PPMitarbeiter_Kuerzel == $row->PPMitarbeiter_Kuerzel)style='font-weight:bold;'@endif>{{$row->PPMitarbeiter_Kuerzel}}</span></div>
             <div>
@@ -226,22 +229,22 @@
                 {{ ServiceProvider::tl($lang, $row->PPProduktpass_Artikelbezeichnung ) }}
             </div>
             <div>{{substr($row->PPProduktpass_Ausmusterungnummer,0,4)}}</div>
-            <div title='{{ $row->{$attLabel_translate} }}' style="max-height:110px; overflow:hidden;font-size:0.7rem;" >
+            <div title='{{ $row->{$attLabel_translate} }}' style="max-height:110px; ovefolow:auto;font-size:0.7rem;" >
                 <!-- b>{{$row->InternerStatus}}</b -->
                 {{ $row->{$attLabel} }}
             </div>
-            <div title='{{$row->{$attBemerkungen_translate} }}' style="max-height:110px; overflow:hidden;font-size:0.7rem;" >
-                <!-- b>{{$row->PPProduktpass_Status}}</b -->
+            <div title='{{$row->{$attBemerkungen_translate} }}' style="max-height:110px; ovefolow:auto;font-size:0.7rem;" >
+                <!-- b>{{$row->PPProduktpass_Status}}</b --> 
                 {{ $row->{$attBemerkungen} }}
             </div>
             <div>
-                <span>{{date("d.m.Y", strtotime($row->DateMilestone))}}
+                <span>{{date("d.m.Y", strtotime($row->DateMilestone))}} 
                 @if($row->PPTermineChanges_Categorie == 'Hauptaufgabe')
                 @if(substr($row->PPTermineChanges_DoUntil,0,4) != "0000") <span style="@if($overdue)color:red;@endif"><b>&bull;</b></span>
                 @elseif ($data['manSoll'][$key] != '')
                 <span style="@if($overdue)color:red;@endif"><b>*</b></span>
                 @endif
-                @else
+                @else 
                 <span style='font-size:0.5rem;@if($overdue)color:red;@endif'><b>#</b></span>
                 @endif
             </div>
@@ -252,13 +255,9 @@
                 <span style='font-size:0.9rem;'>{{ ServiceProvider::tl($lang, $row->PPBoardSpalte_Bezeichnung )}}</span><br>@if($row->PPTermineChanges_Categorie == 'Hauptaufgabe')<b>{{ ServiceProvider::tl($lang,'Hauptaufgabe') }}</b>@else <b>{{ ServiceProvider::tl($lang,'Unteraufgabe')}}:</b><br>{{$row->PPTermineChanges_Categorie}}@endif
             </div>
             <div style="padding-top:20px; background-color:rgb({{$cpcCol}}); border:1px solid darkgray;position:relative;">
-                <?php $xboard = 1000;
-                    if (Session::get('art') == 'MU') { $xboard = 1001; }
-                    if (Session::get('art') == 'PP') { $xboard = 1000; }
-                    if (Session::get('art') == 'PPNeu') { $xboard = 1011; }
-                 ?>
+                <?php $xboard = 1000; if (Session::get('art') == 'MU') { $xboard = 1001; } ?>
                 <!-- {{substr($data['bg'][$key],1)}} -->
-                <div  onclick="ajax_getTerminTab({{$row->PPProduktpass_Id}}, {{$row->PPTermine_Id}}, {{ $xboard }} , 'All', 1)" style="background-color:transparent;text-align: center; vertical-align:middle; margin:0px; color:darkblue; border:none; cursor:pointer;">
+                <div  onclick="ajax_getTerminTab({{$row->PPProduktpass_Id}}, {{$row->PPTermine_Id}}, {{ $xboard }} , 'All', 1)" style="background-color:transparent;text-align: center; vertical-align:middle; margin:0px; color:darkblue; border:none; cursor:pointer;"> 
                         <b>{{ ServiceProvider::tl($lang,$row->PPTermine_Status) }}</b>
                 </div>
             </div>

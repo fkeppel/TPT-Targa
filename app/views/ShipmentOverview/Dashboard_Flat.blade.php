@@ -8,6 +8,9 @@
         --border-color: #dddddd;
         --grid-color: #eeeeee;
         --sticky-shadow: rgba(0, 0, 0, 0.12);
+        --flag-color-eu: #f59e0b;
+        --flag-color-os: #22c55e;
+        --flag-color-critical: #ef4444;
     }
     html, body {
         height: 100%;
@@ -93,13 +96,13 @@
         --marker-kritisch: transparent;
     }
     .flat-row.flag-eu {
-        --marker-eu: #ff9800;
+        --marker-eu: var(--flag-color-eu);
     }
     .flat-row.flag-os {
-        --marker-os: #380694;
+        --marker-os: var(--flag-color-os);
     }
     .flat-row.flag-kritisch {
-        --marker-kritisch: #f44336;
+        --marker-kritisch: var(--flag-color-critical);
     }
     .flat-row.shipment-done td{
         background:#dff5df !important;
@@ -477,7 +480,7 @@
         }
     }
 ?>
-<h1 class='page-title'>{{ $data['title'] }} </h1>
+<h1 class='page-title'>{{ $data['title'] }}</h1>
 <div class="container">
     <div class="top-actions">
         <button type="button" class="btn" id="filter-reset">Reset Filter</button>
@@ -540,7 +543,10 @@
                         $euFlag = $shipment && !empty($shipment->PPShipment_Flag_EUService);
                         $osFlag = $shipment && !empty($shipment->PPShipment_Flag_OS);
                         $kritFlag = $shipment && !empty($shipment->PPShipment_Flag_Critical);
-                        $done =    $shipment &&    strtolower(trim($shipment->PPShipment_ShipmentStatus ?? '')) === 'erledigt';
+                        $shipStatusNorm = $shipment
+                            ? strtolower(trim((string)($shipment->PPShipment_ShipmentStatus ?? '')))
+                            : '';
+                        $done = $shipment && ($shipStatusNorm === 'erledigt' || $shipStatusNorm === '1');
                     ?>
                    <tr class="flat-row
                         {{ $euFlag ? 'flag-eu' : '' }}

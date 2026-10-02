@@ -59,6 +59,10 @@ class ExcelController extends BaseController
         'OSRO' => 'OnlineShop RO',
         'OSHR' => 'OnlineShop HR',
         'OSBG' => 'OnlineShop BG',
+        'OSBA' => 'OnlineShop BA',
+        'OSRS' => 'OnlineShop RS',
+        'OSCH' => 'OnlineShop CH',
+        'OSMK' => 'OnlineShop MK',
         'KDE' => 'Kaufland DE',
         'KPL' => 'Kaufland PL',
         'KCZ' => 'Kaufland CZ',
@@ -78,7 +82,7 @@ class ExcelController extends BaseController
             $pre = 'A';
         }
         $cell = $pre . chr($colNo + 64) . $row;
-        //echo($cell."<br>"); 
+        //echo($cell."<br>");
         return $pre . chr($colNo + 64) . $row;
     }
     private function getCellA($colNo, $row)
@@ -216,7 +220,7 @@ class ExcelController extends BaseController
 		$crd->setISODate($y,$w);
 		//Stand: 2026-04-16
 		//$crd->modify('-12 week');
-		//Neu 
+		//Neu
 		$crd->modify('-13 week');
 		return $crd->format('W/o'); */
     }
@@ -573,7 +577,7 @@ class ExcelController extends BaseController
         } else {
             $path = public_path() . '/data/tmp';
         }
-        //$dl_file = str_random(6).'_RFQ_IAN_'.$pp->PPProduktpass_IAN.'.xlsx'; 
+        //$dl_file = str_random(6).'_RFQ_IAN_'.$pp->PPProduktpass_IAN.'.xlsx';
         /* Änderunegn Tenplatwe RFQ_202403.xlsx */
         $stylesArray = array('B', 'C', 'D', 'E', 'F');
         foreach ($stylesArray as $styleChar) {
@@ -648,6 +652,29 @@ class ExcelController extends BaseController
             ->setWrapText(true)
             ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
         $this->worksheet->getRowDimension($row)->setRowHeight(max(24, $lines1 * 24));
+    }
+    private function setCellValueAndHightInteger($coord, $text) {
+        cpcDebug::cpc_debug('    setCellValueAndHightInteger:' .json_encode([$coord]) .' ### ' .substr((string)$text, 0, 10),'-RFQ603_A');
+        // Wert normalisieren
+        $normalized = html_entity_decode((string)($text ?? ''),ENT_QUOTES | ENT_HTML5,'UTF-8');
+        $normalized = trim($normalized);
+        // Deutsches Dezimalkomma unterstützen
+        // z.B. 500,00 -> 500.00
+        $normalized = str_replace(',', '.', $normalized);
+        // Dezimalzahl in echten Integer umwandeln
+        // z.B. 500.00 -> 500
+        //      123.45 -> 123
+        //      -25.90 -> -25
+        $integerValue = (int)((float)$normalized);
+        cpcDebug::cpc_debug('        Koordinaten: ' . json_encode($coord),'-RFQ603_A');
+        cpcDebug::cpc_debug('        Integer: ' . $integerValue,'-RFQ603_A');
+        // Als echte Zahl in Excel schreiben
+        $this->worksheet->setCellValueExplicit($coord,$integerValue,\PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+        // Zeilennummer aus Koordinate ermitteln
+        // z.B. "D15" -> 15
+        $row = preg_replace('/[^0-9]/', '', $coord);
+        $this->worksheet->getStyle($coord)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+        $this->worksheet->getRowDimension($row)->setRowHeight(24);
     }
     private function _writeRFQ2533($ppid, $type)
     {
@@ -1244,7 +1271,7 @@ class ExcelController extends BaseController
                 $coordMenge = $this->getCellA(6, $rowIndex);
                 $rowIndex++;
                 $this->setCellValueAndHight($coordLT['Cell'], $this->getCRDDate($mx['LT']));
-                $this->setCellValueAndHight($coordMenge['Cell'], $mx['Menge']);
+                $this->setCellValueAndHightInteger($coordMenge['Cell'], $mx['Menge']);
             }
         }
         $startRowIndex = 98;
@@ -1256,7 +1283,7 @@ class ExcelController extends BaseController
                 $coordLT = $this->getCellA($colIndex, $rowIndex);
                 $coordMenge = $this->getCellA($colIndex + 1, $rowIndex);
                 $this->setCellValueAndHight($coordLT['Cell'], $this->getCRDDate($om['LT']));
-                $this->setCellValueAndHight($coordMenge['Cell'], $om['Menge']);
+                $this->setCellValueAndHightInteger($coordMenge['Cell'], $om['Menge']);
                 $rowIndex++;
             }
             $colIndex += 6;
@@ -1803,7 +1830,7 @@ class ExcelController extends BaseController
         return Redirect::to($redirectLink);
         //header('Content-Type: application/vnd.ms-excel');
         //header('Content-Disposition: attachment;filename="'.$pp['PPProduktpass_IAN']."_NEUII.xlsx".'"');
-        //header('Cache-Control: max-age=0');						
+        //header('Cache-Control: max-age=0');
     }
     private function sendFile($file, $subject, $body, $to, $cc, $fname)
     {
@@ -2056,11 +2083,11 @@ class ExcelController extends BaseController
         $pp->PPProduktpass_RevisionVon_PPProduktpass_Id = $pprevid;
         $pp->PPProduktpass_Revisionsnummer = $prev_revno;
         $pp->PPProduktpass_IsRevision = 1;
-        //$pp->PPProduktpass_IsRevision = $this->setValue($table, 'PPProduktpass_IsRevision', $data); 
-        //$pp->PPProduktpass_RevisionArt = $this->setValue($table, 'PPProduktpass_RevisionArt', $data); 
-        //$pp->PPProduktpass_Revisionsnummer = $this->setValue($table, 'PPProduktpass_Revisionsnummer', $data); 
-        //$pp->PPProduktpass_RevisionAktuell = $this->setValue($table, 'PPProduktpass_RevisionAktuell', $data); 
-        //$pp->PPProduktpass_RevisionVon_PPProduktpass_Id = $this->setValue($table, 'PPProduktpass_RevisionVon_PPProduktpass_Id', $data); 
+        //$pp->PPProduktpass_IsRevision = $this->setValue($table, 'PPProduktpass_IsRevision', $data);
+        //$pp->PPProduktpass_RevisionArt = $this->setValue($table, 'PPProduktpass_RevisionArt', $data);
+        //$pp->PPProduktpass_Revisionsnummer = $this->setValue($table, 'PPProduktpass_Revisionsnummer', $data);
+        //$pp->PPProduktpass_RevisionAktuell = $this->setValue($table, 'PPProduktpass_RevisionAktuell', $data);
+        //$pp->PPProduktpass_RevisionVon_PPProduktpass_Id = $this->setValue($table, 'PPProduktpass_RevisionVon_PPProduktpass_Id', $data);
         $pp->PPProduktpass_RevisionDatum = $this->setValue($table, 'PPProduktpass_RevisionDatum', $data);
         $pp->PPProduktpass_ProjektBild = $this->setValue($table, 'PPProduktpass_ProjektBild', $data);
         $pp->PPProduktpass_VersandfaehigeUmverpackung = $this->setValue($table, 'PPProduktpass_VersandfaehigeUmverpackung', $data);
@@ -2102,8 +2129,8 @@ class ExcelController extends BaseController
         $pp->updateUserName = $this->setValue($table, 'updateUserName', $data);
         $pp->category = $this->setValue($table, 'category', $data);
         $pp->vendorNo = $this->setValue($table, 'vendorNo', $data);
-        //$pp->createdOn = $this->setValue($table, 'createdOn', $data); 
-        //$pp->updatedOn = $this->setValue($table, 'updatedOn', $data); 
+        //$pp->createdOn = $this->setValue($table, 'createdOn', $data);
+        //$pp->updatedOn = $this->setValue($table, 'updatedOn', $data);
         $pp->expiryDate = $this->setValue($table, 'expiryDate', $data);
         $pp->versionDoc = $this->setValue($table, 'versionDoc', $data);
         $pp->angebotsnummerPraefix = $this->setValue($table, 'angebotsnummerPraefix', $data);
@@ -2138,7 +2165,7 @@ class ExcelController extends BaseController
         $pp->PPProduktpass_ThemaRisc = $this->setValue($table, 'PPProduktpass_ThemaRisc', $data);
         $pp->PPProduktpass_ThemaCerificates = $this->setValue($table, 'PPProduktpass_ThemaCerificates', $data);
         $pp->PPProduktpass_ThemaScope = $this->setValue($table, 'PPProduktpass_ThemaScope', $data);
-        //$pp->PPProduktpass_PMAdmin = $this->setValue($table, 'PPProduktpass_PMAdmin', $data); 
+        //$pp->PPProduktpass_PMAdmin = $this->setValue($table, 'PPProduktpass_PMAdmin', $data);
         //$pp->PPProduktpass_TCAdmin = $this->setValue($table, 'PPProduktpass_TCAdmin', $data);
         $pp->save();
         $this->handleOldData($pp->PPProduktpass_Id, $pprevid);
@@ -2320,10 +2347,10 @@ class ExcelController extends BaseController
     }
     private function readPictures($row, $id, $ian, $drawings, $header)
     {
-        // Moodboard	
-        // Themenfarben	
-        // Artikel_Farben	
-        // Bild	
+        // Moodboard
+        // Themenfarben
+        // Artikel_Farben
+        // Bild
         // Vertragsfoto
         //var_dump($header); exit;
         $Moodboard =  $this->getCoordPictures('Moodboard', $header);
@@ -2645,7 +2672,7 @@ class ExcelController extends BaseController
         //cpcDebug::cpc_debug("	def: ".$def);
         //cpcDebug::cpc_debug("	id: ".$id);
         $inputFileName = storage_path() . "/data/" . $file;
-        //if (!file_exists($inputFileName) )	cpcDebug::cpc_debug("	ERROR: ".$inputFileName." existiert nicht!");		
+        //if (!file_exists($inputFileName) )	cpcDebug::cpc_debug("	ERROR: ".$inputFileName." existiert nicht!");
         $inputFileType = 'Excel2007';
         //$inputFileType = 'Excel5';
         //	$inputFileType = 'Excel2003XML';
@@ -2655,9 +2682,9 @@ class ExcelController extends BaseController
         //$objReader -> setReadDataOnly(false);
         $objPHPExcel = $objReader->load($inputFileName);
         $sheetNames = $objPHPExcel->getSheetNames();
-        //echo("</pre>");var_dump($sheetNames);echo("</pre>"); 
+        //echo("</pre>");var_dump($sheetNames);echo("</pre>");
         //foreach($sheetNames as $sheetIndex => $sheetName) {
-        //	echo("</pre>");var_dump($objPHPExcel->getSheetByName($sheetName)->getMergeCells());echo("</pre>"); 
+        //	echo("</pre>");var_dump($objPHPExcel->getSheetByName($sheetName)->getMergeCells());echo("</pre>");
         //}
         //exit;
         $def = new ExcelDefinitions($def);
@@ -2667,7 +2694,7 @@ class ExcelController extends BaseController
         $startrow = $def->getStartrow();
         $endrow = $def->getEndrow();
         //cpcDebug::cpc_debug("Sheetname = ".$sheetName." table = ".$table." Startrow = ".$startrow." Endrow = ".$endrow);
-        //echo("</pre>");var_dump($def);echo("</pre>");exit; 
+        //echo("</pre>");var_dump($def);echo("</pre>");exit;
         //foreach ($def->getRowDef() as $cell => $field) {
         //	echo("  Field: $field  Cell: $cell <br>");
         //}
@@ -2718,7 +2745,7 @@ class ExcelController extends BaseController
 									}
 							}
 							//echo ($s."<br>");
-							//$db->query($s);	
+							//$db->query($s);
 							DB::select( DB::raw($s) );
 							$ppMenge = PPProduktpass_Menge::create ();
 							//cpcDebug::cpc_debug("	**** cmd ".$s);

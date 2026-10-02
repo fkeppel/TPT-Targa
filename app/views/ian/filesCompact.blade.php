@@ -28,12 +28,14 @@
         display: grid;
         grid-template-columns: minmax(600px, 55%) minmax(90px, 8%) minmax(120px, 12%) minmax(180px, 20%);
     }
-    #FileDetails div {
-        border: 1px solid lightgray;
-        padding: 8px;
-        height: calc(100% - 2px);
-        display: inline-block;
-        white-space: nowrap;
+    #FileDetails > div {
+        border:1px solid lightgray;
+        padding:8px;
+        display:block;
+        min-height:70px;
+        height:auto;
+        white-space:normal;
+        overflow-wrap:anywhere;
     }
     .fileIcons {
         margin-left: 5px;

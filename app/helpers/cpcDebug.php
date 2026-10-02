@@ -29,6 +29,26 @@ class cpcDebug {
         fwrite($datei, print_r($str, true) . "\n");
         fclose($datei);
     }
+    static function cpc_log( $str, $ext = "Commen") {
+        if (is_null($str) or!isset($str)) {
+            return;
+        }
+        $strsize = strlen(serialize($str));
+        if ($strsize > 1024 * 1024) {
+            $str = substr($str, 0, 1024) . "... (truncated)";
+        }
+        $jetzt = date("Ymd");
+        $path  = storage_path() . "/logs/" . date("Y_m_d") . "/$ext";
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+        }
+        //$jetzt = "heute";
+        $datei = fopen($path . "/log_" . $jetzt . ".txt", "a+");
+        $jetzt = date("Y-m-d H:i:s");
+        fwrite($datei, $jetzt . " [" . Auth::user()->PPMitarbeiter_Kuerzel . "]" . "#  ");
+        fwrite($datei, print_r($str, true) . "\n");
+        fclose($datei);
+    }
     static function cpc_debugFile($str, $ext = "Commen") {
         $path  = storage_path() . "/logs/" . date("Y_m_d") . "/$ext";
         if (!file_exists($path)) {

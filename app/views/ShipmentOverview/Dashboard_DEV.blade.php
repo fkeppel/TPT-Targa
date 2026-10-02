@@ -448,7 +448,7 @@
      <div class="filter-bar" role="region" aria-label="Filter">
         <div class="filter-actions">
             <button type="button" class="btn" id="filter-reset">Reset</button>
-            <a href="{{ URL::to('/shipFlat') }}" class="btn">Flat View</a>
+            <a href="{{ URL::to('/shipFlat') }}" class="btn">Flat Viewx</a>
         </div>
         <div class="muted" id="filter-count" aria-live="polite"></div>
     </div>

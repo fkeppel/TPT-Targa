@@ -1,4 +1,4 @@
-<?php 
+<?php
     $style = '';
     $config = Config::get('app.cEnv');
     if (Config::get('app.cEnv') != 'production'){
@@ -8,7 +8,7 @@
         $lang = $_COOKIE['TPTLanguage'];
     } else {
         $lang = Auth::User()->PPMitarbeiter_Language;
-    }  
+    }
 ?>
 <style>
     #dirac {
@@ -67,7 +67,7 @@
                 <li><a href='/l2spo_start'>Simulation Hintergrund-Prozess SPO Upload</a></li>
             </ul>
         </li>
-		@endif        
+		@endif
         @if (Auth::User()->PPMitarbeiter_Gruppe  == 'admin' )
         <li class='has-sub'>
             <a href='#'>{{ ServiceProvider::tl($lang, 'Stammdaten') }}</a>
@@ -147,7 +147,7 @@
                 <li  style="text-align: left;">
                     <a href='/showImportThemenplanung'>{{ ServiceProvider::tl($lang, 'Import Themenplanung') }}</a>
                 </li>
-                @if (strpos(Auth::User()->PPMitarbeiter_Role,'PPIMP')  !== false) 
+                @if (strpos(Auth::User()->PPMitarbeiter_Role,'PPIMP')  !== false)
                 <li  style="text-align: left;">
                     <a href='/getFormUploadPruefplaene'>{{ ServiceProvider::tl($lang, 'Massen-Import Prüfpläne') }}</a>
                 </li>
@@ -181,14 +181,14 @@
                     <a href='/termine/projekt/U/2002/1'>Dashboard {{ ServiceProvider::tl($lang, 'Archiv (ABSAGE)') }}</a>
                 </li>
                 @endif
+                <!--li  style="text-align: left;">
+                    <a href='/terminlistePP'>{{ ServiceProvider::tl($lang, 'Termine Projekte Alt') }}</a>
+                </li -->
                 <li  style="text-align: left;">
-                    <a href='/terminliste/X'>{{ ServiceProvider::tl($lang, 'Termine Projekte') }}</a>
-                </li>
-                 <li  style="text-align: left;">
-                    <a href='/terminlisteNeu/X'>{{ ServiceProvider::tl($lang, 'Termine Projekte Neu') }}</a>
+                    <a href='/terminlistePPNeu'>{{ ServiceProvider::tl($lang, 'Termine Projekte') }}</a>
                 </li>
                 <li  style="text-align: left;">
-                    <a href='/terminlisteM/X'>{{ ServiceProvider::tl($lang, 'Termine  Musterung') }}</a>
+                    <a href='/terminlisteMU'>{{ ServiceProvider::tl($lang, 'Termine  Musterung') }}</a>
                 </li>
                 <!--li  style="text-align: left;">
                     <a href='/terminlisteI/X'>Terminliste Auschreibungen</a>
@@ -216,7 +216,7 @@
             </ul>
             @endif
         </li>
-         @if (ServiceProvider::AuthUserHasRole('TESTER')  )
+         @if (ServiceProvider::AuthUserHasRole('TESTER')  or ServiceProvider::AuthUserHasTaetigkeit('LOG'))
         <li class='has-sub' style="width:150px;">
             <a href='#'>Shipment</a>
             <ul>
@@ -225,6 +225,9 @@
                 </li>
                 <li  style="text-align: left;">
                     <a href='/shipFlat'>{{ ServiceProvider::tl($lang, 'Shipmentübersicht [Flat]') }}</a>
+                </li>
+                <li  style="text-align: left;">
+                    <a href='/newSchwarzOrder'>{{ ServiceProvider::tl($lang, 'Neue Schwarz Order') }}</a>
                 </li>
             </ul>
         </li>
@@ -265,7 +268,7 @@
         </li>
         @endif
         <li style='margin-left:200px;'>
-            <div style="padding-left:20px;padding-top:19px;background-color:transparent;font-weight:normal;font-family: 'Tahoma', sans-serif;border-radius:0px;">{{ ServiceProvider::tl($lang, 'Sprache') }} 
+            <div style="padding-left:20px;padding-top:19px;background-color:transparent;font-weight:normal;font-family: 'Tahoma', sans-serif;border-radius:0px;">{{ ServiceProvider::tl($lang, 'Sprache') }}
             <select style='border-radius:0px;margin-left:10px;margin-top:-3px;margin-left:5px;width:100px;padding:6px;outline:none;' onChange="chngLang(this.options[this.selectedIndex].value)">
                 <option @if ($lang == 'DE') selected @endif  value='DE'>{{ ServiceProvider::tl($lang, 'Deutsch') }}</option>
                 <option @if ($lang == 'EN') selected @endif  value='EN'>{{ ServiceProvider::tl($lang, 'Englisch') }}</option>

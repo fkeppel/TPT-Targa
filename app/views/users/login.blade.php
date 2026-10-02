@@ -28,7 +28,6 @@
             <h2 class="form-signin-heading" style="{{ $tptMarkerDev }}">TARGA Project Tool</h2>
             <div style="margin:0 auto;width:300px;margin-top:50px; ">
                 {{ Form::open(array('url'=>'users/signin', 'class'=>'form-signin')) }}
-                <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
                 {{ Form::text('email', null, array('class'=>'input-block-level', 'placeholder'=>'Benutzername')) }}
                 {{ Form::password('password', array('class'=>'input-block-level', 'placeholder'=>'Passwort')) }}
                 {{ Form::submit('Login', array('class'=>'btn btn-large btn-primary btn-block'))}}

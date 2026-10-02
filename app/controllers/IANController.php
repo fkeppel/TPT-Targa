@@ -520,7 +520,7 @@ class IANController extends \BaseController {
     }
     private function getSPOFilesLastChange( $ppid ) {
         $pp = $this->getPP($ppid);
-        if ($pp == null) {#
+        if ($pp == null) {
             cpcDebug::cpc_debug('getSPOFilesLastChange: PP nicht gefunden '.$ppid, '-ERROR');
             return 'X';
         }

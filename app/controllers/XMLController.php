@@ -54,6 +54,9 @@ class XMLController extends BaseController
             $path = public_path() . '/data/import/XML/';
         }
         $xmlFile = $path . $inputFileName;
+        if (strpos($inputFileName, "template") !== false) {
+            $xmlFile = $inputFileName;
+        }
         if (!file_exists($xmlFile)) {
             die("$inputFileName  Datei $xmlFile nicht gefunden (Dateiname?) !");
         }
@@ -185,7 +188,7 @@ class XMLController extends BaseController
         foreach ($orgtree as $key => $subtree) {
             //echo("<b>$key </b> <br>-----------------------------<br>");
             //print_r($subtree[0]);
-            //echo("</pre><br>############################################################<br>"); 
+            //echo("</pre><br>############################################################<br>");
             if (!isset( $ret[$callparent][$key]['OLD'])){
                 if (!isset($cmptree[$key])) {
                     if (is_array($subtree)) {
@@ -456,7 +459,102 @@ class XMLController extends BaseController
         }
         return $all;
     }
-    private function getXMLValue($aNode, $ndx1, $ndx2){
+    private function getXMLValue($aNode, $ndx1, $ndx2)
+    {
+        $elem = $this->xmlArray;
+        $path = "";
+        foreach ($aNode as $n) {
+            $path .= $n['elem'] . "->";
+            if (!isset($elem[$n['elem']])) {
+                return false;
+            }
+            switch ($n['ndx']) {
+                // -------------------------------------------------
+                // Äußere Wiederholung [*]
+                // -------------------------------------------------
+                case "*":
+                    $tmp = $elem[$n['elem']];
+                    if (!is_array($tmp)) {
+                        $elem = $tmp;
+                        break;
+                    }
+                    $keys = array_keys($tmp);
+                    // numerisches Array = mehrere Elemente
+                    if (isset($keys[0]) &&
+                        is_int($keys[0]) &&
+                        $keys[0] === 0) {
+                        if (!isset($tmp[$ndx1])) {
+                            return false;
+                        }
+                        $elem = $tmp[$ndx1];
+                    } else {
+                        // assoziatives Array = genau ein Element
+                        if ($ndx1 != 0) {
+                            return false;
+                        }
+                        $elem = $tmp;
+                    }
+                    break;
+                // -------------------------------------------------
+                // Innere Wiederholung [!]
+                // -------------------------------------------------
+                case "!":
+                    $tmp = $elem[$n['elem']];
+                    if (!is_array($tmp)) {
+                        $elem = $tmp;
+                        break;
+                    }
+                    $keys = array_keys($tmp);
+                    // numerisches Array = mehrere Elemente
+                    if (isset($keys[0]) &&
+                        is_int($keys[0]) &&
+                        $keys[0] === 0) {
+                        if (!isset($tmp[$ndx2])) {
+                            return false;
+                        }
+                        $elem = $tmp[$ndx2];
+                    } else {
+                        // assoziatives Array = genau ein Element
+                        if ($ndx2 != 0) {
+                            return false;
+                        }
+                        $elem = $tmp;
+                    }
+                    break;
+                case -1:
+                    $elem = $elem[$n['elem']];
+                    break;
+                default:
+                    if (isset($elem[$n['elem']][$n['ndx']])) {
+                        if (is_array($elem[$n['elem']])) {
+                            $elem = $elem[$n['elem']][$n['ndx']];
+                        } else {
+                            $elem = $elem[$n['elem']];
+                        }
+                    } else {
+                        if (isset($elem[$n['elem']])) {
+                            if ($n['ndx'] == 0) {
+                                $elem = $elem[$n['elem']];
+                            } else {
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                    break;
+            }
+        }
+        if (!isset($elem)) {
+            return false;
+        }
+        // Am Ende darf kein Array mehr übrig sein
+        if (is_array($elem)) {
+            return false;
+        }
+        return (string) $elem;
+    }
+    private function getXMLValueOld($aNode, $ndx1, $ndx2){
         $elem = $this->xmlArray;
         $path = "";
         foreach ($aNode as $n) {
@@ -482,7 +580,7 @@ class XMLController extends BaseController
                         $elem = $elem[$n['elem']];
                     }
                     break;
-                case -1:
+                    case -1:
                     $elem = $elem[$n['elem']];
                     break;
                 default:
@@ -568,9 +666,29 @@ class XMLController extends BaseController
                         $elem = $elem[$n['elem']];
                     }
                     break;
-                case "!":
+ /*               case "!":
                     $elem = $elem[$n['elem']];
                     return (count($elem));
+                */
+                case "!":
+                    $elem = $elem[$n['elem']];
+                    if (!is_array($elem)) {
+                        return 1;
+                    }
+                    $keys = array_keys($elem);
+                    // numerisches Array:
+                    // [0] => ..., [1] => ...
+                    // => mehrere XML-Elemente
+                    if (isset($keys[0]) &&
+                        is_int($keys[0]) &&
+                        $keys[0] === 0) {
+                        return count($elem);
+                    }
+                    // assoziatives Array:
+                    // ['value'] => ...
+                    // ['country'] => ...
+                    // => EIN XML-Element mit mehreren Child-Nodes
+                    return 1;
                 case -1:
                     $elem = $elem[$n['elem']];
                     break;
@@ -691,7 +809,7 @@ class XMLController extends BaseController
         return View::make('main', $data);
     }
     private function getFIdFromFilename($path, $ppid){
-        cpcDebug::cpc_debug($path,'@Files');
+        //cpcDebug::cpc_debug($path,'@Files');
         $path_parts = pathinfo($path);
         $filename = $path_parts['basename'];
         $f = PPPPFiles::where('PPPPFiles_Name', $filename)->where('PPPPFiles_PPProduktpass_Id', $ppid)->get()->first();
@@ -728,6 +846,10 @@ class XMLController extends BaseController
             //var_dump($ins[$tab]); echo("<br>--------------------------------<br>");
             try {
                 $this->insert($tab, $ins[$tab], $ppid);
+                if ($tab == 'PPXML_Mengen'){
+                    //cpcDebug::cpc_debug("PPXML_Mengen inserted for PPID: $ppid", "-PPXML_Mengen");
+                    //cpcDebug::cpc_debug($ins[$tab], "-PPXML_Mengen");
+                }
             } catch (Exception $ex) {
                 echo ("Fehler beim einlesen der Tabelle $tab <br>");
                 exit;
@@ -808,9 +930,9 @@ class XMLController extends BaseController
                 }
             }
         } else {
-            cpcDebug::cpc_debug("PP zu $ppid nicht gefunden!");
+            //cpcDebug::cpc_debug("PP zu $ppid nicht gefunden!");
         }
-        cpcDebug::cpc_debug("w: $m Y: $y PPID: $ppid MinLT: $minlt", "-MinLT");
+        //cpcDebug::cpc_debug("w: $m Y: $y PPID: $ppid MinLT: $minlt", "-MinLT");
         $mengen_count = PPProduktpass_Menge::where('PPProduktpass_Menge_PPProduktpass_Id', "=", $ppid)->whereNotNull('PPProduktpass_Menge_DeliveryWeek')->count();
         if ($mengen_count ==  0) {
             $pp = tPPProduktpass::where("PPProduktpass_Id", $ppid)->get()->first();
@@ -819,7 +941,7 @@ class XMLController extends BaseController
                 $m = $ltThema['Woche'];
                 $y = $ltThema['Jahr'];
             }
-             cpcDebug::cpc_debug("LT aus Thema  w: $m Y: $y PPID: $ppid ", "-MinLT");
+            //cpcDebug::cpc_debug("LT aus Thema  w: $m Y: $y PPID: $ppid ", "-MinLT");
             return array($m, $y);
         }
         $mengen = PPProduktpass_Menge::where('PPProduktpass_Menge_PPProduktpass_Id', "=", $ppid)->get();
@@ -857,7 +979,7 @@ class XMLController extends BaseController
                     $ltw = $lta[0];
                     $lty = $lta[1]+2000;
                     //echo('Good ====');
-                } 
+                }
                 //echo("$minlt -> $ltw $lty  => ");
                 $minlt = $this->_minLt($minlt, "$ltw/$lty");
                 //echo($minlt."<br>");
@@ -915,22 +1037,22 @@ class XMLController extends BaseController
             }
         }
         $ltXML = $this->getMinLiefertermin($ppid);
-        cpcDebug::cpc_debug("Liefertermin2: " . $ltXML[0] . "/" . $ltXML[1], '@CalcLT');
+        //cpcDebug::cpc_debug("Liefertermin2: " . $ltXML[0] . "/" . $ltXML[1], '@CalcLT');
         $pp->PPProduktpass_Liefertermin     = $ltXML[0];
         $pp->PPProduktpass_LieferterminJahr = $ltXML[1];
         if ((int)$ltXML[0] === 99 or (int)$ltXML[1] === 9999) {
-            cpcDebug::cpc_debug('LT == 99', '@CalcLT');
+            //cpcDebug::cpc_debug('LT == 99', '@CalcLT');
             $ltThema = $this->calcTempLT($pp);
             if (!is_null($ltThema) ){
                 $pp->PPProduktpass_Liefertermin     = $ltThema['Woche'];
                 $pp->PPProduktpass_LieferterminJahr = $ltThema['Jahr'];
-                cpcDebug::cpc_debug("Temp Liefertermin: " . $ltThema['Woche'] . "/" . $ltThema['Jahr'], '@CalcLT');
+                //cpcDebug::cpc_debug("Temp Liefertermin: " . $ltThema['Woche'] . "/" . $ltThema['Jahr'], '@CalcLT');
             } else{
-                cpcDebug::cpc_debug("Kein Temp LT gefunden!", '@CalcLT');
+                //cpcDebug::cpc_debug("Kein Temp LT gefunden!", '@CalcLT');
             }
-        } 
-        cpcDebug::cpc_debug("Result1 Liefertermin: " .  $pp->PPProduktpass_Liefertermin . "/" .$pp->PPProduktpass_LieferterminJahr, '@CalcLT');
-        //cpcDebug::dd($lt, false)
+        }
+        //cpcDebug::cpc_debug("Result1 Liefertermin: " .  $pp->PPProduktpass_Liefertermin . "/" .$pp->PPProduktpass_LieferterminJahr, '@CalcLT');
+        //cpcDebug::dd($lt, false);
         $pp->PPProduktpass_RevisionVon_PPProduktpass_Id = $this->revision_von;
         $isUsa = $this->isUSProject($pp, $pp_vorgaenger);
         if ($this->revision_von === 0) {
@@ -1003,7 +1125,7 @@ class XMLController extends BaseController
         return false;
     }
     public function newTermine($id){
-        cpcDebug::cpc_debug("New Termine für PPId: $id", '-NewTermine');
+        //cpcDebug::cpc_debug("New Termine für PPId: $id", '-NewTermine');
         $spalten = DB::table('PPBoardSpalteData')->where("PPBoardSpalte_Id", ">=", 1000)->get();
         $pp = tPPProduktpass::where('PPProduktpass_Id', $id)->get()->first();
         $pm = PPMitarbeiter::where('PPMitarbeiter_Taetigkeit', '=', 'PM')->where('PPMitarbeiter_isDefault', '=', 1)->get()->first();
@@ -1022,13 +1144,13 @@ class XMLController extends BaseController
             }
             if ($isUSOrder){
                 $pp->PPProduktpass_IsUSA     = 1;
-            } 
+            }
             if ($isParent){
                 $pp->PPProduktpass_IsParent     = 1;
-            } 
+            }
             if ($isChild){
                 $pp->PPProduktpass_IsChild     = 1;
-            } 
+            }
             $pp->save();
         }
         foreach ($spalten as $spalte) {
@@ -1430,6 +1552,7 @@ class XMLController extends BaseController
                 $this->change2Inq($ppid);
             }
         }
+        $this->cleanDuplicates($ppid);
     }
     private function test_purchase($ppid){
         $purchase = PPPurchase::where("PPPurchase_PPProduktpass_Id", "=", $ppid)->get()->first();
@@ -1469,7 +1592,7 @@ class XMLController extends BaseController
     }
     private function setTranslateColumns (){
         /*if (Auth::user()->PPMitarbeiter_Kuerzel != 'FKE'){
-            return; 
+            return;
         }*/
         $cols = DB::table('XMLConverterMitVersion')->where("XMLConverter_Translate", 1)->where('XMLConverter_Version', '2022.01')->get();
         $this->columns2translate = array();
@@ -1480,7 +1603,7 @@ class XMLController extends BaseController
     }
     private function translateColumn ($colname, $text){
        /* if (Auth::user()->PPMitarbeiter_Kuerzel != 'FKE'){
-            return; 
+            return;
         }*/
         $key = array_search($colname, $this->columns2translate, true);
         //cpcDebug::cpc_debug("Key: ".$key, '@T261');
@@ -1578,7 +1701,7 @@ class XMLController extends BaseController
                     }
                     if ($m->PPMitarbeiter_Taetigkeit == 'PJM') {
                         return 'sophia.schewalje@targa.de';
-                    } 
+                    }
                     if ($m->PPMitarbeiter_Taetigkeit == 'PM') {
                         return 'andreas.claus@targa.de';
                     }
@@ -1608,7 +1731,7 @@ class XMLController extends BaseController
                 $data['content'] = '';
                 if (strlen($pp->PPProduktpass_Ausmusterungnummer) > 4) {
                     $data['content'] = $this->compareXML($ppid, "LATEST", $message, false, true);
-                } 
+                }
                 $subject         = "[TPT] Produktpass IAN $ian $ausm $bez wurde neu eingelesen";
                 $message         = "<b>Die Datei wurde erfolgreich importiert!<b><br><br><a href='" . "$server/show/$ppid" . "'>Link zum Produktpass....</a><br><br>";
                 if ($emailLang != 'DE'){
@@ -1662,7 +1785,7 @@ class XMLController extends BaseController
                     $pjmmailVTR = $this->getMitarbeiterEmail($pp->PPProduktpass_PJMAdminVTR);
                     if ($pjmmailVTR != '') {
                         $cc1[] = $pjmmailVTR;
-                    }                    
+                    }
                     if ($changeQty) {
                         $cc1[] = 'dagmar.pink@targa.de';
                         $cc1[] =  'jannis.adams@targa.de';
@@ -1676,7 +1799,7 @@ class XMLController extends BaseController
                 if ($mailto == 'f.keppel@compecon.de') {
                     $cc1 = array();
                 }
-                //$mailLang 
+                //$mailLang
                 $sendtMailSuppress = false;
                 $value = Input::get('mailSuppress');
                 if (is_string($value)) {
@@ -1687,7 +1810,7 @@ class XMLController extends BaseController
                 }
                 if (! $sendtMailSuppress){
                     $mail->sendMail($mailto, $cc1, $subject, $body);
-                } 
+                }
             }
         } else {
             $message         = "<b>Fehler beim einlesen der Datei!!<b><br><br><a href='/uploadForm/0'>Neu einlesen</a>";
@@ -1707,7 +1830,7 @@ class XMLController extends BaseController
     private function savePrevPP($ppid_alt){
         //sichert die Version
         //echo("savePrevPP PID: $ppid_alt<br>");
-        cpcDebug::cpc_debug("savePrevPP PID: $ppid_alt", '-T261');
+        //cpcDebug::cpc_debug("savePrevPP PID: $ppid_alt", '-T261');
         $pp = tPPProduktpass::Where('PPProduktpass_Id', "=", $ppid_alt)->orderBy("PPProduktpass_Id", "desc")->get()->first();
         if (!$pp) {
             echo ("Fehler beim Importieren <br>");
@@ -1732,7 +1855,7 @@ class XMLController extends BaseController
             $pp->PPProduktpass_IAN             = $pp->PPProduktpass_IAN . " (Rev. " . $this->revision . " ) ";
             $pp->PPProduktpass_RevisionAktuell = $this->revision;
             $pp->save();
-        }     
+        }
         catch (Exception  $ex){
             $pp->PPProduktpass_IAN             = $pp->PPProduktpass_IAN . " (RevError. " . $this->revision . " ) ";
             $errRev = $this->revision + 1000;
@@ -1740,8 +1863,8 @@ class XMLController extends BaseController
             $pp->save();
         }
         $res = array('Result' => true, 'InternerStatus' =>  $pp->InternerStatus);
-        cpcDebug::cpc_debug($res, '-T261');
-        cpcDebug::cpc_debug("savePrevPP Ende", '-T261');
+        //cpcDebug::cpc_debug($res, '-T261');
+        //cpcDebug::cpc_debug("savePrevPP Ende", '-T261');
         return $res;
     }
     private function moveFile($file, $dest){
@@ -1830,6 +1953,7 @@ class XMLController extends BaseController
         }
         $import['PPProduktpass_Menge']      = $this->getXMLVarValues("PPProduktpass_Menge");
         $import['PPXML_Mengen']             = $this->getXMLVarValues("PPXML_Mengen");
+        //cpcDebug::cpc_debug($import['PPXML_Mengen'], '-PPXML_Mengen');
         $import['PPXML_OSMengen']           = $this->getXMLVarValues("PPXML_OSMengen");
         $new_ppid = $this->doInserts($import);
         $this->postInsert($new_ppid, 1);
@@ -1900,7 +2024,7 @@ class XMLController extends BaseController
         $InternerStatus = Input::get("InternerStatus");
         if (Input::has('ZIPArray')) {
             try {
-                $json = json_decode(Input::get('ZIPArray'));
+                $son = json_decode(Input::get('ZIPArray'));
             } catch (Exception $e) {
                 print_r($e);
                 exit;
@@ -1938,7 +2062,7 @@ class XMLController extends BaseController
         return $this->_importXML($this->XMLUploadFile, $force, $final, $zipInfos, $InternerStatus, $mailto);
     }
     private function getSchemaVersion($xmlFile){
-        cpcDebug::cpc_debug('xmlFile getSchemaversion:' . $xmlFile, 'XML');
+        //cpcDebug::cpc_debug('xmlFile getSchemaversion:' . $xmlFile, 'XML');
         $schemaVersion = '';
         if (!file_exists($xmlFile)) {
             echo ("Schemasuche: $xmlFile nicht gefunden!");
@@ -1984,7 +2108,7 @@ class XMLController extends BaseController
         }
     }
     private function getValues($tree, $elems){
-        /* 
+        /*
         $this->pp('',$tree['assortments'][0]['count']);
         $this->pp('',$tree['assortments'][0]['assortment'][0]['styles'][0]['count']);
         $this->pp('',$tree['assortments'][0]['assortment'][0]['styles'][0]['style'][0]['sizes'][0]['count']);
@@ -2371,9 +2495,10 @@ class XMLController extends BaseController
         }
     }
     private function _importXML($input_file, $bForce = false, $bfinal = false, $zipInfos = null, $pInternerStatus = 'PLAN', $mailto = 'f.keppel@compecon.de', $returnPPId = false){
-        /*echo ("File: $input_file Force: $bForce, Final: $final, Mailto: $mailto Interner Status: $InternerStatus <br><pre>");
-        print_r($zipInfos);
-        exit;*/
+        //echo ("File: $input_file Force: $bForce, Final: $bfinal, Mailto: $mailto Interner Status: $pInternerStatus <br><pre>");
+        //print_r($zipInfos);
+        //exit;
+        //cpcDebug::cpc_debug("Starting import of XML file: $input_file", '-XMLController');
         $this->revision_von  = 0;
         $this->XMLUploadFile = $input_file;
         $force               = $bForce;
@@ -2395,24 +2520,24 @@ class XMLController extends BaseController
             exit;
         }*/
         $InternerStatus = $pInternerStatus;
-        cpcdebug::cpc_debug("Vorhandener PPID: $ppid Final: $final Force: $force", '-T261');
+        //cpcdebug::cpc_debug("Vorhandener PPID: $ppid Final: $final Force: $force", '-T261');
         if ($ppid != 0 ) {
             if ($force) {
                 $result = $this->savePrevPP($ppid);
-                cpcDebug::cpc_debug("Force Import for PPID: $ppid", '-T261');
-                cpcDebug::cpc_debug($result, '-T261');
+                //cpcDebug::cpc_debug("Force Import for PPID: $ppid", '-T261');
+                //cpcDebug::cpc_debug($result, '-T261');
                 if ($result['Result']) {
-                    cpcDebug::cpc_debug('Result', '-T261');
+                    //cpcDebug::cpc_debug('Result', '-T261');
                     if (in_array($result['InternerStatus'], array('ABSAGE', 'GELIEFERT', 'FIX'), true)) {
                         $InternerStatus = $result['InternerStatus'];
-                        cpcDebug::cpc_debug("Interner Status preserved: $InternerStatus", '-T261');
+                        //cpcDebug::cpc_debug("Interner Status preserved: $InternerStatus", '-T261');
                     }
                 }
             } else {
                 return $this->viewForceImport($this->XMLUploadFile, $mailto, $this->forceZipFile);
             }
         }
-        cpcDebug::cpc_debug("PrevPPId berücksichtigt: $ppid InternerStatus: $InternerStatus", '-T261');
+        //cpcDebug::cpc_debug("PrevPPId berücksichtigt: $ppid InternerStatus: $InternerStatus", '-T261');
         $json           = json_encode($this->xml);
         $this->xmlArray = json_decode($json, TRUE);
         $import = array();
@@ -2435,6 +2560,8 @@ class XMLController extends BaseController
             $import['PPProduktpass_Menge'] = $this->getXMLVarValues("PPProduktpass_Menge");
             $import['PPXML_OSMengen']      = $this->getXMLVarValues("PPXML_OSMengen");
             $import['PPXML_Mengen']        = $this->getXMLVarValues("PPXML_Mengen");
+            //cpcDebug::cpc_debug('import[PPXML_OSMengen]', '-PPXML_Mengen');
+            //cpcDebug::cpc_debug($import['PPXML_Mengen'], '-PPXML_Mengen');
             //$this->prncpc($import['PPXML_OSMengen']);
             $import['PPAssortments']        = $this->getXMLVarValues("PPAssortments");
             $import['PPAssortmentStyles']        = $this->getXMLVarValues("PPAssortmentStyles");
@@ -2457,7 +2584,7 @@ class XMLController extends BaseController
         }
     }
     private function preserveInternerStatus($ppid, $status){
-        cpcDebug::cpc_debug("Preserve Interner Status: $status for PPID: $ppid", '-T261');
+        //cpcDebug::cpc_debug("Preserve Interner Status: $status for PPID: $ppid", '-T261');
         $pp = tPPProduktpass::where('PPProduktpass_Id', $ppid)->get()->first();
         if ($pp) {
             $pp->InternerStatus = $status;
@@ -2943,7 +3070,7 @@ class XMLController extends BaseController
             $weeks = new DateInterval("P9W");
             $crd = $crd->sub($weeks);
             $wCRD = $crd->format('W');
-            $yCRD = $crd->format('Y');
+            $yCRD = $crd->format('o');
         } catch (Exception $ex) {
             return;
         }
@@ -3029,7 +3156,7 @@ class XMLController extends BaseController
     private function _diffXML ($ppid, $ian, $file1, $file2, $message, $retDiff, $neu = false , $email = false, $fid = 0){
         $subdata['diffs'] = null;
         $subdata['message'] = "";
-        cpcDebug::cpc_debug("_diffXML: $ppid, $ian, $file1, $file2", '@DiffXML');
+        //cpcDebug::cpc_debug("_diffXML: $ppid, $ian, $file1, $file2", '@DiffXML');
         if (!is_null($file1) and !is_null($file2) and strlen($file1) > 0 and strlen($file2) > 0) {
             $_file1 = public_path() . "/data/import/XML/" . $file1;
             $_file2 = public_path() . "/data/import/XML/" . $file2;
@@ -3062,9 +3189,9 @@ class XMLController extends BaseController
                 if ($xml_diff and $xml_item){
                     try {
                         $v1 = $this->getXMLDiffNew($xml_item, $xml_diff, array(), "item");
-                        cpcDebug::cpc_debug($v1,'@Diff0306_1');
+                        //cpcDebug::cpc_debug($v1,'@Diff0306_1');
                         $subdata['diffs'] = $this->getXMLDiffNew($xml_diff, $xml_item, $v1, "item");
-                        cpcDebug::cpc_debug($subdata['diffs'],'@Diff0306_2');
+                        //cpcDebug::cpc_debug($subdata['diffs'],'@Diff0306_2');
                         if ($retDiff) {
                             return $subdata['diffs'];
                         }
@@ -3100,10 +3227,10 @@ class XMLController extends BaseController
             $diff['fileId']  = $fileid;
             $view = 'helpers.printDiffsNeu';
             if ($email){
-                cpcDebug::cpc_debug('EMAIL', '@Files');
+                //cpcDebug::cpc_debug('EMAIL', '@Files');
                 $view = 'helpers.printDiffs_email';
             }
-            cpcDebug::cpc_debug($view, '@printDiffs');
+            //cpcDebug::cpc_debug($view, '@printDiffs');
             $data['content'] = View::make($view)->with('diffs', $diff);
         //} else {
         //    $data['content'] = View::make('helpers.printDiffs')->with('diffs', $subdata);
@@ -3134,13 +3261,13 @@ class XMLController extends BaseController
                 //$retArray[$key] = array_diff($new[$key], $old[$key]);
                 $oldString = json_encode($old[$key]);
                 $newString = json_encode($new[$key]);
-                $retArray[$key]['Old'] =  $oldString; 
-                $retArray[$key]['New'] =  $newString; 
+                $retArray[$key]['Old'] =  $oldString;
+                $retArray[$key]['New'] =  $newString;
                 if (strcmp($oldString, $newString) == 0){
                     $retArray[$key]['Diff'] = 'EQUEL';
                 } else {
-                    //$retArray[$key]['Diff'] = ServiceProvider::diffJson( json_encode($new[$key]), json_encode($old[$key])); 
-                    $retArray[$key]['Diff'] = ServiceProvider::diffArray( $new[$key], $old[$key]); 
+                    //$retArray[$key]['Diff'] = ServiceProvider::diffJson( json_encode($new[$key]), json_encode($old[$key]));
+                    $retArray[$key]['Diff'] = ServiceProvider::diffArray( $new[$key], $old[$key]);
             }
             } else {
                 $retArray[$key] = 'No Old Value';
@@ -3151,23 +3278,23 @@ class XMLController extends BaseController
     private function compareSubTreeX2 ($new, $old){
         $retArray['Old'] = $old;
         $retArray['New'] = $new;
-        $retArray['Diff'] = ServiceProvider::diffArray( $new, $old); 
-        echo('Alt1:##############################################<br><pre>');        
+        $retArray['Diff'] = ServiceProvider::diffArray( $new, $old);
+        echo('Alt1:##############################################<br><pre>');
         print_r($retArray['Old']);
-        echo('</pre>');      
-        echo('Neu:<pre>');        
+        echo('</pre>');
+        echo('Neu:<pre>');
         print_r($retArray['New']);
-        echo('</pre>');        
-        echo('Ergebnis:<pre>');        
+        echo('</pre>');
+        echo('Ergebnis:<pre>');
         print_r($retArray['Diff']);
-        echo('</pre>');      
+        echo('</pre>');
         return $retArray;
     }
     private function compareSubTree ($old, $new){
-        /*echo('Alt:##############################################<br><pre>');        
+        /*echo('Alt:##############################################<br><pre>');
         print_r($old);
-        echo('</pre>');      
-        echo('Neu:<pre>');        
+        echo('</pre>');
+        echo('Neu:<pre>');
         print_r($new);
         echo('</pre>');        */
         $retarray = array();
@@ -3190,7 +3317,7 @@ class XMLController extends BaseController
                     }  else {
                         $retarray[$key]['Val'] = $val;
                     }
-                } 
+                }
             }
         } else {
             //$retarray = $old;
@@ -3214,14 +3341,14 @@ class XMLController extends BaseController
                     }  else {
                         $retarray[$key]['Val'] = $val;
                     }
-                } 
+                }
             }
         } else {
             //$retarray = $old;
         }
-        //echo('Return:<pre>');        
+        //echo('Return:<pre>');
         //print_r($retarray);
-        //echo('</pre>');       
+        //echo('</pre>');
         return $retarray;
     }
     private function getsubArray($a, $keys){
@@ -3250,7 +3377,7 @@ class XMLController extends BaseController
             }
             if (isset($ret[$key])){
                 $ret = $ret[$key];
-            } 
+            }
         }
         if (is_array($ret)){
             echo('<br>4a:<br><pre>');
@@ -3281,7 +3408,7 @@ class XMLController extends BaseController
                                 if(isset($arr1['lsv']['code'])){
                                     $newKey .= $arr1['lsv']['code'];
                                 }
-                                $xml['localQuantity'][$newKey] = $arr1; 
+                                $xml['localQuantity'][$newKey] = $arr1;
                                 unset($xml['localQuantity'][$k1]);
                             }
                         }
@@ -3295,7 +3422,7 @@ class XMLController extends BaseController
                                 if(isset($arr1['lsv']['code'])){
                                     $newKey .= $arr1['lsv']['code'];
                                 }
-                                $xml['onlineQuantity'][$newKey] = $arr1; 
+                                $xml['onlineQuantity'][$newKey] = $arr1;
                                 unset($xml['onlineQuantity'][$k1]);
                             }
                         }
@@ -3306,7 +3433,7 @@ class XMLController extends BaseController
                                 //echo($k1.' = Key <br>');
                                 if (isset($arr1['country']['code'])){
                                     $newKey = $arr1['country']['code'];
-                                    $xml['quantity'][$newKey] = $arr1; 
+                                    $xml['quantity'][$newKey] = $arr1;
                                     unset($xml['quantity'][$k1]);
                                 }
                             }
@@ -3317,7 +3444,7 @@ class XMLController extends BaseController
                                 //echo($k1.' = Key <br>');
                                 if (isset($arr1['country']['code'])){
                                     $newKey = $arr1['country']['code'];
-                                    $xml['quantityPerCountry'][$newKey] = $arr1; 
+                                    $xml['quantityPerCountry'][$newKey] = $arr1;
                                     unset($xml['quantityPerCountry'][$k1]);
                                 }
                             }
@@ -3328,7 +3455,7 @@ class XMLController extends BaseController
                                 //echo($k1.' = Key <br>');
                                 if(isset($arr1['styleNo'])){
                                     $newKey = $arr1['styleNo'];
-                                    $xml['onlineQuantity'][$newKey] = $arr1; 
+                                    $xml['onlineQuantity'][$newKey] = $arr1;
                                     unset($xml['onlineQuantity'][$k1]);
                                 }
                             }
@@ -3340,7 +3467,7 @@ class XMLController extends BaseController
                                    //echo($k1.' = Key <br>');
                                    if(isset($arr1['countryCodes'])){
                                        $newKey = $arr1['countryCodes'];
-                                       $xml['assortment'][$newKey] = $arr1; 
+                                       $xml['assortment'][$newKey] = $arr1;
                                        unset($xml['assortment'][$k1]);
                                    }
                                }
@@ -3353,7 +3480,7 @@ class XMLController extends BaseController
                                        //echo($k1.' = Key <br>');
                                        if(isset($arr1['styleNo'])){
                                            $newKey = $arr1['styleNo'];
-                                           $xml['style'][$newKey] = $arr1; 
+                                           $xml['style'][$newKey] = $arr1;
                                            unset($xml['style'][$k1]);
                                        }
                                    }
@@ -3366,7 +3493,7 @@ class XMLController extends BaseController
                                     //echo($k1.' = Key <br>');
                                     if(isset($arr1['code'])){
                                         $newKey = $arr1['code'];
-                                        $xml['lsv'][$newKey] = $arr1; 
+                                        $xml['lsv'][$newKey] = $arr1;
                                         unset($xml['lsv'][$k1]);
                                     }
                                 }
@@ -3386,7 +3513,7 @@ class XMLController extends BaseController
                                         $key2 = $arr1['lsv']['code'];
                                     }
                                     $newKey = $key1 . $key2;
-                                    $xml['articleEan'][$newKey] = $arr1; 
+                                    $xml['articleEan'][$newKey] = $arr1;
                                     unset($xml['articleEan'][$k1]);
                                 }
                                 $this->prepareTree($xml['articleEan']);
@@ -3399,7 +3526,7 @@ class XMLController extends BaseController
             }
         }
         return $xml;
-    }  
+    }
     private function compare($new, $old) {
         $aCmpNew = $this->prepareTree($new);
         $aCmpOld = $this->prepareTree($old);
@@ -3472,7 +3599,7 @@ class XMLController extends BaseController
             $musNo = (int) substr($sectionNo,2,2);
             //echo("Sec: $sectionNo");
             //echo("theme: $themeNo");
-            cpcDebug::cpc_debug("calcTempLT: $sectionNo, $themeNo, $y, $w, $musNo", '-MinLT');
+            //cpcDebug::cpc_debug("calcTempLT: $sectionNo, $themeNo, $y, $w, $musNo", '-MinLT');
             //calcTempLT: 2604, 4.1, 26, 4, 4
             if ($musNo  == 7){
                 if ($w < 46){
@@ -3484,16 +3611,16 @@ class XMLController extends BaseController
             }
             $w = $w -6 ;
             if ($w < 1){
-                $w = $w + 52;   
+                $w = $w + 52;
                 //$y = $y -1;
             }
             $y = 2000 + $y;
         }
         catch(Exception $e){
-            return null;    
+            return null;
         }
         //$y -=2000;
-        cpcDebug::cpc_debug("calcTempLT: Ergebnis $w, $y", '-MinLT');
+        //cpcDebug::cpc_debug("calcTempLT: Ergebnis $w, $y", '-MinLT');
         return array('Woche' => $w,'Jahr'=> $y);
     }
     private function isUSProject($pp, $ppv){
@@ -3510,13 +3637,13 @@ class XMLController extends BaseController
     private function isParent($pp){
         if ($pp->itemTypeKL == 'Parent'){
             return 1;
-        } 
+        }
         return 0;
     }
     private function isChild($pp){
         if ($pp->itemTypeKL == 'Child'){
             return 1;
-        } 
+        }
         return 0;
     }
     private function getProjectFromLinkedItems ($ppid){
@@ -3526,7 +3653,7 @@ class XMLController extends BaseController
             return '';
         }
         if (is_null($pp->itemTypeKL) and is_null($pp->PPProduktpass_linkedItemIan)){
-           $prj = $pp->PPProduktpass_IAN;        
+           $prj = $pp->PPProduktpass_IAN;
         } else {
             if (!is_null($pp->itemTypeKL)){
                 if ($pp->itemTypeKL == 'Parent'){
@@ -3547,7 +3674,7 @@ class XMLController extends BaseController
                         $childItems = $this->getChildItems($pp->PPProduktpass_linkedItemIan, $pp->PPProduktpass_linkedItemLotNo);
                         if ($childItems != ''){
                             $childItems = '+' .$childItems;
-                        } 
+                        }
                         $prj = $pp->PPProduktpass_linkedItemIan  . $childItems . '+' .  $pp->PPProduktpass_IAN;
                     } else {
                         $prj = $pp->PPProduktpass_IAN .  '+' . $pp->PPProduktpass_linkedItemIan;
@@ -3560,7 +3687,7 @@ class XMLController extends BaseController
         return $prj;
     }
     private function getUSProject($ian, $lotno){
-        $prj= '';	
+        $prj= '';
         $linkedItem  = DB::table('v_LinkedItems')->where('PPProduktpass_IAN', '=', $ian)->where('PPProduktpass_Ausmusterungnummer','like', $lotno.'%')->first();
         if ($linkedItem){
             if ($linkedItem->itemTypeKL == 'Child'){
@@ -3573,8 +3700,8 @@ class XMLController extends BaseController
             $UsItem  = DB::table('v_LinkedItems')->where('PPProduktpass_continentType', '=', 'US')->where('PPProduktpass_linkedItemIan', 'like', $parentIAN)->where('PPProduktpass_linkedItemLotNo','like', $parentLotNo)->first();
             if ($UsItem){
                 $prj = '+'.$UsItem->PPProduktpass_IAN;
-            }       
-        } 
+            }
+        }
         return $prj;
     }
     private function getParentItem ($ian, $lotno){
@@ -3614,9 +3741,9 @@ class XMLController extends BaseController
                 if ($pp){
                     $prjIds[] = $pp->PPProduktpass_Id;
                 }
-            } 
+            }
             return $prjIds;
-        } 
+        }
         return false;
     }
     private function setProjectFromLinkedItems ($ppid){
@@ -3661,5 +3788,314 @@ class XMLController extends BaseController
         $Sals = $xml->getSALs();
         View::share('SALs', $Sals);
         return View::make('main', $data);
+    }
+    public function schwarzOrder($input_file): int {
+        return $this->_importXML($input_file, false, false, null, 'MUSTERUNG', 'f.keppel@compecon.de', true);
+    }
+    // Fehlerbehebung LSV String zu kurz
+    public function correctLSV(string $xmlFile, $knoten ='//lsvs/lsv'): void
+    {
+        //die('ICH BIN IN correctLSV');
+        $path = '/var/www/targa/public/data/import/XML';
+        if ($xmlFile === null) {
+            throw new RuntimeException("Kein XML-Dateiname angegeben.");
+        }
+        $xmlFile = $path.'/'.$xmlFile;
+        if (!file_exists($xmlFile)) {
+            throw new RuntimeException("XML-Datei nicht gefunden: " . $xmlFile);
+        }
+        $xml = simplexml_load_file($xmlFile);
+        if ($xml === false) {
+            throw new RuntimeException("XML-Datei konnte nicht gelesen werden.");
+        }
+        // IAN suchen – unabhängig davon, wo der Knoten im XML liegt
+        $ianNodes = $xml->xpath('//ian');
+        if (empty($ianNodes)) {
+            throw new RuntimeException("Kein ian-Knoten gefunden.");
+        }
+        $ian = trim((string)$ianNodes[0]);
+        $selectionNode = $xml->xpath('//selectionNo')[0] ?? null;
+        $ausm = trim((string)$selectionNode);
+        // Alle <lsv>-Knoten auslesen
+        $nodes = $xml->xpath($knoten);
+        if (empty($nodes)) {
+            echo('Keine ' . $knoten . ' - Knoten in XML-Datei gefunden. Bitte überprüfen Sie die Datei.<br>');
+            return;
+            //throw new RuntimeException("Keine lsv-Knoten gefunden.");
+        }
+        $i=0;
+        foreach ($nodes as $node) {
+            /*if (!isset($lsv->code)) {
+                continue;
+            }
+            $lsvs[$i++] = array(
+                'code' => trim((string)$lsv->code),
+                'countryCodes' => trim((string)$lsv->countryCodes),
+                'countryBlockNames' => trim((string)$lsv->countryBlockNames),
+                'countryNames' => trim((string)$lsv->countryNames),
+                'name' => trim((string)$lsv->name)
+            );
+            //$this->processIanCountryCodes($ian, $ausm, $lsvs); */
+        }
+    }
+    /**
+     * Deine eigentliche Verarbeitungsfunktion
+     */
+    private function processIanCountryCodes(string $ian, string $ausm, array $lsvs): void
+    {
+        echo "IAN: " . $ian ."_" . substr($ausm, 0, 4) . '  => PPID: ';
+        $pp = tPPProduktpass::where('PPProduktpass_IAN', '=', $ian)->where('PPProduktpass_Ausmusterungnummer', 'like', $ausm . '%')->first();
+        if (!$pp){
+            echo(' nicht gefunden!<br>');
+            return;
+        }
+        echo  $pp->PPProduktpass_Id . '<br>';
+        $ppid = $pp->PPProduktpass_Id;
+        foreach ($lsvs as  $details) {
+            echo('code:'.$details['code'].'  name:'.$details['name'].'<br>');
+            $dsLSV = PPLsv::where('PPLsv_PPProduktpass_Id', '=', $ppid)
+                            ->where('PPLsv_Code', '=', $details['code'])
+                            ->where('PPLsv_name', '=', $details['name'])
+                            ->get()->first();
+            if (!$dsLSV){
+                echo(' ERROR!  nicht gefunden!<br>');
+                continue;
+            } else {
+                $found = false;
+                echo(' gefunden => TEST!<br>');
+                //echo('DB Länge CountryCodes: '.strlen(trim($dsLSV->PPLsv_countryCodes)).'  Länge CountryNames: '.strlen(trim($dsLSV->PPLsv_countryNames)).'<br>');
+                //echo('   Länge CountryCodes: '.strlen(trim($details['countryCodes'])).' Länge CountryNames: '.strlen(trim($details['countryNames'])).'<br>');
+                if(strlen(trim($dsLSV->PPLsv_countryCodes)) != strlen(trim($details['countryCodes']))){
+                    echo('Länge CountryCodes stimmt nicht überein! '.strlen(trim($dsLSV->PPLsv_countryCodes)).' != '.strlen(trim($details['countryCodes'])).'<br>');
+                    echo(trim($dsLSV->PPLsv_countryCodes).'<br>'.trim($details['countryCodes']).'<br>');
+                    $found = true;
+                    $dsLSV->PPLsv_countryCodes = trim($details['countryCodes']);
+                    //echo('LSV: '.$details['code'].'_'.$details['name'].' Länge CountryCodes: '.strlen($dsLSV->PPLsv_countryCodes).' != '.strlen($details['countryCodes']).'<br>');
+                } else {
+                    echo('Länge CountryCodes stimmt überein!<br>');
+                }
+                if(strlen(trim($dsLSV->PPLsv_countryNames)) != strlen(trim($details['countryNames']))){
+                    echo('Länge CountryNames stimmt nicht überein! '.strlen(trim($dsLSV->PPLsv_countryNames)).' != '.strlen(trim($details['countryNames'])).'<br>');
+                    echo(trim($dsLSV->PPLsv_countryNames).'<br>'.trim($details['countryNames']).'<br>');
+                    $found = true;
+                    $dsLSV->PPLsv_countryNames = trim($details['countryNames']);
+                    //echo('LSV: '.$details['code'].'_'.$details['name'].' Länge CountryBlockNames: '.strlen($dsLSV->PPLsv_countryNames).' != '.strlen($details['countryBlockNames']).'<br>');
+                } else {
+                    echo('Länge CountryNames stimmt überein!<br>');
+                }
+                if ($found){
+                    echo('LSV: code:'.$details['code'].' name:'.$details['name'].' wurde aktualisiert!<br><br>');
+                    $dsLSV->save();
+                } else {
+                    echo('LSV: code:'.$details['code'].' name:'.$details['name'].' ist korrekt!<br><br>');
+                }
+            }
+        }
+    }
+    public function getLatestXMLFiles(){
+        //die('ICH BIN IN getLatestXMLFiles');
+        $pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%ev%')->where('PPProduktpass_Ausmusterungnummer', 'like', '2504%')
+            ->whereIn('InternerStatus', ['FIX', 'GELIEFERT'])
+            ->get();
+        foreach($pps as $pp){
+            echo($pp->PPProduktpass_IAN.'_'.$pp->PPProduktpass_Ausmusterungnummer.'  => PPID: '.$pp->PPProduktpass_Id.' Status: '.$pp->InternerStatus.'<br>');
+            $file   = PPPPFiles::where('PPPPFiles_Type', '=', 'PPUpload')
+                ->where('PPPPFiles_TPTFilenameOld', 'like', '%xml')
+                ->where('PPPPFiles_PPProduktpass_Id', '=', $pp->PPProduktpass_Id)
+                ->where('PPPPFiles_Status', '=', 1)
+                ->orderBy('PPPPFiles_Date', 'desc')
+                ->get()->first();
+            if ($file) {
+                echo('PPPPFiles_Id: '.$file->PPPPFiles_Id.'  PPPPFiles_Type: '.$file->PPPPFiles_Type.'  PPPPFiles_TPTFilenameOld: '.$file->PPPPFiles_TPTFilenameOld.'<br>');
+                //$this->correctLSV($file->PPPPFiles_TPTFilenameOld, 'q');
+            }
+        }
+    }
+    public function cleanupAllPPLsvCountryCodes(){
+          $pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%ev%')->whereIn('InternerStatus', ['PLAN', 'FIX', 'GELIEFERT'])->get();
+            foreach ($pps as $pp) {
+                echo('Bereinige LSV für Produktpass-ID: ' . $pp->PPProduktpass_Id . '<br>');
+                $this->cleanupPPLsvCountryCodes($pp->PPProduktpass_Id);
+            }
+    }
+    public function cleanupPPLsvCountryCodes(){
+        $ppid = Input::get('ppid');
+        $pp = tPPProduktpass::where('PPProduktpass_Id', '=', $ppid)->first();
+        if ($pp) {
+            echo('Bereinige LSV für Produktpass-ID: ' . $pp->PPProduktpass_Id . '<br>');
+            $this->_cleanupPPLsvCountryCodes($pp->PPProduktpass_Id);
+        } else {
+            echo('Produktpass nicht gefunden!<br>');
+        }
+    }
+    private function _cleanupPPLsvCountryCodes($produktpassId)
+    {
+        $rows = DB::table('PPLsv')
+            ->where('PPLsv_PPProduktpass_Id', $produktpassId)
+            ->get();
+        /*
+        * CountryCodes vorbereiten und Anzahl ermitteln
+        */
+        $data = array();
+        foreach ($rows as $row) {
+            if (empty($row->PPLsv_countryCodes)) {
+                continue;
+            }
+            $codes = array_filter(array_map(
+                'trim',
+                explode(',', $row->PPLsv_countryCodes)
+            ));
+            $data[] = array(
+                'row'   => $row,
+                'codes' => $codes,
+                'count' => count($codes)
+            );
+        }
+        /*
+        * Nach ANZAHL der Codes sortieren:
+        * wenigste Codes zuerst
+        */
+        usort($data, function ($a, $b) {
+            if ($a['count'] == $b['count']) {
+                return 0;
+            }
+            return ($a['count'] < $b['count']) ? -1 : 1;
+        });
+        /*
+        * Codes aus Datensätzen mit WENIGER CountryCodes
+        */
+        $usedCodes = array();
+        $currentCount = null;
+        $codesOfCurrentGroup = array();
+        foreach ($data as $item) {
+            $row   = $item['row'];
+            $codes = $item['codes'];
+            $count = $item['count'];
+            /*
+            * Neue Gruppe beginnt.
+            *
+            * Erst jetzt werden die Codes der vorherigen Gruppe
+            * übernommen.
+            *
+            * Dadurch beeinflussen sich Datensätze mit gleicher
+            * Anzahl CountryCodes NICHT gegenseitig.
+            */
+            if ($currentCount !== null && $count != $currentCount) {
+                foreach ($codesOfCurrentGroup as $code => $dummy) {
+                    $usedCodes[$code] = true;
+                }
+                $codesOfCurrentGroup = array();
+            }
+            $currentCount = $count;
+            $newCodes = array();
+            foreach ($codes as $code) {
+                /*
+                * Code nur entfernen, wenn er bereits in einem
+                * Datensatz mit WENIGER Codes vorkommt.
+                */
+                if (!isset($usedCodes[$code])) {
+                    $newCodes[] = $code;
+                }
+                $codesOfCurrentGroup[$code] = true;
+            }
+            $newValue = implode(',', $newCodes);
+            if ($newValue != $row->PPLsv_countryCodes) {
+                Log::info('PPLsv CountryCodes werden bereinigt', array(
+                    'produktpass_id'   => $produktpassId,
+                    'PPLsv_Id'         => $row->PPLsv_Id,
+                    'code_count'       => $count,
+                    'old_countryCodes' => $row->PPLsv_countryCodes,
+                    'new_countryCodes' => $newValue,
+                    'original_row'     => (array) $row
+                ));
+                DB::table('PPLsv')
+                    ->where('PPLsv_Id', $row->PPLsv_Id)
+                    ->update(array(
+                        'PPLsv_countryCodes' => $newValue
+                    ));
+            }
+        }
+        //echo "Bereinigung abgeschlossen.";
+    }
+    private function cleanupPPXMLOSMengenDuplicates($produktpassId )
+    {
+        // Datensätze des Produktpasses laden.
+        // Niedrigste ID bleibt bestehen, höhere Dubletten werden gelöscht.
+        $rows = DB::table('PPXML_OSMengen')
+            ->where('PPXML_OSMengen_PPProduktpass_Id', $produktpassId)
+            ->orderBy('PPXML_OSMengen_Id', 'asc')
+            ->get();
+        $seen = array();
+        foreach ($rows as $row) {
+            /*
+            * Eindeutigen Schlüssel aus allen fachlich relevanten
+            * Feldern bilden.
+            *
+            * PPXML_OSMengen_Id wird bewusst NICHT verwendet.
+            */
+            $key = implode('|', array(
+                $row->PPXML_OSMengen_lsv,
+                $row->PPXML_OSMengen_styleNo,
+                $row->PPXML_OSMengen_productName,
+                $row->PPXML_OSMengen_country,
+                $row->PPXML_OSMengen_value,
+                $row->PPXML_OSMengen_PPProduktpass_Id,
+                $row->PPXML_OSMengen_sizeName,
+                $row->PPXML_OSMengen_GTIN,
+                $row->PPXML_OSMengen_GTINKL,
+                $row->PPXML_OSMengen_DeliveryNo
+            ));
+            // Noch nicht vorhanden -> Datensatz merken
+            if (!isset($seen[$key])) {
+                $seen[$key] = $row->PPXML_OSMengen_Id;
+                continue;
+            }
+            /*
+            * Dublette gefunden.
+            *
+            * $seen[$key] enthält die ID des Datensatzes,
+            * der erhalten bleibt.
+            */
+            $originalId = $seen[$key];
+            // ---------------------------------------------------------
+            // PROTOKOLLIEREN
+            // ---------------------------------------------------------
+             Log::info('PPXML_OSMengen Dublette wird gelöscht', array(
+            'original_id' => $originalId,
+            'duplicate'   => (array) $row
+        ));
+            // ---------------------------------------------------------
+            // DUBLETTE LÖSCHEN
+            // ---------------------------------------------------------
+            DB::table('PPXML_OSMengen')
+                ->where('PPXML_OSMengen_Id', $row->PPXML_OSMengen_Id)
+                ->delete();
+        }
+    }
+    public function cleanDoubletten()
+    {
+        // Hier die Produktpass-ID einfügen, die bereinigt werden soll
+        //$produktpassId = 16972;
+        $produktpassId = Input::get('ppid');
+        if (empty($produktpassId)) {
+            return 'Fehler: Parameter ppid fehlt.';
+        }
+        if (strtolower($produktpassId) === 'all') {
+            $pps = tPPProduktpass::where('PPProduktpass_IAN', 'not like', '%ev%')
+                ->get();
+            foreach ($pps as $pp) {
+                echo('Bereinige Dubletten für Produktpass-ID: ' . $pp->PPProduktpass_Id . '<br>');
+                $this->cleanupPPXMLOSMengenDuplicates($pp->PPProduktpass_Id);
+            }
+        } else {
+            $this->cleanupPPXMLOSMengenDuplicates($produktpassId);
+        }
+        // $this->cleanupPPXMLOSMengenDuplicates($produktpassId); // Entfernt, da bereits oben für 'All' oder spezifische ID aufgerufen
+        echo "Bereinigung der Dubletten abgeschlossen.";
+    }
+     private function cleanDuplicates($produktpassId)
+    {
+        $this->cleanupPPXMLOSMengenDuplicates($produktpassId);
+        $this->_cleanupPPLsvCountryCodes($produktpassId);
     }
 }

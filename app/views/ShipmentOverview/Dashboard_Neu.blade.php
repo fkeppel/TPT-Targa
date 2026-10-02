@@ -279,7 +279,7 @@
 <div class="container">
     <div class="filter-bar" role="region" aria-label="Filter">
         <div class="filter-field">
-            <label for="filter-ian">Filter IAN!</label>
+            <label for="filter-ian">Filter IAN</label>
             <input id="filter-ian" type="text" placeholder="z.B. 12345…" autocomplete="off">
         </div>
         <div class="filter-field">
@@ -292,7 +292,7 @@
         </div>
         <div class="filter-actions">
             <button type="button" class="btn" id="filter-reset">Reset</button>
-            <a href="{{ URL::to('/shipFlat') }}" class="btn">Flat View</a>
+            <a href="{{ URL::to('/shipFlat') }}" class="btn">Flat ViewX</a>
         </div>
         <div class="muted" id="filter-count" aria-live="polite"></div>
     </div>
